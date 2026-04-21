@@ -1,15 +1,20 @@
+import { useState } from "react";
 import Header from "@/components/Header";
-import Hero from "@/components/Hero";
+import AdBanner from "@/components/AdBanner";
+import SearchSection from "@/components/SearchSection";
 import RankingSection from "@/components/RankingSection";
 import Footer from "@/components/Footer";
 
 const Index = () => {
+  const [showRanking, setShowRanking] = useState(false);
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       <main className="flex-1">
-        <Hero />
-        <RankingSection />
+        <AdBanner />
+        <SearchSection onSearch={() => setShowRanking(true)} />
+        {showRanking && <RankingSection />}
       </main>
       <Footer />
     </div>
