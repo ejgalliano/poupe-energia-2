@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Home, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,30 +9,60 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { STATES, getDistributors } from "@/data/states";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Estado {
+  id: number;
+  sigla: string;
+  nome: string;
+}
+interface Distribuidora {
+  id: string;
+  nome: string;
+  estado_id: number;
+}
 
 interface Props {
-  onSearch: () => void;
+  onSearch: (distribuidoraId: string, distribuidoraNome: string) => void;
 }
 
 type Profile = "home" | "business";
 
 const SearchSection = ({ onSearch }: Props) => {
   const [profile, setProfile] = useState<Profile>("home");
-  const [state, setState] = useState<string>("");
-  const [distributor, setDistributor] = useState<string>("");
+  const [estados, setEstados] = useState<Estado[]>([]);
+  const [distribuidoras, setDistribuidoras] = useState<Distribuidora[]>([]);
+  const [estadoId, setEstadoId] = useState<string>("");
+  const [distribuidoraId, setDistribuidoraId] = useState<string>("");
   const [accepted, setAccepted] = useState(false);
 
-  const distributors = useMemo(
-    () => (state ? getDistributors(state) : []),
-    [state],
-  );
+  useEffect(() => {
+    supabase
+      .from("estados")
+      .select("*")
+      .order("sigla")
+      .then(({ data }) => setEstados(data ?? []));
+  }, []);
 
-  const canSubmit = state && distributor && accepted;
+  useEffect(() => {
+    if (!estadoId) {
+      setDistribuidoras([]);
+      return;
+    }
+    supabase
+      .from("distribuidoras")
+      .select("*")
+      .eq("estado_id", Number(estadoId))
+      .order("nome")
+      .then(({ data }) => setDistribuidoras(data ?? []));
+  }, [estadoId]);
+
+  const canSubmit = estadoId && distribuidoraId && accepted;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
-    onSearch();
+    const dist = distribuidoras.find((d) => d.id === distribuidoraId);
+    onSearch(distribuidoraId, dist?.nome ?? "");
     setTimeout(() => {
       document
         .getElementById("ranking")
@@ -55,7 +85,7 @@ const SearchSection = ({ onSearch }: Props) => {
           <button
             onClick={() => {
               setProfile("home");
-              setDistributor("");
+              setDistribuidoraId("");
             }}
             className={`flex-1 flex items-center justify-center gap-2 pb-3 text-sm md:text-base font-bold transition relative ${
               profile === "home"
@@ -72,7 +102,7 @@ const SearchSection = ({ onSearch }: Props) => {
           <button
             onClick={() => {
               setProfile("business");
-              setDistributor("");
+              setDistribuidoraId("");
             }}
             className={`flex-1 flex items-center justify-center gap-2 pb-3 text-sm md:text-base font-bold transition relative ${
               profile === "business"
@@ -95,19 +125,19 @@ const SearchSection = ({ onSearch }: Props) => {
               Seu Estado:
             </label>
             <Select
-              value={state}
+              value={estadoId}
               onValueChange={(v) => {
-                setState(v);
-                setDistributor("");
+                setEstadoId(v);
+                setDistribuidoraId("");
               }}
             >
               <SelectTrigger className="rounded-xl h-12 bg-background border-border">
                 <SelectValue placeholder="Selecione seu estado" />
               </SelectTrigger>
               <SelectContent className="max-h-72">
-                {STATES.map((s) => (
-                  <SelectItem key={s.uf} value={s.uf}>
-                    {s.uf} — {s.name}
+                {estados.map((s) => (
+                  <SelectItem key={s.id} value={String(s.id)}>
+                    {s.sigla} — {s.nome}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -119,21 +149,23 @@ const SearchSection = ({ onSearch }: Props) => {
               Sua Distribuidora:
             </label>
             <Select
-              value={distributor}
-              onValueChange={setDistributor}
-              disabled={!state}
+              value={distribuidoraId}
+              onValueChange={setDistribuidoraId}
+              disabled={!estadoId}
             >
               <SelectTrigger className="rounded-xl h-12 bg-background border-border disabled:opacity-60">
                 <SelectValue
                   placeholder={
-                    state ? "Selecione a distribuidora" : "Escolha um estado primeiro"
+                    estadoId
+                      ? "Selecione a distribuidora"
+                      : "Escolha um estado primeiro"
                   }
                 />
               </SelectTrigger>
               <SelectContent>
-                {distributors.map((d) => (
-                  <SelectItem key={d} value={d}>
-                    {d}
+                {distribuidoras.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.nome}
                   </SelectItem>
                 ))}
               </SelectContent>

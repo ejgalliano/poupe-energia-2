@@ -14,7 +14,228 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      banners: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          empresa_id: string | null
+          id: string
+          imagem_url: string
+          link_url: string | null
+          ordem: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          empresa_id?: string | null
+          id?: string
+          imagem_url: string
+          link_url?: string | null
+          ordem?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          empresa_id?: string | null
+          id?: string
+          imagem_url?: string
+          link_url?: string | null
+          ordem?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banners_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      distribuidoras: {
+        Row: {
+          estado_id: number
+          id: string
+          nome: string
+        }
+        Insert: {
+          estado_id: number
+          id?: string
+          nome: string
+        }
+        Update: {
+          estado_id?: number
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distribuidoras_estado_id_fkey"
+            columns: ["estado_id"]
+            isOneToOne: false
+            referencedRelation: "estados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      empresas: {
+        Row: {
+          ativa: boolean
+          cashback_percentual: number
+          created_at: string
+          id: string
+          logo_url: string | null
+          nome: string
+          parceira: boolean
+          site_url: string | null
+          tipo: string
+        }
+        Insert: {
+          ativa?: boolean
+          cashback_percentual?: number
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          nome: string
+          parceira?: boolean
+          site_url?: string | null
+          tipo: string
+        }
+        Update: {
+          ativa?: boolean
+          cashback_percentual?: number
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          nome?: string
+          parceira?: boolean
+          site_url?: string | null
+          tipo?: string
+        }
+        Relationships: []
+      }
+      estados: {
+        Row: {
+          id: number
+          nome: string
+          sigla: string
+        }
+        Insert: {
+          id?: number
+          nome: string
+          sigla: string
+        }
+        Update: {
+          id?: number
+          nome?: string
+          sigla?: string
+        }
+        Relationships: []
+      }
+      notas_empresas: {
+        Row: {
+          desconto_percentual: number
+          distribuidora_id: string
+          empresa_id: string
+          id: string
+          nota_final: number
+          reputacao_reclame_aqui: number
+          seguranca_juridica: number
+          updated_at: string
+          valor_minimo_fatura: number
+        }
+        Insert: {
+          desconto_percentual: number
+          distribuidora_id: string
+          empresa_id: string
+          id?: string
+          nota_final?: number
+          reputacao_reclame_aqui: number
+          seguranca_juridica: number
+          updated_at?: string
+          valor_minimo_fatura: number
+        }
+        Update: {
+          desconto_percentual?: number
+          distribuidora_id?: string
+          empresa_id?: string
+          id?: string
+          nota_final?: number
+          reputacao_reclame_aqui?: number
+          seguranca_juridica?: number
+          updated_at?: string
+          valor_minimo_fatura?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notas_empresas_distribuidora_id_fkey"
+            columns: ["distribuidora_id"]
+            isOneToOne: false
+            referencedRelation: "distribuidoras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notas_empresas_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scorecard_sj: {
+        Row: {
+          aviso_previo_90_dias: boolean
+          boa_fe_objetiva: boolean
+          conformidade_lei_14300: boolean
+          creditos_scee_rescisao: boolean
+          equilibrio_contratual_cdc: boolean
+          foro_consumidor: boolean
+          id: string
+          limites_multa: boolean
+          nota_empresa_id: string
+          protecao_dados_lgpd: boolean
+          responsabilidade_injecao: boolean
+          transparencia_tarifaria: boolean
+        }
+        Insert: {
+          aviso_previo_90_dias?: boolean
+          boa_fe_objetiva?: boolean
+          conformidade_lei_14300?: boolean
+          creditos_scee_rescisao?: boolean
+          equilibrio_contratual_cdc?: boolean
+          foro_consumidor?: boolean
+          id?: string
+          limites_multa?: boolean
+          nota_empresa_id: string
+          protecao_dados_lgpd?: boolean
+          responsabilidade_injecao?: boolean
+          transparencia_tarifaria?: boolean
+        }
+        Update: {
+          aviso_previo_90_dias?: boolean
+          boa_fe_objetiva?: boolean
+          conformidade_lei_14300?: boolean
+          creditos_scee_rescisao?: boolean
+          equilibrio_contratual_cdc?: boolean
+          foro_consumidor?: boolean
+          id?: string
+          limites_multa?: boolean
+          nota_empresa_id?: string
+          protecao_dados_lgpd?: boolean
+          responsabilidade_injecao?: boolean
+          transparencia_tarifaria?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scorecard_sj_nota_empresa_id_fkey"
+            columns: ["nota_empresa_id"]
+            isOneToOne: false
+            referencedRelation: "notas_empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
