@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
+import BackToTop from "@/components/BackToTop";
 import { Button } from "@/components/ui/button";
 
 const sjItems = [
@@ -80,6 +82,10 @@ const principios = [
 const ComoCalculamos = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="Como Calculamos o Ranking | Poupe Energia"
+        description="Metodologia técnica e transparente do ranking Poupe Energia: 4 pilares com pesos definidos."
+      />
       <Header />
 
       {/* Hero */}
@@ -290,6 +296,7 @@ const ComoCalculamos = () => {
       </main>
 
       <Footer />
+      <BackToTop />
     </div>
   );
 };

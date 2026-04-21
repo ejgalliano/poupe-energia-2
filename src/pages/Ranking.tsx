@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import SEO from "@/components/SEO";
+import BackToTop from "@/components/BackToTop";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface Estado {
   id: number;
@@ -135,8 +138,17 @@ const Ranking = () => {
     setEmail("");
   };
 
+  const seoTitle =
+    estadoAtual && distribuidoraAtual
+      ? `Ranking de Comercializadoras — ${estadoAtual.nome} / ${distribuidoraAtual.nome} | Poupe Energia`
+      : "Ranking de Comercializadoras | Poupe Energia";
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title={seoTitle}
+        description="Ranking transparente das melhores comercializadoras de energia para sua distribuidora."
+      />
       <Header />
 
       {/* Filtros sticky */}
@@ -197,17 +209,16 @@ const Ranking = () => {
           </header>
 
           <div className="max-w-4xl mx-auto flex flex-col gap-5">
-            {loading && (
-              <p className="text-center text-muted-foreground">
-                Carregando ofertas...
-              </p>
-            )}
+            {loading && <LoadingSpinner label="Carregando ofertas..." />}
 
             {!loading && companies.length === 0 && distribuidoraId && (
               <div className="bg-white border border-border rounded-xl p-8 text-center max-w-xl mx-auto shadow-sm">
-                <p className="text-brand-blue font-semibold mb-5">
-                  Em breve teremos empresas disponíveis para sua região. Deixe
-                  seu contato e te avisamos!
+                <p className="text-brand-blue font-semibold mb-2 text-lg">
+                  Ainda não temos empresas para essa distribuidora 😕
+                </p>
+                <p className="text-muted-foreground mb-5 text-sm">
+                  Em breve teremos ofertas para sua região. Deixe seu contato e
+                  te avisamos!
                 </p>
                 <form
                   onSubmit={handleNotify}
@@ -249,6 +260,7 @@ const Ranking = () => {
       </main>
 
       <Footer />
+      <BackToTop />
     </div>
   );
 };

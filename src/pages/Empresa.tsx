@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
+import BackToTop from "@/components/BackToTop";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -145,8 +148,8 @@ const Empresa = () => {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <main className="flex-1 container mx-auto px-4 py-16 text-center text-muted-foreground">
-          Carregando empresa...
+        <main className="flex-1">
+          <LoadingSpinner label="Carregando empresa..." />
         </main>
         <Footer />
       </div>
@@ -221,6 +224,14 @@ const Empresa = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
+      <SEO
+        title={`${empresa.nome} — Ficha Técnica e Avaliação | Poupe Energia`}
+        description={
+          empresa.parecer_tecnico
+            ? String(empresa.parecer_tecnico).slice(0, 160)
+            : `Ficha técnica completa de ${empresa.nome}: desconto, segurança jurídica, reputação e guia de cancelamento.`
+        }
+      />
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
@@ -632,6 +643,7 @@ const Empresa = () => {
       </main>
 
       <Footer />
+      <BackToTop />
     </div>
   );
 };

@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
+import BackToTop from "@/components/BackToTop";
 import { Button } from "@/components/ui/button";
 
 const missao = [
@@ -62,6 +64,10 @@ const numeros = [
 const Sobre = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="Sobre o Poupe Energia | Comparador de Energia"
+        description="Startup brasileira de energias renováveis. Conheça a missão, pilares e valores do Poupe Energia."
+      />
       <Header />
 
       {/* Hero */}
@@ -312,6 +318,7 @@ const Sobre = () => {
       </main>
 
       <Footer />
+      <BackToTop />
     </div>
   );
 };
