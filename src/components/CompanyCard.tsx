@@ -1,5 +1,7 @@
 import { Zap, FileText, ShieldCheck } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { slugify } from "@/lib/slug";
 
 export interface Company {
   rank: number;
@@ -23,6 +25,10 @@ const ordinal = (n: number) => `${n}º`;
 const CompanyCard = ({ company }: Props) => {
   const isTop1 = company.rank === 1;
   const initial = company.name.trim().charAt(0).toUpperCase();
+  const [searchParams] = useSearchParams();
+  const detailHref = `/empresa/${slugify(company.name)}${
+    searchParams.toString() ? `?${searchParams.toString()}` : ""
+  }`;
 
   const metrics = [
     { label: "Desconto Inicial", value: company.discount },
@@ -71,10 +77,13 @@ const CompanyCard = ({ company }: Props) => {
                   {company.distribuidora}
                 </span>
               )}
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md">
+              <Link
+                to={detailHref}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
+              >
                 <FileText className="h-3 w-3" />
-                Ficha Técnica
-              </span>
+                Saiba mais
+              </Link>
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-brand-blue/10 text-brand-blue px-2 py-0.5 rounded-md">
                 <ShieldCheck className="h-3 w-3" />
                 Risco Baixo
