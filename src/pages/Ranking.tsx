@@ -114,6 +114,8 @@ const Ranking = () => {
           partner: Boolean(row.empresas?.parceira),
           estado: estadoSigla,
           distribuidora: distribuidoraAtual?.nome,
+          empresaId: row.empresa_id,
+          distribuidoraId: distribuidoraId,
         }));
         setCompanies(mapped);
         setLoading(false);
