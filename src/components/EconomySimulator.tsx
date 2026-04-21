@@ -64,7 +64,9 @@ const EconomySimulator = ({
   const [loading, setLoading] = useState(false);
 
   const handleAderir = async () => {
+    console.log("[CTA Aderir Simulador] click", { companyName, empresaId });
     if (!empresaId) return;
+    const newWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
     setLoading(true);
     try {
       const url = await trackLeadAndGetUrl({
@@ -73,7 +75,10 @@ const EconomySimulator = ({
         estadoSigla,
         evento: "clique_aderir",
       });
-      if (url) window.open(url, "_blank", "noopener,noreferrer");
+      console.log("[CTA Aderir Simulador] url resolvida:", url);
+      if (url && newWindow) newWindow.location.href = url;
+      else if (url) window.location.href = url;
+      else if (newWindow) newWindow.close();
     } finally {
       setLoading(false);
     }

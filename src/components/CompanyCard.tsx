@@ -43,11 +43,20 @@ const CompanyCard = ({ company }: Props) => {
   }`;
 
   const handleAderir = async () => {
+    console.log("[CTA Aderir] click", {
+      empresa: company.name,
+      empresaId: company.empresaId,
+      distribuidoraId: company.distribuidoraId,
+      estado: company.estado,
+    });
     if (!company.empresaId) {
       // fallback: abre simulador se não tiver id (não deveria acontecer)
       setSimOpen(true);
       return;
     }
+    // Abre a aba SINCRONAMENTE para preservar o user-gesture
+    // (evita bloqueio de popup após await).
+    const newWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
     setLoadingCta(true);
     try {
       const url = await trackLeadAndGetUrl({
@@ -56,7 +65,15 @@ const CompanyCard = ({ company }: Props) => {
         estadoSigla: company.estado,
         evento: "clique_aderir",
       });
-      if (url) window.open(url, "_blank", "noopener,noreferrer");
+      console.log("[CTA Aderir] url resolvida:", url);
+      if (url && newWindow) {
+        newWindow.location.href = url;
+      } else if (url) {
+        // popup bloqueado — fallback navegação na mesma aba
+        window.location.href = url;
+      } else if (newWindow) {
+        newWindow.close();
+      }
     } finally {
       setLoadingCta(false);
     }

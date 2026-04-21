@@ -621,14 +621,19 @@ const Empresa = () => {
 
             <Button
               onClick={async () => {
+                console.log("[CTA Aderir Empresa]", { empresaId: empresa?.id });
                 if (!empresa?.id) return;
+                const newWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
                 const url = await trackLeadAndGetUrl({
                   empresaId: empresa.id,
                   distribuidoraId: distribuidoraId || null,
                   estadoSigla: estadoSigla || null,
                   evento: "clique_aderir",
                 });
-                if (url) window.open(url, "_blank", "noopener,noreferrer");
+                console.log("[CTA Aderir Empresa] url resolvida:", url);
+                if (url && newWindow) newWindow.location.href = url;
+                else if (url) window.location.href = url;
+                else if (newWindow) newWindow.close();
               }}
               className="w-full bg-brand-success hover:bg-brand-success/90 text-white rounded-xl h-12 font-bold"
             >
