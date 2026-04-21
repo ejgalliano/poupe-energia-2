@@ -78,7 +78,7 @@ const Ranking = () => {
     [distribuidoras, distribuidoraId]
   );
 
-  // Carrega ranking
+  // Carrega ranking (recalcula em tempo real e persiste no banco)
   useEffect(() => {
     if (!distribuidoraId) {
       setCompanies([]);
@@ -86,15 +86,17 @@ const Ranking = () => {
       return;
     }
     setLoading(true);
-    supabase
-      .from("notas_empresas")
-      .select(
-        "desconto_percentual, seguranca_juridica, reputacao_reclame_aqui, valor_minimo_fatura, nota_final, empresas(nome, parceira)"
-      )
-      .eq("distribuidora_id", distribuidoraId)
-      .order("nota_final", { ascending: false })
-      .then(({ data }) => {
-        const mapped: Company[] = (data ?? []).map((row: any, idx: number) => ({
+    supabase.functions
+      .invoke("recalc-ranking", { body: { distribuidora_id: distribuidoraId } })
+      .then(({ data, error }) => {
+        if (error) {
+          console.error(error);
+          setCompanies([]);
+          setLoading(false);
+          return;
+        }
+        const rows = (data?.rows ?? []) as any[];
+        const mapped: Company[] = rows.map((row, idx) => ({
           rank: idx + 1,
           name: row.empresas?.nome ?? "Empresa",
           discount: `${Number(row.desconto_percentual)}%`,
@@ -113,7 +115,7 @@ const Ranking = () => {
         setCompanies(mapped);
         setLoading(false);
       });
-  }, [distribuidoraId]);
+  }, [distribuidoraId, estadoSigla, distribuidoraAtual?.nome]);
 
   const handleEstadoChange = (sigla: string) => {
     setSearchParams({ estado: sigla, distribuidora: "" });
