@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Download, Pencil, Save, X } from "lucide-react";
 
 type Parceiro = {
@@ -47,6 +48,9 @@ type Lead = {
   estado_sigla: string | null;
   evento: string;
   created_at: string;
+  nome?: string | null;
+  email?: string | null;
+  telefone?: string | null;
 };
 
 const formatDateTime = (iso: string) =>
@@ -70,6 +74,7 @@ export default function Parceiros() {
   const [filterEmpresa, setFilterEmpresa] = useState<string>("all");
   const [filterEstado, setFilterEstado] = useState<string>("all");
   const [filterDistrib, setFilterDistrib] = useState<string>("all");
+  const [onlyWithContact, setOnlyWithContact] = useState(false);
 
   const loadAll = async () => {
     const [e, p, l, es, d] = await Promise.all([
@@ -139,22 +144,35 @@ export default function Parceiros() {
       if (filterEmpresa !== "all" && l.empresa_id !== filterEmpresa) return false;
       if (filterEstado !== "all" && l.estado_sigla !== filterEstado) return false;
       if (filterDistrib !== "all" && l.distribuidora_id !== filterDistrib) return false;
+      if (onlyWithContact && !(l.nome || l.email || l.telefone)) return false;
       return true;
     });
-  }, [leads, dataIni, dataFim, filterEmpresa, filterEstado, filterDistrib]);
+  }, [leads, dataIni, dataFim, filterEmpresa, filterEstado, filterDistrib, onlyWithContact]);
 
   const empresaName = (id: string) => empresas.find((e) => e.id === id)?.nome ?? "—";
   const distribName = (id: string | null) =>
     id ? distribuidoras.find((d) => d.id === id)?.nome ?? "—" : "—";
 
   const exportCSV = () => {
-    const header = ["Data/hora", "Empresa", "Estado", "Distribuidora", "Evento"];
+    const header = [
+      "Data/hora",
+      "Empresa",
+      "Estado",
+      "Distribuidora",
+      "Evento",
+      "Nome",
+      "Email",
+      "Telefone",
+    ];
     const rows = leadsFiltrados.map((l) => [
       formatDateTime(l.created_at),
       empresaName(l.empresa_id),
       l.estado_sigla ?? "",
       distribName(l.distribuidora_id),
       l.evento,
+      l.nome ?? "",
+      l.email ?? "",
+      l.telefone ?? "",
     ]);
     const csv = [header, ...rows]
       .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
@@ -402,6 +420,15 @@ export default function Parceiros() {
                   </Select>
                 </div>
               </div>
+              <label className="flex items-center gap-2 mt-3 cursor-pointer">
+                <Checkbox
+                  checked={onlyWithContact}
+                  onCheckedChange={(v) => setOnlyWithContact(v === true)}
+                />
+                <span className="text-sm">
+                  Mostrar apenas leads com dados de contato preenchidos
+                </span>
+              </label>
             </CardContent>
           </Card>
 
@@ -484,6 +511,9 @@ export default function Parceiros() {
                     <TableHead>Estado</TableHead>
                     <TableHead>Distribuidora</TableHead>
                     <TableHead>Evento</TableHead>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Telefone</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -498,11 +528,14 @@ export default function Parceiros() {
                           {l.evento}
                         </span>
                       </TableCell>
+                      <TableCell>{l.nome ?? "—"}</TableCell>
+                      <TableCell>{l.email ?? "—"}</TableCell>
+                      <TableCell>{l.telefone ?? "—"}</TableCell>
                     </TableRow>
                   ))}
                   {leadsFiltrados.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground">
                         Nenhum lead no período.
                       </TableCell>
                     </TableRow>

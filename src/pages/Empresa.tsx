@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/slug";
-import { trackLeadAndGetUrl } from "@/lib/leadTracking";
+import LeadCaptureDialog from "@/components/LeadCaptureDialog";
 
 const formatBRL = (n: number | null | undefined) =>
   n == null
@@ -93,6 +93,7 @@ const Empresa = () => {
   const [scorecard, setScorecard] = useState<any | null>(null);
   const [rankPos, setRankPos] = useState<number | null>(null);
   const [distribuidoraNome, setDistribuidoraNome] = useState<string>("");
+  const [captureOpen, setCaptureOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -620,26 +621,26 @@ const Empresa = () => {
             )}
 
             <Button
-              onClick={async () => {
-                console.log("[CTA Aderir Empresa]", { empresaId: empresa?.id });
+              onClick={() => {
                 if (!empresa?.id) return;
-                const newWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
-                const url = await trackLeadAndGetUrl({
-                  empresaId: empresa.id,
-                  distribuidoraId: distribuidoraId || null,
-                  estadoSigla: estadoSigla || null,
-                  evento: "clique_aderir",
-                });
-                console.log("[CTA Aderir Empresa] url resolvida:", url);
-                if (url && newWindow) newWindow.location.href = url;
-                else if (url) window.location.href = url;
-                else if (newWindow) newWindow.close();
+                setCaptureOpen(true);
               }}
               className="w-full bg-brand-success hover:bg-brand-success/90 text-white rounded-xl h-12 font-bold"
             >
               <Zap className="h-4 w-4 mr-2" fill="currentColor" />
               Ver plano e Aderir
             </Button>
+
+            {empresa?.id && (
+              <LeadCaptureDialog
+                open={captureOpen}
+                onOpenChange={setCaptureOpen}
+                empresaId={empresa.id}
+                empresaNome={empresa.nome}
+                distribuidoraId={distribuidoraId || null}
+                estadoSigla={estadoSigla || null}
+              />
+            )}
 
             {empresa.parceira && (
               <div className="mt-3 inline-flex w-full items-center justify-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-2 rounded-full text-xs font-bold">
