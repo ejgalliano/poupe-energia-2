@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Building2, Star, MapPin, Image, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Building2, Star, MapPin, Image, Users, LogOut, Handshake } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +10,7 @@ const items = [
   { to: "/admin/notas", label: "Notas", icon: Star },
   { to: "/admin/distribuidoras", label: "Distribuidoras", icon: MapPin },
   { to: "/admin/banners", label: "Banners", icon: Image },
+  { to: "/admin/parceiros", label: "Parceiros & Leads", icon: Handshake },
   { to: "/admin/usuarios", label: "Usuários Admin", icon: Users },
 ];
 

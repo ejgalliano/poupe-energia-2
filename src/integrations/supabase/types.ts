@@ -237,6 +237,54 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          created_at: string
+          distribuidora_id: string | null
+          empresa_id: string
+          estado_sigla: string | null
+          evento: string
+          id: string
+          ip_hash: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          distribuidora_id?: string | null
+          empresa_id: string
+          estado_sigla?: string | null
+          evento: string
+          id?: string
+          ip_hash?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          distribuidora_id?: string | null
+          empresa_id?: string
+          estado_sigla?: string | null
+          evento?: string
+          id?: string
+          ip_hash?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_distribuidora_id_fkey"
+            columns: ["distribuidora_id"]
+            isOneToOne: false
+            referencedRelation: "distribuidoras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notas_empresas: {
         Row: {
           desconto_percentual: number
@@ -286,6 +334,47 @@ export type Database = {
             foreignKeyName: "notas_empresas_empresa_id_fkey"
             columns: ["empresa_id"]
             isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parceiros_config: {
+        Row: {
+          ativo: boolean
+          comissao_percentual: number | null
+          empresa_id: string
+          id: string
+          modelo_comissao: string | null
+          observacoes: string | null
+          updated_at: string
+          url_afiliado: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          comissao_percentual?: number | null
+          empresa_id: string
+          id?: string
+          modelo_comissao?: string | null
+          observacoes?: string | null
+          updated_at?: string
+          url_afiliado?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          comissao_percentual?: number | null
+          empresa_id?: string
+          id?: string
+          modelo_comissao?: string | null
+          observacoes?: string | null
+          updated_at?: string
+          url_afiliado?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parceiros_config_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: true
             referencedRelation: "empresas"
             referencedColumns: ["id"]
           },

@@ -16,6 +16,8 @@ export interface Company {
   partner?: boolean;
   estado?: string;
   distribuidora?: string;
+  empresaId?: string;
+  distribuidoraId?: string;
 }
 
 interface Props {
@@ -150,6 +152,9 @@ const CompanyCard = ({ company }: Props) => {
         onOpenChange={setSimOpen}
         companyName={company.name}
         discountPercent={discountNumber}
+        empresaId={company.empresaId}
+        distribuidoraId={company.distribuidoraId}
+        estadoSigla={company.estado}
       />
     </article>
   );
