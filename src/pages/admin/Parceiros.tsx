@@ -108,6 +108,8 @@ export default function Parceiros() {
         modelo_comissao: "por_clique",
         observacoes: "",
         ativo: true,
+        contato_nome: "",
+        contato_email: "",
       }
     );
   };
@@ -121,7 +123,7 @@ export default function Parceiros() {
       toast.error(error.message);
       return;
     }
-    toast.success("Salvo!");
+    toast.success("Configuração do parceiro atualizada com sucesso!");
     setEditing(null);
     setForm(null);
     loadAll();
