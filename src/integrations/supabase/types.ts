@@ -285,6 +285,68 @@ export type Database = {
           },
         ]
       }
+      leads_empresariais: {
+        Row: {
+          arquivos_paths: string[] | null
+          cnpj: string
+          created_at: string
+          distribuidora_id: string | null
+          distribuidora_nome: string | null
+          email: string
+          estado_sigla: string | null
+          id: string
+          observacoes_admin: string | null
+          razao_social: string
+          responsavel_nome: string
+          status: string
+          telefone: string
+          updated_at: string
+          valor_conta: number | null
+        }
+        Insert: {
+          arquivos_paths?: string[] | null
+          cnpj: string
+          created_at?: string
+          distribuidora_id?: string | null
+          distribuidora_nome?: string | null
+          email: string
+          estado_sigla?: string | null
+          id?: string
+          observacoes_admin?: string | null
+          razao_social: string
+          responsavel_nome: string
+          status?: string
+          telefone: string
+          updated_at?: string
+          valor_conta?: number | null
+        }
+        Update: {
+          arquivos_paths?: string[] | null
+          cnpj?: string
+          created_at?: string
+          distribuidora_id?: string | null
+          distribuidora_nome?: string | null
+          email?: string
+          estado_sigla?: string | null
+          id?: string
+          observacoes_admin?: string | null
+          razao_social?: string
+          responsavel_nome?: string
+          status?: string
+          telefone?: string
+          updated_at?: string
+          valor_conta?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_empresariais_distribuidora_id_fkey"
+            columns: ["distribuidora_id"]
+            isOneToOne: false
+            referencedRelation: "distribuidoras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notas_empresas: {
         Row: {
           desconto_percentual: number
