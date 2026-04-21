@@ -170,12 +170,23 @@ const EconomySimulator = ({
           <Button
             onClick={handleAderir}
             className="w-full h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
-            disabled={valor === 0 || loading || !empresaId}
+            disabled={valor === 0 || !empresaId}
           >
-            {loading ? "Redirecionando..." : "Ver plano e Aderir"}
+            Ver plano e Aderir
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
+
+        {empresaId && (
+          <LeadCaptureDialog
+            open={captureOpen}
+            onOpenChange={setCaptureOpen}
+            empresaId={empresaId}
+            empresaNome={companyName}
+            distribuidoraId={distribuidoraId}
+            estadoSigla={estadoSigla}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
