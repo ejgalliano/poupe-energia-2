@@ -32,7 +32,13 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen flex w-full bg-muted/20">
       <aside className="w-60 bg-[hsl(214,50%,24%)] text-white flex flex-col">
-        <div className="p-5 text-lg font-semibold border-b border-white/10">Poupe Admin</div>
+        <div className="p-4 border-b border-white/10 flex items-center justify-center bg-white">
+          <img
+            src="https://tvyjosqitdgwqjpzvgib.supabase.co/storage/v1/object/public/assets//logo poupe energia.jpeg"
+            alt="Poupe Energia"
+            className="h-8 w-auto object-contain"
+          />
+        </div>
         <nav className="flex-1 p-3 space-y-1">
           {items.map((it) => (
             <NavLink
