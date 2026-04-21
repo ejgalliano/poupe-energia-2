@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight, Home, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import BusinessLeadDialog from "@/components/BusinessLeadDialog";
 import {
   Select,
   SelectContent,
@@ -37,6 +38,7 @@ const SearchSection = ({ onSearch }: Props) => {
   const [estadoId, setEstadoId] = useState<string>("");
   const [distribuidoraId, setDistribuidoraId] = useState<string>("");
   const [accepted, setAccepted] = useState(false);
+  const [businessOpen, setBusinessOpen] = useState(false);
 
   useEffect(() => {
     supabase
@@ -204,11 +206,14 @@ const SearchSection = ({ onSearch }: Props) => {
       <div className="flex justify-center mt-5">
         <Button
           variant="outline"
+          onClick={() => setBusinessOpen(true)}
           className="rounded-xl border-2 border-brand-blue/30 text-brand-blue font-semibold hover:bg-brand-blue/5"
         >
           Comparar Propostas para minha Empresa <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
+
+      <BusinessLeadDialog open={businessOpen} onOpenChange={setBusinessOpen} />
     </section>
   );
 };
