@@ -1,4 +1,4 @@
-import { Trophy, Zap, Shield, Star, Wallet, Tag } from "lucide-react";
+import { Zap, FileText, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export interface Company {
@@ -10,106 +10,122 @@ export interface Company {
   minValue: string;
   score: number;
   partner?: boolean;
+  estado?: string;
+  distribuidora?: string;
 }
 
 interface Props {
   company: Company;
 }
 
+const ordinal = (n: number) => `${n}º`;
+
 const CompanyCard = ({ company }: Props) => {
   const isTop1 = company.rank === 1;
+  const initial = company.name.trim().charAt(0).toUpperCase();
 
   const metrics = [
-    { icon: Tag, label: "Desconto na Conta", value: company.discount },
-    { icon: Shield, label: "Segurança Jurídica", value: company.legalSecurity },
-    { icon: Star, label: "Reputação Reclame Aqui", value: company.reputation },
-    { icon: Wallet, label: "Valor Mínimo para Adesão", value: company.minValue },
+    { label: "Desconto Inicial", value: company.discount },
+    { label: "Segurança Jurídica", value: company.legalSecurity },
+    { label: "Reputação Reclame Aqui", value: company.reputation },
+    { label: "Valor Mínimo para Adesão", value: company.minValue },
   ];
 
   return (
     <article
-      className={`bg-white rounded-xl p-5 md:p-6 shadow-sm hover:shadow-lg transition-shadow ${
-        isTop1
-          ? "border-2 border-brand-yellow shadow-lg ring-2 ring-brand-yellow/30 md:scale-[1.01]"
-          : "border border-border"
+      className={`relative bg-white rounded-xl p-5 md:p-6 shadow-sm hover:shadow-md transition-shadow ${
+        isTop1 ? "border-2 border-brand-success" : "border border-border"
       }`}
     >
-      {/* Top row: badge + name + score */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
-        <div className="flex items-center gap-3">
-          <div
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
-              isTop1
-                ? "bg-brand-success text-white"
-                : "bg-muted text-muted-foreground"
-            }`}
-          >
-            <Trophy className="h-4 w-4" />
-            Top {company.rank}
+      {/* Badge canto superior esquerdo */}
+      {isTop1 ? (
+        <div className="absolute -top-3 left-5 bg-brand-success text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+          Melhor empresa
+        </div>
+      ) : (
+        <div className="absolute -top-3 left-5 bg-muted text-muted-foreground text-xs font-bold px-3 py-1 rounded-full border border-border">
+          {ordinal(company.rank)}
+        </div>
+      )}
+
+      {/* Linha 1: Logo + Nome + Tags + Nota */}
+      <div className="flex items-start justify-between gap-4 mb-5">
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          <div className="h-12 w-12 shrink-0 rounded-lg bg-brand-blue/10 flex items-center justify-center">
+            <span className="text-xl font-extrabold text-brand-blue">
+              {initial}
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-lg bg-brand-blue/10 flex items-center justify-center">
-              <Zap className="h-5 w-5 text-brand-blue" fill="hsl(var(--brand-blue))" />
-            </div>
-            <h3 className="text-lg md:text-xl font-bold text-brand-blue">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg md:text-xl font-extrabold text-brand-blue leading-tight truncate">
               {company.name}
             </h3>
+            <div className="flex flex-wrap items-center gap-1.5 mt-2">
+              {company.estado && (
+                <span className="text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md">
+                  {company.estado}
+                </span>
+              )}
+              {company.distribuidora && (
+                <span className="text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md">
+                  {company.distribuidora}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md">
+                <FileText className="h-3 w-3" />
+                Ficha Técnica
+              </span>
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-brand-blue/10 text-brand-blue px-2 py-0.5 rounded-md">
+                <ShieldCheck className="h-3 w-3" />
+                Risco Baixo
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="text-right">
-          <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">
-            Nota Geral
-          </div>
-          <div className="text-4xl md:text-5xl font-extrabold text-brand-blue leading-none">
+        <div className="text-right shrink-0">
+          <div className="text-3xl md:text-4xl font-extrabold text-brand-blue leading-none">
             {company.score.toFixed(1)}
+          </div>
+          <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wide mt-1">
+            Nota Final
           </div>
         </div>
       </div>
 
-      {/* Métricas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-        {metrics.map((m) => (
+      {/* Linha 2: Métricas com divisórias */}
+      <div className="grid grid-cols-2 md:grid-cols-4 border border-border rounded-xl overflow-hidden mb-5">
+        {metrics.map((m, i) => (
           <div
             key={m.label}
-            className="bg-muted/40 rounded-xl p-3 border border-border/60"
+            className={`p-3 text-center ${
+              i < metrics.length - 1 ? "md:border-r border-border" : ""
+            } ${i % 2 === 0 ? "border-r md:border-r" : ""} ${
+              i < 2 ? "border-b md:border-b-0" : ""
+            }`}
           >
-            <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-              <m.icon className="h-3.5 w-3.5" />
-              <span className="text-[11px] font-semibold uppercase tracking-wide leading-tight">
-                {m.label}
-              </span>
+            <div className="text-[10px] md:text-[11px] text-muted-foreground font-semibold uppercase tracking-wide leading-tight mb-1">
+              {m.label}
             </div>
-            <div className="text-lg font-bold text-brand-blue">{m.value}</div>
+            <div className="text-base md:text-lg font-extrabold text-brand-blue">
+              {m.value}
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Tag cashback (apenas parceiras) */}
+      {/* Tag cashback (parceiras) */}
       {company.partner && (
-        <div className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold mb-4">
+        <div className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold mb-3">
           ⚡ 10% de cashback na adesão
         </div>
       )}
 
-      {/* Ações */}
-      <div className="flex flex-col sm:flex-row gap-2">
-        <Button
-          className={`flex-1 rounded-xl font-bold ${
-            isTop1
-              ? "bg-brand-success text-white hover:bg-brand-success/90"
-              : "bg-brand-blue text-white hover:bg-brand-blue/90"
-          }`}
-        >
-          Ver plano e Aderir
-        </Button>
-        <Button
-          variant="outline"
-          className="flex-1 sm:flex-initial rounded-xl font-semibold border-brand-blue/20 text-brand-blue hover:bg-brand-blue/5"
-        >
-          Saiba mais
-        </Button>
-      </div>
+      {/* Linha 3: CTA */}
+      <Button className="w-full h-12 rounded-xl font-bold bg-foreground text-background hover:bg-foreground/90">
+        <Zap className="h-4 w-4 mr-2" fill="currentColor" />
+        Ver minha economia com {company.name}
+      </Button>
     </article>
   );
 };
