@@ -41,19 +41,10 @@ const Header = () => {
               {l.label}
             </Link>
           ))}
-          <Button className="bg-brand-blue text-white hover:bg-brand-blue/90 rounded-xl font-semibold shadow-sm px-6">
-            Entrar
-          </Button>
         </nav>
 
         {/* Mobile actions */}
         <div className="flex items-center gap-2 md:hidden">
-          <Button
-            size="sm"
-            className="bg-brand-blue text-white hover:bg-brand-blue/90 rounded-lg font-semibold shadow-sm h-9 px-4 text-xs"
-          >
-            Entrar
-          </Button>
           <Sheet>
             <SheetTrigger asChild>
               <Button
