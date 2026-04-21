@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/slug";
+import { trackLeadAndGetUrl } from "@/lib/leadTracking";
 
 const formatBRL = (n: number | null | undefined) =>
   n == null
@@ -618,7 +619,19 @@ const Empresa = () => {
               </div>
             )}
 
-            <Button className="w-full bg-brand-success hover:bg-brand-success/90 text-white rounded-xl h-12 font-bold">
+            <Button
+              onClick={async () => {
+                if (!empresa?.id) return;
+                const url = await trackLeadAndGetUrl({
+                  empresaId: empresa.id,
+                  distribuidoraId: distribuidoraId || null,
+                  estadoSigla: estadoSigla || null,
+                  evento: "clique_aderir",
+                });
+                if (url) window.open(url, "_blank", "noopener,noreferrer");
+              }}
+              className="w-full bg-brand-success hover:bg-brand-success/90 text-white rounded-xl h-12 font-bold"
+            >
               <Zap className="h-4 w-4 mr-2" fill="currentColor" />
               Ver plano e Aderir
             </Button>

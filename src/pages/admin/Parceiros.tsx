@@ -370,10 +370,40 @@ export default function Parceiros() {
             </CardContent>
           </Card>
 
-          <div className="flex items-center justify-between">
-            <div className="text-lg font-bold text-brand-blue">
-              Total de cliques no período: {leadsFiltrados.length}
-            </div>
+          <div className="grid sm:grid-cols-3 gap-3">
+            <Card>
+              <CardContent className="pt-4">
+                <div className="text-xs text-muted-foreground font-semibold uppercase">
+                  Total no período
+                </div>
+                <div className="text-3xl font-extrabold text-brand-blue mt-1">
+                  {leadsFiltrados.length}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-brand-success/30">
+              <CardContent className="pt-4">
+                <div className="text-xs text-brand-success font-semibold uppercase">
+                  Cliques "Aderir" — intenção de contratar
+                </div>
+                <div className="text-3xl font-extrabold text-brand-success mt-1">
+                  {leadsFiltrados.filter((l) => l.evento === "clique_aderir").length}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="text-xs text-muted-foreground font-semibold uppercase">
+                  Cliques "Saiba mais" — interesse inicial
+                </div>
+                <div className="text-3xl font-extrabold text-brand-blue/70 mt-1">
+                  {leadsFiltrados.filter((l) => l.evento === "clique_saiba_mais").length}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex justify-end">
             <Button onClick={exportCSV} variant="outline" size="sm">
               <Download className="h-3 w-3 mr-1" /> Exportar CSV
             </Button>
