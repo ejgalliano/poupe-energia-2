@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { trackLeadAndGetUrl } from "@/lib/leadTracking";
+import LeadCaptureDialog from "@/components/LeadCaptureDialog";
 
 interface Props {
   open: boolean;
@@ -61,27 +61,11 @@ const EconomySimulator = ({
   estadoSigla,
 }: Props) => {
   const [valor, setValor] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
 
-  const handleAderir = async () => {
-    console.log("[CTA Aderir Simulador] click", { companyName, empresaId });
+  const handleAderir = () => {
     if (!empresaId) return;
-    const newWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
-    setLoading(true);
-    try {
-      const url = await trackLeadAndGetUrl({
-        empresaId,
-        distribuidoraId,
-        estadoSigla,
-        evento: "clique_aderir",
-      });
-      console.log("[CTA Aderir Simulador] url resolvida:", url);
-      if (url && newWindow) newWindow.location.href = url;
-      else if (url) window.location.href = url;
-      else if (newWindow) newWindow.close();
-    } finally {
-      setLoading(false);
-    }
+    setCaptureOpen(true);
   };
 
   const economia = useMemo(() => {
