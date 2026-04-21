@@ -9,6 +9,7 @@ export interface Company {
   reputation: string;
   minValue: string;
   score: number;
+  partner?: boolean;
 }
 
 interface Props {
@@ -26,15 +27,21 @@ const CompanyCard = ({ company }: Props) => {
   ];
 
   return (
-    <article className="bg-white border border-border rounded-xl p-5 md:p-6 shadow-sm hover:shadow-lg transition-shadow">
+    <article
+      className={`bg-white rounded-xl p-5 md:p-6 shadow-sm hover:shadow-lg transition-shadow ${
+        isTop1
+          ? "border-2 border-brand-yellow shadow-lg ring-2 ring-brand-yellow/30 md:scale-[1.01]"
+          : "border border-border"
+      }`}
+    >
       {/* Top row: badge + name + score */}
       <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
           <div
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold ${
               isTop1
-                ? "bg-brand-yellow text-brand-blue"
-                : "bg-brand-blue/10 text-brand-blue"
+                ? "bg-brand-success text-white"
+                : "bg-muted text-muted-foreground"
             }`}
           >
             <Trophy className="h-4 w-4" />
@@ -78,10 +85,12 @@ const CompanyCard = ({ company }: Props) => {
         ))}
       </div>
 
-      {/* Tag cashback */}
-      <div className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold mb-4">
-        ⚡ 10% de cashback na adesão
-      </div>
+      {/* Tag cashback (apenas parceiras) */}
+      {company.partner && (
+        <div className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold mb-4">
+          ⚡ 10% de cashback na adesão
+        </div>
+      )}
 
       {/* Ações */}
       <div className="flex flex-col sm:flex-row gap-2">
