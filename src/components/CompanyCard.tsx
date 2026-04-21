@@ -4,8 +4,8 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { slugify } from "@/lib/slug";
 import EconomySimulator from "@/components/EconomySimulator";
-import { trackLeadAndGetUrl } from "@/lib/leadTracking";
-import { supabase } from "@/integrations/supabase/client";
+import LeadCaptureDialog from "@/components/LeadCaptureDialog";
+import { registerLead } from "@/lib/leadTracking";
 
 export interface Company {
   rank: number;
@@ -34,7 +34,7 @@ const CompanyCard = ({ company }: Props) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [simOpen, setSimOpen] = useState(false);
-  const [loadingCta, setLoadingCta] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
   const discountNumber = parseFloat(
     String(company.discount).replace("%", "").replace(",", ".")
   ) || 0;
@@ -42,48 +42,18 @@ const CompanyCard = ({ company }: Props) => {
     searchParams.toString() ? `?${searchParams.toString()}` : ""
   }`;
 
-  const handleAderir = async () => {
-    console.log("[CTA Aderir] click", {
-      empresa: company.name,
-      empresaId: company.empresaId,
-      distribuidoraId: company.distribuidoraId,
-      estado: company.estado,
-    });
+  const handleAderir = () => {
     if (!company.empresaId) {
-      // fallback: abre simulador se não tiver id (não deveria acontecer)
       setSimOpen(true);
       return;
     }
-    // Abre a aba SINCRONAMENTE para preservar o user-gesture
-    // (evita bloqueio de popup após await).
-    const newWindow = window.open("about:blank", "_blank", "noopener,noreferrer");
-    setLoadingCta(true);
-    try {
-      const url = await trackLeadAndGetUrl({
-        empresaId: company.empresaId,
-        distribuidoraId: company.distribuidoraId,
-        estadoSigla: company.estado,
-        evento: "clique_aderir",
-      });
-      console.log("[CTA Aderir] url resolvida:", url);
-      if (url && newWindow) {
-        newWindow.location.href = url;
-      } else if (url) {
-        // popup bloqueado — fallback navegação na mesma aba
-        window.location.href = url;
-      } else if (newWindow) {
-        newWindow.close();
-      }
-    } finally {
-      setLoadingCta(false);
-    }
+    setCaptureOpen(true);
   };
 
-  const handleSaibaMais = async (e: React.MouseEvent) => {
+  const handleSaibaMais = (e: React.MouseEvent) => {
     e.preventDefault();
     if (company.empresaId) {
-      // fire-and-forget — não bloqueia navegação
-      trackLeadAndGetUrl({
+      registerLead({
         empresaId: company.empresaId,
         distribuidoraId: company.distribuidoraId,
         estadoSigla: company.estado,
@@ -206,10 +176,9 @@ const CompanyCard = ({ company }: Props) => {
         </Button>
         <Button
           onClick={handleAderir}
-          disabled={loadingCta}
           className="flex-1 h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
         >
-          {loadingCta ? "Redirecionando..." : `Ver plano e Aderir`}
+          Ver plano e Aderir
         </Button>
       </div>
 
@@ -222,6 +191,17 @@ const CompanyCard = ({ company }: Props) => {
         distribuidoraId={company.distribuidoraId}
         estadoSigla={company.estado}
       />
+
+      {company.empresaId && (
+        <LeadCaptureDialog
+          open={captureOpen}
+          onOpenChange={setCaptureOpen}
+          empresaId={company.empresaId}
+          empresaNome={company.name}
+          distribuidoraId={company.distribuidoraId}
+          estadoSigla={company.estado}
+        />
+      )}
     </article>
   );
 };
