@@ -3,12 +3,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ empresas: 0, distribuidoras: 0, estados: 0 });
+  const [stats, setStats] = useState({
+    empresas: 0,
+    distribuidoras: 0,
+    estados: 0,
+    leadsHoje: 0,
+    leadsMes: 0,
+  });
   const [recent, setRecent] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
-      const [e, d, s, r] = await Promise.all([
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+
+      const [e, d, s, r, lh, lm] = await Promise.all([
         supabase.from("empresas").select("id", { count: "exact", head: true }),
         supabase.from("distribuidoras").select("id", { count: "exact", head: true }),
         supabase.from("estados").select("id", { count: "exact", head: true }),
@@ -17,8 +29,22 @@ export default function Dashboard() {
           .select("nota_final, updated_at, empresas(nome), distribuidoras(nome)")
           .order("updated_at", { ascending: false })
           .limit(10),
+        supabase
+          .from("leads")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", startOfDay.toISOString()),
+        supabase
+          .from("leads")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", startOfMonth.toISOString()),
       ]);
-      setStats({ empresas: e.count ?? 0, distribuidoras: d.count ?? 0, estados: s.count ?? 0 });
+      setStats({
+        empresas: e.count ?? 0,
+        distribuidoras: d.count ?? 0,
+        estados: s.count ?? 0,
+        leadsHoje: lh.count ?? 0,
+        leadsMes: lm.count ?? 0,
+      });
       setRecent(r.data ?? []);
     })();
   }, []);
@@ -26,11 +52,13 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {[
           { label: "Empresas", value: stats.empresas },
           { label: "Distribuidoras", value: stats.distribuidoras },
           { label: "Estados cobertos", value: stats.estados },
+          { label: "Leads hoje", value: stats.leadsHoje },
+          { label: "Leads este mês", value: stats.leadsMes },
         ].map((c) => (
           <Card key={c.label}>
             <CardHeader><CardTitle className="text-sm text-muted-foreground">{c.label}</CardTitle></CardHeader>
