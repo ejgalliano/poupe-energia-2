@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { trackLeadAndGetUrl } from "@/lib/leadTracking";
 
 interface Props {
   open: boolean;
@@ -15,6 +16,9 @@ interface Props {
   companyName: string;
   /** Desconto em % (ex: 15) */
   discountPercent: number;
+  empresaId?: string;
+  distribuidoraId?: string | null;
+  estadoSigla?: string | null;
 }
 
 const formatBRL = (n: number) =>
@@ -52,8 +56,28 @@ const EconomySimulator = ({
   onOpenChange,
   companyName,
   discountPercent,
+  empresaId,
+  distribuidoraId,
+  estadoSigla,
 }: Props) => {
   const [valor, setValor] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const handleAderir = async () => {
+    if (!empresaId) return;
+    setLoading(true);
+    try {
+      const url = await trackLeadAndGetUrl({
+        empresaId,
+        distribuidoraId,
+        estadoSigla,
+        evento: "clique_aderir",
+      });
+      if (url) window.open(url, "_blank", "noopener,noreferrer");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const economia = useMemo(() => {
     const mensal = valor * (discountPercent / 100);
@@ -155,10 +179,11 @@ const EconomySimulator = ({
 
           {/* CTA */}
           <Button
+            onClick={handleAderir}
             className="w-full h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
-            disabled={valor === 0}
+            disabled={valor === 0 || loading || !empresaId}
           >
-            Ver plano e Aderir
+            {loading ? "Redirecionando..." : "Ver plano e Aderir"}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
