@@ -32,6 +32,8 @@ type Parceiro = {
   modelo_comissao: string | null;
   observacoes: string | null;
   ativo: boolean;
+  contato_nome?: string | null;
+  contato_email?: string | null;
 };
 
 type Empresa = { id: string; nome: string; parceira: boolean };
@@ -106,6 +108,8 @@ export default function Parceiros() {
         modelo_comissao: "por_clique",
         observacoes: "",
         ativo: true,
+        contato_nome: "",
+        contato_email: "",
       }
     );
   };
@@ -119,7 +123,7 @@ export default function Parceiros() {
       toast.error(error.message);
       return;
     }
-    toast.success("Salvo!");
+    toast.success("Configuração do parceiro atualizada com sucesso!");
     setEditing(null);
     setForm(null);
     loadAll();
@@ -232,13 +236,44 @@ export default function Parceiros() {
 
                       {isEditing && form && (
                         <div className="mt-4 grid md:grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-xs font-bold">URL do afiliado</label>
+                          <div className="md:col-span-2">
+                            <label className="text-xs font-bold">
+                              URL de Redirecionamento para Venda
+                            </label>
                             <Input
-                              placeholder="https://parceiro.com.br/?ref=poupe"
+                              placeholder="https://parceiro.com.br/indicacao?ref=poupe"
                               value={form.url_afiliado ?? ""}
                               onChange={(e) =>
                                 setForm({ ...form, url_afiliado: e.target.value })
+                              }
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Este é o link para onde o cliente será direcionado ao clicar em
+                              "Ver plano e Aderir". Use o link de afiliado fornecido pelo parceiro.
+                            </p>
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold">
+                              Nome do contato no parceiro
+                            </label>
+                            <Input
+                              placeholder="Ex: João Silva"
+                              value={form.contato_nome ?? ""}
+                              onChange={(e) =>
+                                setForm({ ...form, contato_nome: e.target.value })
+                              }
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold">
+                              Email do contato no parceiro
+                            </label>
+                            <Input
+                              type="email"
+                              placeholder="contato@parceiro.com.br"
+                              value={form.contato_email ?? ""}
+                              onChange={(e) =>
+                                setForm({ ...form, contato_email: e.target.value })
                               }
                             />
                           </div>

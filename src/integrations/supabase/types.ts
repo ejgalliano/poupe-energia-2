@@ -405,6 +405,8 @@ export type Database = {
         Row: {
           ativo: boolean
           comissao_percentual: number | null
+          contato_email: string | null
+          contato_nome: string | null
           empresa_id: string
           id: string
           modelo_comissao: string | null
@@ -415,6 +417,8 @@ export type Database = {
         Insert: {
           ativo?: boolean
           comissao_percentual?: number | null
+          contato_email?: string | null
+          contato_nome?: string | null
           empresa_id: string
           id?: string
           modelo_comissao?: string | null
@@ -425,6 +429,8 @@ export type Database = {
         Update: {
           ativo?: boolean
           comissao_percentual?: number | null
+          contato_email?: string | null
+          contato_nome?: string | null
           empresa_id?: string
           id?: string
           modelo_comissao?: string | null
