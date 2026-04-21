@@ -107,6 +107,8 @@ const Ranking = () => {
           minValue: formatBRL(Number(row.valor_minimo_fatura)),
           score: Number(row.nota_final),
           partner: Boolean(row.empresas?.parceira),
+          estado: estadoSigla,
+          distribuidora: distribuidoraAtual?.nome,
         }));
         setCompanies(mapped);
         setLoading(false);
