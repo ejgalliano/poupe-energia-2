@@ -148,8 +148,8 @@ const Empresa = () => {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <main className="flex-1 container mx-auto px-4 py-16 text-center text-muted-foreground">
-          Carregando empresa...
+        <main className="flex-1">
+          <LoadingSpinner label="Carregando empresa..." />
         </main>
         <Footer />
       </div>
