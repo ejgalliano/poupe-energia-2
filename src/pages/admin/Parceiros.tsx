@@ -32,6 +32,8 @@ type Parceiro = {
   modelo_comissao: string | null;
   observacoes: string | null;
   ativo: boolean;
+  contato_nome?: string | null;
+  contato_email?: string | null;
 };
 
 type Empresa = { id: string; nome: string; parceira: boolean };
