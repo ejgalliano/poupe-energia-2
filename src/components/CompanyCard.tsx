@@ -177,14 +177,24 @@ const CompanyCard = ({ company }: Props) => {
         </div>
       )}
 
-      {/* Linha 3: CTA */}
-      <Button
-        onClick={() => setSimOpen(true)}
-        className="w-full h-12 rounded-xl font-bold bg-foreground text-background hover:bg-foreground/90"
-      >
-        <Zap className="h-4 w-4 mr-2" fill="currentColor" />
-        Ver minha economia com {company.name}
-      </Button>
+      {/* Linha 3: CTAs */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Button
+          onClick={() => setSimOpen(true)}
+          variant="outline"
+          className="flex-1 h-12 rounded-xl font-bold border-foreground/20"
+        >
+          <Zap className="h-4 w-4 mr-2" fill="currentColor" />
+          Simular economia
+        </Button>
+        <Button
+          onClick={handleAderir}
+          disabled={loadingCta}
+          className="flex-1 h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
+        >
+          {loadingCta ? "Redirecionando..." : `Ver plano e Aderir`}
+        </Button>
+      </div>
 
       <EconomySimulator
         open={simOpen}
