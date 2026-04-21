@@ -9,6 +9,8 @@ export default function Dashboard() {
     estados: 0,
     leadsHoje: 0,
     leadsMes: 0,
+    leadsEmpHoje: 0,
+    leadsEmpPendentes: 0,
   });
   const [recent, setRecent] = useState<any[]>([]);
 
@@ -20,7 +22,7 @@ export default function Dashboard() {
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      const [e, d, s, r, lh, lm] = await Promise.all([
+      const [e, d, s, r, lh, lm, leh, lep] = await Promise.all([
         supabase.from("empresas").select("id", { count: "exact", head: true }),
         supabase.from("distribuidoras").select("id", { count: "exact", head: true }),
         supabase.from("estados").select("id", { count: "exact", head: true }),
@@ -37,6 +39,14 @@ export default function Dashboard() {
           .from("leads")
           .select("id", { count: "exact", head: true })
           .gte("created_at", startOfMonth.toISOString()),
+        supabase
+          .from("leads_empresariais")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", startOfDay.toISOString()),
+        supabase
+          .from("leads_empresariais")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "novo"),
       ]);
       setStats({
         empresas: e.count ?? 0,
@@ -44,6 +54,8 @@ export default function Dashboard() {
         estados: s.count ?? 0,
         leadsHoje: lh.count ?? 0,
         leadsMes: lm.count ?? 0,
+        leadsEmpHoje: leh.count ?? 0,
+        leadsEmpPendentes: lep.count ?? 0,
       });
       setRecent(r.data ?? []);
     })();
@@ -59,6 +71,8 @@ export default function Dashboard() {
           { label: "Estados cobertos", value: stats.estados },
           { label: "Leads hoje", value: stats.leadsHoje },
           { label: "Leads este mês", value: stats.leadsMes },
+          { label: "Leads Empresariais hoje", value: stats.leadsEmpHoje },
+          { label: "Leads Empresariais pendentes", value: stats.leadsEmpPendentes },
         ].map((c) => (
           <Card key={c.label}>
             <CardHeader><CardTitle className="text-sm text-muted-foreground">{c.label}</CardTitle></CardHeader>
