@@ -29,7 +29,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
 
   const save = async () => {
     setSaving(true);
-    const payload = { ...f };
+    const payload = { ...f, parceira: !!f.parceira, ativa: !!f.ativa };
     delete payload.created_at;
     let res;
     if (empresa) res = await supabase.from("empresas").update(payload).eq("id", empresa.id);
