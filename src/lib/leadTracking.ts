@@ -7,6 +7,9 @@ export interface TrackLeadParams {
   distribuidoraId?: string | null;
   estadoSigla?: string | null;
   evento: LeadEvento;
+  nome?: string | null;
+  email?: string | null;
+  telefone?: string | null;
 }
 
 /** Hash leve do user-agent + timestamp do dia (privacidade — sem IP real no cliente). */
@@ -23,32 +26,28 @@ const hashIp = async (): Promise<string> => {
   }
 };
 
-/**
- * Registra um lead no banco. Retorna a URL para a qual redirecionar
- * (url_afiliado se cadastrada, ou site_url da empresa, ou null).
- */
-export async function trackLeadAndGetUrl(
-  params: TrackLeadParams
-): Promise<string | null> {
-  const { empresaId, distribuidoraId, estadoSigla, evento } = params;
-
+/** Registra um lead (não bloqueia se falhar). */
+export async function registerLead(params: TrackLeadParams): Promise<void> {
   const ipHash = await hashIp();
-
-  // Registra o lead (não bloqueia se falhar)
   try {
     await supabase.from("leads").insert({
-      empresa_id: empresaId,
-      distribuidora_id: distribuidoraId ?? null,
-      estado_sigla: estadoSigla ?? null,
-      evento,
+      empresa_id: params.empresaId,
+      distribuidora_id: params.distribuidoraId ?? null,
+      estado_sigla: params.estadoSigla ?? null,
+      evento: params.evento,
       ip_hash: ipHash,
       user_agent: navigator.userAgent.slice(0, 500),
-    });
+      nome: params.nome ?? null,
+      email: params.email ?? null,
+      telefone: params.telefone ?? null,
+    } as any);
   } catch (err) {
     console.error("Falha ao registrar lead:", err);
   }
+}
 
-  // Busca URL preferindo o afiliado
+/** Busca a URL de redirecionamento (afiliado preferido, fallback site_url). */
+export async function getRedirectUrl(empresaId: string): Promise<string | null> {
   try {
     const [{ data: parceiro }, { data: empresa }] = await Promise.all([
       supabase
@@ -65,7 +64,19 @@ export async function trackLeadAndGetUrl(
 
     if (parceiro?.ativo && parceiro.url_afiliado) return parceiro.url_afiliado;
     return empresa?.site_url ?? null;
-  } catch {
+  } catch (err) {
+    console.error("Falha ao buscar URL:", err);
     return null;
   }
+}
+
+/**
+ * @deprecated — usar registerLead + getRedirectUrl separadamente para
+ * controlar melhor o fluxo de popup. Mantido por compatibilidade.
+ */
+export async function trackLeadAndGetUrl(
+  params: TrackLeadParams
+): Promise<string | null> {
+  await registerLead(params);
+  return getRedirectUrl(params.empresaId);
 }
