@@ -1,0 +1,6 @@
+ALTER TABLE public.leads
+  ADD COLUMN IF NOT EXISTS nome TEXT,
+  ADD COLUMN IF NOT EXISTS email TEXT,
+  ADD COLUMN IF NOT EXISTS telefone TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_leads_email ON public.leads(email) WHERE email IS NOT NULL;
