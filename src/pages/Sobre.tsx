@@ -161,13 +161,11 @@ const Sobre = () => {
           </h2>
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="flex justify-center">
-              <div className="h-48 w-48 md:h-64 md:w-64 rounded-full bg-brand-blue flex items-center justify-center shadow-xl">
-                <Lightbulb
-                  className="h-24 w-24 md:h-32 md:w-32 text-brand-yellow"
-                  fill="hsl(var(--brand-yellow))"
-                  strokeWidth={1.5}
-                />
-              </div>
+              <img
+                src="https://tvyjosqitdgwqjpzvgib.supabase.co/storage/v1/object/public/assets//logo poupe energia.jpeg"
+                alt="Poupe Energia"
+                className="h-20 md:h-32 w-auto object-contain"
+              />
             </div>
             <div>
               <p className="text-muted-foreground leading-relaxed mb-5">

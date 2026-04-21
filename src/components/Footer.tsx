@@ -24,9 +24,12 @@ const Footer = () => {
         <div className="grid gap-10 md:grid-cols-3 mb-10">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Lightbulb className="h-6 w-6 text-brand-yellow" fill="hsl(var(--brand-yellow))" />
-              <span className="text-lg font-extrabold">POUPE ENERGIA</span>
+            <div className="mb-4 inline-block bg-white rounded-lg p-2">
+              <img
+                src="https://tvyjosqitdgwqjpzvgib.supabase.co/storage/v1/object/public/assets//logo poupe energia.jpeg"
+                alt="Poupe Energia"
+                className="h-10 w-auto object-contain"
+              />
             </div>
             <p className="text-white/70 text-sm leading-relaxed mb-5 max-w-xs">
               Comparou? Economizou. Aderiu? Ganhou 10% de cashback. Isso é

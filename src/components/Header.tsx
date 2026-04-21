@@ -1,4 +1,6 @@
-import { Lightbulb, Menu } from "lucide-react";
+import { Menu, Lightbulb } from "lucide-react";
+
+const LOGO_URL = "https://tvyjosqitdgwqjpzvgib.supabase.co/storage/v1/object/public/assets//logo poupe energia.jpeg";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,14 +22,12 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-brand-yellow shadow-md">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
-        <Link to="/" className="flex items-center gap-2">
-          <Lightbulb
-            className="h-6 w-6 md:h-7 md:w-7 text-brand-blue"
-            fill="hsl(var(--brand-blue))"
+        <Link to="/" className="flex items-center" aria-label="Poupe Energia">
+          <img
+            src={LOGO_URL}
+            alt="Poupe Energia"
+            className="h-10 w-auto object-contain"
           />
-          <span className="text-base md:text-xl font-extrabold text-brand-blue tracking-tight">
-            POUPE ENERGIA
-          </span>
         </Link>
 
         {/* Desktop nav */}
@@ -68,8 +68,7 @@ const Header = () => {
             <SheetContent side="right" className="w-[280px] bg-brand-blue text-white border-0">
               <SheetHeader>
                 <SheetTitle className="text-brand-yellow text-left flex items-center gap-2">
-                  <Lightbulb className="h-5 w-5" fill="hsl(var(--brand-yellow))" />
-                  POUPE ENERGIA
+                  <img src={LOGO_URL} alt="Poupe Energia" className="h-8 w-auto object-contain bg-white rounded p-1" />
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-1 mt-6">
