@@ -10,7 +10,7 @@ const col1 = [
 ];
 
 const col2 = [
-  { label: "Sobre o Poupe Energia", href: "#" },
+  { label: "Sobre o Poupe Energia", href: "/sobre" },
   { label: "Como Calculamos os Rankings", href: "/como-calculamos" },
   { label: "Política de Privacidade", href: "#" },
   { label: "Termos de Uso", href: "#" },
