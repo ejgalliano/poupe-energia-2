@@ -643,6 +643,7 @@ const Empresa = () => {
       </main>
 
       <Footer />
+      <BackToTop />
     </div>
   );
 };
