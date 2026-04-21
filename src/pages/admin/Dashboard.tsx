@@ -9,6 +9,7 @@ export default function Dashboard() {
     estados: 0,
     leadsHoje: 0,
     leadsMes: 0,
+    leadsComContato: 0,
     leadsEmpHoje: 0,
     leadsEmpPendentes: 0,
   });
@@ -22,7 +23,7 @@ export default function Dashboard() {
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      const [e, d, s, r, lh, lm, leh, lep] = await Promise.all([
+      const [e, d, s, r, lh, lm, lc, leh, lep] = await Promise.all([
         supabase.from("empresas").select("id", { count: "exact", head: true }),
         supabase.from("distribuidoras").select("id", { count: "exact", head: true }),
         supabase.from("estados").select("id", { count: "exact", head: true }),
@@ -40,6 +41,10 @@ export default function Dashboard() {
           .select("id", { count: "exact", head: true })
           .gte("created_at", startOfMonth.toISOString()),
         supabase
+          .from("leads")
+          .select("id", { count: "exact", head: true })
+          .not("email", "is", null),
+        supabase
           .from("leads_empresariais")
           .select("id", { count: "exact", head: true })
           .gte("created_at", startOfDay.toISOString()),
@@ -54,6 +59,7 @@ export default function Dashboard() {
         estados: s.count ?? 0,
         leadsHoje: lh.count ?? 0,
         leadsMes: lm.count ?? 0,
+        leadsComContato: lc.count ?? 0,
         leadsEmpHoje: leh.count ?? 0,
         leadsEmpPendentes: lep.count ?? 0,
       });
@@ -71,6 +77,7 @@ export default function Dashboard() {
           { label: "Estados cobertos", value: stats.estados },
           { label: "Leads hoje", value: stats.leadsHoje },
           { label: "Leads este mês", value: stats.leadsMes },
+          { label: "Leads com contato", value: stats.leadsComContato },
           { label: "Leads Empresariais hoje", value: stats.leadsEmpHoje },
           { label: "Leads Empresariais pendentes", value: stats.leadsEmpPendentes },
         ].map((c) => (

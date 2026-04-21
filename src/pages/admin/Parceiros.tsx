@@ -420,6 +420,15 @@ export default function Parceiros() {
                   </Select>
                 </div>
               </div>
+              <label className="flex items-center gap-2 mt-3 cursor-pointer">
+                <Checkbox
+                  checked={onlyWithContact}
+                  onCheckedChange={(v) => setOnlyWithContact(v === true)}
+                />
+                <span className="text-sm">
+                  Mostrar apenas leads com dados de contato preenchidos
+                </span>
+              </label>
             </CardContent>
           </Card>
 
@@ -502,6 +511,9 @@ export default function Parceiros() {
                     <TableHead>Estado</TableHead>
                     <TableHead>Distribuidora</TableHead>
                     <TableHead>Evento</TableHead>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Telefone</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -516,11 +528,14 @@ export default function Parceiros() {
                           {l.evento}
                         </span>
                       </TableCell>
+                      <TableCell>{l.nome ?? "—"}</TableCell>
+                      <TableCell>{l.email ?? "—"}</TableCell>
+                      <TableCell>{l.telefone ?? "—"}</TableCell>
                     </TableRow>
                   ))}
                   {leadsFiltrados.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground">
                         Nenhum lead no período.
                       </TableCell>
                     </TableRow>
