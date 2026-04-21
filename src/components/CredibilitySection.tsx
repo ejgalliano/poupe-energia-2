@@ -25,7 +25,7 @@ const stats = [
 
 const CredibilitySection = () => {
   return (
-    <section className="bg-[#FFFBEB] py-12 md:py-20 min-h-[400px] block">
+    <section className="bg-[#FFFBEB] py-12">
       <div className="container mx-auto px-4">
         {/* Stats grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
