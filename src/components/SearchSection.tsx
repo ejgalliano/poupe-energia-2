@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ArrowRight, Home, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,12 +24,13 @@ interface Distribuidora {
 }
 
 interface Props {
-  onSearch: (distribuidoraId: string, distribuidoraNome: string) => void;
+  onSearch?: (distribuidoraId: string, distribuidoraNome: string) => void;
 }
 
 type Profile = "home" | "business";
 
 const SearchSection = ({ onSearch }: Props) => {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile>("home");
   const [estados, setEstados] = useState<Estado[]>([]);
   const [distribuidoras, setDistribuidoras] = useState<Distribuidora[]>([]);
@@ -61,13 +63,12 @@ const SearchSection = ({ onSearch }: Props) => {
 
   const handleSubmit = () => {
     if (!canSubmit) return;
-    const dist = distribuidoras.find((d) => d.id === distribuidoraId);
-    onSearch(distribuidoraId, dist?.nome ?? "");
-    setTimeout(() => {
-      document
-        .getElementById("ranking")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
+    const estado = estados.find((e) => String(e.id) === estadoId);
+    const params = new URLSearchParams({
+      estado: estado?.sigla ?? "",
+      distribuidora: distribuidoraId,
+    });
+    navigate(`/ranking?${params.toString()}`);
   };
 
   return (
