@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Zap, FileText, ShieldCheck } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { slugify } from "@/lib/slug";
 import EconomySimulator from "@/components/EconomySimulator";
+import { trackLeadAndGetUrl } from "@/lib/leadTracking";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Company {
   rank: number;
@@ -30,13 +32,49 @@ const CompanyCard = ({ company }: Props) => {
   const isTop1 = company.rank === 1;
   const initial = company.name.trim().charAt(0).toUpperCase();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [simOpen, setSimOpen] = useState(false);
+  const [loadingCta, setLoadingCta] = useState(false);
   const discountNumber = parseFloat(
     String(company.discount).replace("%", "").replace(",", ".")
   ) || 0;
   const detailHref = `/empresa/${slugify(company.name)}${
     searchParams.toString() ? `?${searchParams.toString()}` : ""
   }`;
+
+  const handleAderir = async () => {
+    if (!company.empresaId) {
+      // fallback: abre simulador se não tiver id (não deveria acontecer)
+      setSimOpen(true);
+      return;
+    }
+    setLoadingCta(true);
+    try {
+      const url = await trackLeadAndGetUrl({
+        empresaId: company.empresaId,
+        distribuidoraId: company.distribuidoraId,
+        estadoSigla: company.estado,
+        evento: "clique_aderir",
+      });
+      if (url) window.open(url, "_blank", "noopener,noreferrer");
+    } finally {
+      setLoadingCta(false);
+    }
+  };
+
+  const handleSaibaMais = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (company.empresaId) {
+      // fire-and-forget — não bloqueia navegação
+      trackLeadAndGetUrl({
+        empresaId: company.empresaId,
+        distribuidoraId: company.distribuidoraId,
+        estadoSigla: company.estado,
+        evento: "clique_saiba_mais",
+      });
+    }
+    navigate(detailHref);
+  };
 
   const metrics = [
     { label: "Desconto Inicial", value: company.discount },
@@ -87,6 +125,7 @@ const CompanyCard = ({ company }: Props) => {
               )}
               <Link
                 to={detailHref}
+                onClick={handleSaibaMais}
                 className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
               >
                 <FileText className="h-3 w-3" />
