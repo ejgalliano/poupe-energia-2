@@ -80,37 +80,142 @@ export type Database = {
       }
       empresas: {
         Row: {
+          arquetipo: string | null
           ativa: boolean
+          avaliacao_google: number | null
+          aviso_previo_dias: number | null
+          canais_atendimento: string[] | null
+          cancel_aviso_previo: number | null
+          cancel_dicas: string | null
+          cancel_email: string | null
+          cancel_processo: string | null
+          cancel_recorrer: string | null
+          cancel_site: string | null
+          cancel_telefone: string | null
           cashback_percentual: number
+          cnpj: string | null
+          consumo_minimo: number | null
           created_at: string
+          desconto_divulgado: string | null
+          economia_minima_garantida: boolean | null
+          estados_atuacao: string | null
+          fontes_geracao: string[] | null
+          fundacao: number | null
+          grupo_economico: string | null
           id: string
+          incide_sobre: string | null
           logo_url: string | null
+          meses_fidelidade: number | null
+          modelo_billing: string | null
+          modelo_infraestrutura: string | null
+          multa_cancelamento: number | null
           nome: string
           parceira: boolean
+          parecer_tecnico: string | null
+          pontos_atencao: string | null
+          possui_usina_propria: boolean | null
+          prazo_ativacao: string | null
+          processos_judiciais: boolean | null
+          razao_social: string | null
+          reputacao_reclame_aqui: number | null
+          sede: string | null
           site_url: string | null
+          taxa_adesao: number | null
           tipo: string
+          tipo_desconto: string | null
+          vantagens: string | null
         }
         Insert: {
+          arquetipo?: string | null
           ativa?: boolean
+          avaliacao_google?: number | null
+          aviso_previo_dias?: number | null
+          canais_atendimento?: string[] | null
+          cancel_aviso_previo?: number | null
+          cancel_dicas?: string | null
+          cancel_email?: string | null
+          cancel_processo?: string | null
+          cancel_recorrer?: string | null
+          cancel_site?: string | null
+          cancel_telefone?: string | null
           cashback_percentual?: number
+          cnpj?: string | null
+          consumo_minimo?: number | null
           created_at?: string
+          desconto_divulgado?: string | null
+          economia_minima_garantida?: boolean | null
+          estados_atuacao?: string | null
+          fontes_geracao?: string[] | null
+          fundacao?: number | null
+          grupo_economico?: string | null
           id?: string
+          incide_sobre?: string | null
           logo_url?: string | null
+          meses_fidelidade?: number | null
+          modelo_billing?: string | null
+          modelo_infraestrutura?: string | null
+          multa_cancelamento?: number | null
           nome: string
           parceira?: boolean
+          parecer_tecnico?: string | null
+          pontos_atencao?: string | null
+          possui_usina_propria?: boolean | null
+          prazo_ativacao?: string | null
+          processos_judiciais?: boolean | null
+          razao_social?: string | null
+          reputacao_reclame_aqui?: number | null
+          sede?: string | null
           site_url?: string | null
+          taxa_adesao?: number | null
           tipo: string
+          tipo_desconto?: string | null
+          vantagens?: string | null
         }
         Update: {
+          arquetipo?: string | null
           ativa?: boolean
+          avaliacao_google?: number | null
+          aviso_previo_dias?: number | null
+          canais_atendimento?: string[] | null
+          cancel_aviso_previo?: number | null
+          cancel_dicas?: string | null
+          cancel_email?: string | null
+          cancel_processo?: string | null
+          cancel_recorrer?: string | null
+          cancel_site?: string | null
+          cancel_telefone?: string | null
           cashback_percentual?: number
+          cnpj?: string | null
+          consumo_minimo?: number | null
           created_at?: string
+          desconto_divulgado?: string | null
+          economia_minima_garantida?: boolean | null
+          estados_atuacao?: string | null
+          fontes_geracao?: string[] | null
+          fundacao?: number | null
+          grupo_economico?: string | null
           id?: string
+          incide_sobre?: string | null
           logo_url?: string | null
+          meses_fidelidade?: number | null
+          modelo_billing?: string | null
+          modelo_infraestrutura?: string | null
+          multa_cancelamento?: number | null
           nome?: string
           parceira?: boolean
+          parecer_tecnico?: string | null
+          pontos_atencao?: string | null
+          possui_usina_propria?: boolean | null
+          prazo_ativacao?: string | null
+          processos_judiciais?: boolean | null
+          razao_social?: string | null
+          reputacao_reclame_aqui?: number | null
+          sede?: string | null
           site_url?: string | null
+          taxa_adesao?: number | null
           tipo?: string
+          tipo_desconto?: string | null
+          vantagens?: string | null
         }
         Relationships: []
       }
@@ -138,6 +243,7 @@ export type Database = {
           distribuidora_id: string
           empresa_id: string
           id: string
+          nivel_risco: string | null
           nota_final: number
           reputacao_reclame_aqui: number
           seguranca_juridica: number
@@ -149,6 +255,7 @@ export type Database = {
           distribuidora_id: string
           empresa_id: string
           id?: string
+          nivel_risco?: string | null
           nota_final?: number
           reputacao_reclame_aqui: number
           seguranca_juridica: number
@@ -160,6 +267,7 @@ export type Database = {
           distribuidora_id?: string
           empresa_id?: string
           id?: string
+          nivel_risco?: string | null
           nota_final?: number
           reputacao_reclame_aqui?: number
           seguranca_juridica?: number
@@ -236,15 +344,42 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -371,6 +506,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
