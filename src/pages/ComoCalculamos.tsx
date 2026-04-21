@@ -82,6 +82,10 @@ const principios = [
 const ComoCalculamos = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SEO
+        title="Como Calculamos o Ranking | Poupe Energia"
+        description="Metodologia técnica e transparente do ranking Poupe Energia: 4 pilares com pesos definidos."
+      />
       <Header />
 
       {/* Hero */}
