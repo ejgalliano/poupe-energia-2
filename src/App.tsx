@@ -18,6 +18,7 @@ import Distribuidoras from "./pages/admin/Distribuidoras";
 import Banners from "./pages/admin/Banners";
 import UsuariosAdmin from "./pages/admin/UsuariosAdmin";
 import Parceiros from "./pages/admin/Parceiros";
+import LeadsEmpresariais from "./pages/admin/LeadsEmpresariais";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="banners" element={<Banners />} />
             <Route path="usuarios" element={<UsuariosAdmin />} />
             <Route path="parceiros" element={<Parceiros />} />
+            <Route path="leads-empresariais" element={<LeadsEmpresariais />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
