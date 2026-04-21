@@ -1,19 +1,20 @@
 import { Facebook, Instagram, Linkedin, Youtube, Lightbulb } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const col1 = [
-  "Energia por Assinatura",
-  "Mercado Livre",
-  "Rankings de Energia",
-  "Cashback e Benefícios",
-  "Dúvidas Frequentes",
+  { label: "Energia por Assinatura", href: "#" },
+  { label: "Mercado Livre", href: "#" },
+  { label: "Rankings de Energia", href: "/ranking" },
+  { label: "Cashback e Benefícios", href: "#" },
+  { label: "Dúvidas Frequentes", href: "#" },
 ];
 
 const col2 = [
-  "Sobre o Poupe Energia",
-  "Como Calculamos os Rankings",
-  "Política de Privacidade",
-  "Termos de Uso",
-  "Fale Conosco",
+  { label: "Sobre o Poupe Energia", href: "#" },
+  { label: "Como Calculamos os Rankings", href: "/como-calculamos" },
+  { label: "Política de Privacidade", href: "#" },
+  { label: "Termos de Uso", href: "#" },
+  { label: "Fale Conosco", href: "#" },
 ];
 
 const Footer = () => {
@@ -50,10 +51,10 @@ const Footer = () => {
             <h4 className="font-bold mb-4 text-brand-yellow">Produtos</h4>
             <ul className="space-y-2.5">
               {col1.map((l) => (
-                <li key={l}>
-                  <a href="#" className="text-white/80 hover:text-brand-yellow text-sm transition">
-                    {l}
-                  </a>
+                <li key={l.label}>
+                  <Link to={l.href} className="text-white/80 hover:text-brand-yellow text-sm transition">
+                    {l.label}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -64,10 +65,10 @@ const Footer = () => {
             <h4 className="font-bold mb-4 text-brand-yellow">Institucional</h4>
             <ul className="space-y-2.5">
               {col2.map((l) => (
-                <li key={l}>
-                  <a href="#" className="text-white/80 hover:text-brand-yellow text-sm transition">
-                    {l}
-                  </a>
+                <li key={l.label}>
+                  <Link to={l.href} className="text-white/80 hover:text-brand-yellow text-sm transition">
+                    {l.label}
+                  </Link>
                 </li>
               ))}
             </ul>
