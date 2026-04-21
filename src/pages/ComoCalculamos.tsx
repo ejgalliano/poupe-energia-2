@@ -296,6 +296,7 @@ const ComoCalculamos = () => {
       </main>
 
       <Footer />
+      <BackToTop />
     </div>
   );
 };
