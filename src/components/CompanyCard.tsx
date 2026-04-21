@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Zap, FileText, ShieldCheck } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { slugify } from "@/lib/slug";
+import EconomySimulator from "@/components/EconomySimulator";
 
 export interface Company {
   rank: number;
@@ -26,6 +28,10 @@ const CompanyCard = ({ company }: Props) => {
   const isTop1 = company.rank === 1;
   const initial = company.name.trim().charAt(0).toUpperCase();
   const [searchParams] = useSearchParams();
+  const [simOpen, setSimOpen] = useState(false);
+  const discountNumber = parseFloat(
+    String(company.discount).replace("%", "").replace(",", ".")
+  ) || 0;
   const detailHref = `/empresa/${slugify(company.name)}${
     searchParams.toString() ? `?${searchParams.toString()}` : ""
   }`;
@@ -131,10 +137,20 @@ const CompanyCard = ({ company }: Props) => {
       )}
 
       {/* Linha 3: CTA */}
-      <Button className="w-full h-12 rounded-xl font-bold bg-foreground text-background hover:bg-foreground/90">
+      <Button
+        onClick={() => setSimOpen(true)}
+        className="w-full h-12 rounded-xl font-bold bg-foreground text-background hover:bg-foreground/90"
+      >
         <Zap className="h-4 w-4 mr-2" fill="currentColor" />
         Ver minha economia com {company.name}
       </Button>
+
+      <EconomySimulator
+        open={simOpen}
+        onOpenChange={setSimOpen}
+        companyName={company.name}
+        discountPercent={discountNumber}
+      />
     </article>
   );
 };
