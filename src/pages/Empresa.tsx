@@ -224,6 +224,14 @@ const Empresa = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
+      <SEO
+        title={`${empresa.nome} — Ficha Técnica e Avaliação | Poupe Energia`}
+        description={
+          empresa.parecer_tecnico
+            ? String(empresa.parecer_tecnico).slice(0, 160)
+            : `Ficha técnica completa de ${empresa.nome}: desconto, segurança jurídica, reputação e guia de cancelamento.`
+        }
+      />
       <Header />
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
