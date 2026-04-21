@@ -6,7 +6,8 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    /* Fundo amarelo claro #FFFBEB */
+    --background: 48 100% 96%;
     --foreground: 214 51% 24%;
 
     --card: 0 0% 100%;

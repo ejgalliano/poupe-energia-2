@@ -42,11 +42,10 @@ const companies: Company[] = [
 
 const RankingSection = () => {
   return (
-    <section className="container mx-auto px-4 py-12 md:py-16">
+    <section id="ranking" className="container mx-auto px-4 pb-16 pt-4 md:pt-6">
       <header className="max-w-3xl mx-auto text-center mb-10">
         <h2 className="text-2xl md:text-4xl font-extrabold text-brand-blue leading-tight">
-          Compare as Melhores Empresas de Energia no seu Estado e Economize na
-          Conta de Luz!
+          Compare as Melhores Empresas de Energia no seu Estado
         </h2>
       </header>
 
@@ -61,7 +60,7 @@ const RankingSection = () => {
           size="lg"
           className="bg-brand-yellow text-brand-blue hover:bg-brand-yellow/90 font-bold rounded-xl px-10 shadow-md"
         >
-          Ver mais Ofertas
+          Ver mais ofertas
         </Button>
       </div>
     </section>
