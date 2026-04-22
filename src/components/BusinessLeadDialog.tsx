@@ -297,7 +297,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 <div>
                   <label className="block text-xs font-bold text-brand-blue mb-1">
                     Responsável *
@@ -324,20 +324,20 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                     className="h-9"
                   />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-brand-blue mb-1">
-                    Telefone *
-                  </label>
-                  <Input
-                    placeholder="(00) 00000-0000"
-                    value={form.telefone}
-                    onChange={(e) =>
-                      setForm({ ...form, telefone: maskPhone(e.target.value) })
-                    }
-                    className="h-9"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-brand-blue mb-1">
+                  Telefone *
+                </label>
+                <Input
+                  placeholder="(00) 00000-0000"
+                  value={form.telefone}
+                  onChange={(e) =>
+                    setForm({ ...form, telefone: maskPhone(e.target.value) })
+                  }
+                  className="h-9"
+                />
               </div>
 
               <label className="flex items-start gap-2 text-sm cursor-pointer pt-2">
