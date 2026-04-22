@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Home, Building2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CompanyCard, { Company } from "@/components/CompanyCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import BusinessLeadDialog from "@/components/BusinessLeadDialog";
 import {
   Select,
   SelectContent,
@@ -18,6 +20,8 @@ import { toast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
 import BackToTop from "@/components/BackToTop";
 import LoadingSpinner from "@/components/LoadingSpinner";
+
+type Profile = "home" | "business";
 
 interface Estado {
   id: number;
@@ -48,6 +52,15 @@ const Ranking = () => {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
 
+  // Form state (search card)
+  const initialProfile = (searchParams.get("perfil") as Profile) || "home";
+  const [profile, setProfile] = useState<Profile>(initialProfile);
+  const [formEstadoId, setFormEstadoId] = useState<string>("");
+  const [formDistribuidoraId, setFormDistribuidoraId] = useState<string>(distribuidoraId);
+  const [formDistribuidoras, setFormDistribuidoras] = useState<Distribuidora[]>([]);
+  const [accepted, setAccepted] = useState(true);
+  const [businessOpen, setBusinessOpen] = useState(false);
+
   // Carrega estados
   useEffect(() => {
     supabase
@@ -56,6 +69,39 @@ const Ranking = () => {
       .order("sigla")
       .then(({ data }) => setEstados(data ?? []));
   }, []);
+
+  // Sincroniza estado do formulário com a sigla da URL
+  useEffect(() => {
+    if (estados.length === 0) return;
+    const e = estados.find((x) => x.sigla === estadoSigla);
+    if (e) setFormEstadoId(String(e.id));
+  }, [estados, estadoSigla]);
+
+  // Carrega distribuidoras do estado selecionado no formulário
+  useEffect(() => {
+    if (!formEstadoId) {
+      setFormDistribuidoras([]);
+      return;
+    }
+    supabase
+      .from("distribuidoras")
+      .select("*")
+      .eq("estado_id", Number(formEstadoId))
+      .order("nome")
+      .then(({ data }) => setFormDistribuidoras(data ?? []));
+  }, [formEstadoId]);
+
+  const canSubmit = formEstadoId && formDistribuidoraId && accepted;
+
+  const handleBuscar = () => {
+    if (!canSubmit) return;
+    const estado = estados.find((e) => String(e.id) === formEstadoId);
+    setSearchParams({
+      estado: estado?.sigla ?? "",
+      distribuidora: formDistribuidoraId,
+      perfil: profile,
+    });
+  };
 
   const estadoAtual = useMemo(
     () => estados.find((e) => e.sigla === estadoSigla),
@@ -122,13 +168,6 @@ const Ranking = () => {
       });
   }, [distribuidoraId, estadoSigla, distribuidoraAtual?.nome]);
 
-  const handleEstadoChange = (sigla: string) => {
-    setSearchParams({ estado: sigla, distribuidora: "" });
-  };
-
-  const handleDistribuidoraChange = (id: string) => {
-    setSearchParams({ estado: estadoSigla, distribuidora: id });
-  };
 
   const handleNotify = (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,49 +192,133 @@ const Ranking = () => {
       />
       <Header />
 
-      {/* Filtros sticky */}
-      <div className="bg-white border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 py-4 grid md:grid-cols-2 gap-3 max-w-4xl">
-          <div>
-            <label className="block text-xs font-bold text-brand-blue mb-1.5">
-              Estado
-            </label>
-            <Select value={estadoSigla} onValueChange={handleEstadoChange}>
-              <SelectTrigger className="rounded-xl h-11 bg-background">
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent className="max-h-72">
-                {estados.map((s) => (
-                  <SelectItem key={s.id} value={s.sigla}>
-                    {s.sigla} — {s.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-brand-blue mb-1.5">
-              Distribuidora
-            </label>
-            <Select
-              value={distribuidoraId}
-              onValueChange={handleDistribuidoraChange}
-              disabled={!estadoSigla}
+      {/* Filtros — mesmo card de busca da home */}
+      <section className="container mx-auto px-4 py-6 md:py-8">
+        <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg border border-border/60 p-6 md:p-8">
+          {/* Tabs */}
+          <div className="flex border-b border-border mb-6">
+            <button
+              onClick={() => setProfile("home")}
+              className={`flex-1 flex items-center justify-center gap-2 pb-3 text-sm md:text-base font-bold transition relative ${
+                profile === "home"
+                  ? "text-brand-blue"
+                  : "text-muted-foreground hover:text-brand-blue"
+              }`}
             >
-              <SelectTrigger className="rounded-xl h-11 bg-background disabled:opacity-60">
-                <SelectValue placeholder="Selecione" />
-              </SelectTrigger>
-              <SelectContent>
-                {distribuidoras.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Home className="h-4 w-4" />
+              Para minha Casa
+              {profile === "home" && (
+                <span className="absolute bottom-0 left-0 right-0 h-1 bg-brand-blue rounded-t-full" />
+              )}
+            </button>
+            <button
+              onClick={() => setProfile("business")}
+              className={`flex-1 flex items-center justify-center gap-2 pb-3 text-sm md:text-base font-bold transition relative ${
+                profile === "business"
+                  ? "text-brand-blue"
+                  : "text-muted-foreground hover:text-brand-blue"
+              }`}
+            >
+              <Building2 className="h-4 w-4" />
+              Para minha Empresa
+              {profile === "business" && (
+                <span className="absolute bottom-0 left-0 right-0 h-1 bg-brand-blue rounded-t-full" />
+              )}
+            </button>
           </div>
+
+          {/* Dropdowns */}
+          <div className="grid md:grid-cols-2 gap-4 mb-5">
+            <div>
+              <label className="block text-sm font-bold text-brand-blue mb-2">
+                Seu Estado:
+              </label>
+              <Select
+                value={formEstadoId}
+                onValueChange={(v) => {
+                  setFormEstadoId(v);
+                  setFormDistribuidoraId("");
+                }}
+              >
+                <SelectTrigger className="rounded-xl h-12 bg-background border-border">
+                  <SelectValue placeholder="Selecione seu estado" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {estados.map((s) => (
+                    <SelectItem key={s.id} value={String(s.id)}>
+                      {s.sigla} — {s.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-brand-blue mb-2">
+                Sua Distribuidora:
+              </label>
+              <Select
+                value={formDistribuidoraId}
+                onValueChange={setFormDistribuidoraId}
+                disabled={!formEstadoId}
+              >
+                <SelectTrigger className="rounded-xl h-12 bg-background border-border disabled:opacity-60">
+                  <SelectValue
+                    placeholder={
+                      formEstadoId
+                        ? "Selecione a distribuidora"
+                        : "Escolha um estado primeiro"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {formDistribuidoras.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Checkbox */}
+          <label className="flex items-start gap-3 mb-6 cursor-pointer">
+            <Checkbox
+              checked={accepted}
+              onCheckedChange={(v) => setAccepted(v === true)}
+              className="mt-0.5"
+            />
+            <span className="text-sm text-brand-blue/80 leading-relaxed">
+              Concordo com a{" "}
+              <a href="#" className="font-semibold text-brand-blue underline">
+                Política de Privacidade
+              </a>{" "}
+              e com o uso dos meus dados.
+            </span>
+          </label>
+
+          {/* CTA */}
+          {profile === "home" ? (
+            <Button
+              onClick={handleBuscar}
+              disabled={!canSubmit}
+              className="w-full h-12 bg-brand-blue text-white hover:bg-brand-blue/90 rounded-xl font-bold text-base shadow-md disabled:opacity-50"
+            >
+              Buscar economia <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={() => setBusinessOpen(true)}
+              className="w-full h-12 bg-brand-blue text-white hover:bg-brand-blue/90 rounded-xl font-bold text-base shadow-md"
+            >
+              Comparar Propostas para minha Empresa <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
         </div>
-      </div>
+
+        <BusinessLeadDialog open={businessOpen} onOpenChange={setBusinessOpen} />
+      </section>
 
       <main className="flex-1">
         <section className="container mx-auto px-4 pt-8 pb-16">
