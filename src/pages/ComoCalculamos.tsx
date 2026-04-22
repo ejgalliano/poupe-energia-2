@@ -29,7 +29,7 @@ const sjItems = [
 const pillars = [
   {
     icon: "💰",
-    title: "Desconto na Conta",
+    title: "Desconto Inicial",
     weight: "40%",
     desc: "Usamos apenas o desconto mínimo garantido em contrato em Bandeira Verde. Proibido o uso do termo \"até X%\".",
     formula: "Nota = (Desconto da Empresa ÷ Maior Desconto do Mercado) × 10",
