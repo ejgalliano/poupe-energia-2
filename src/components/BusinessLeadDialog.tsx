@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { Upload, X, FileText, CheckCircle2, ArrowRight } from "lucide-react";
 import {
@@ -11,13 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -25,26 +18,6 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-interface Estado {
-  id: number;
-  sigla: string;
-  nome: string;
-}
-interface Distribuidora {
-  id: string;
-  nome: string;
-  estado_id: number;
-}
-
-const maskCNPJ = (v: string) => {
-  const d = v.replace(/\D/g, "").slice(0, 14);
-  return d
-    .replace(/^(\d{2})(\d)/, "$1.$2")
-    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1/$2")
-    .replace(/(\d{4})(\d)/, "$1-$2");
-};
 
 const maskPhone = (v: string) => {
   const d = v.replace(/\D/g, "").slice(0, 11);
@@ -60,13 +33,6 @@ const maskPhone = (v: string) => {
 
 const schema = z.object({
   razao_social: z.string().trim().min(2, "Informe a razão social").max(200),
-  cnpj: z
-    .string()
-    .trim()
-    .refine((v) => v.replace(/\D/g, "").length === 14, "CNPJ inválido"),
-  estado_sigla: z.string().min(1, "Selecione o estado"),
-  distribuidora_id: z.string().min(1, "Selecione a distribuidora"),
-  valor_conta: z.number().nonnegative().optional(),
   responsavel_nome: z.string().trim().min(2, "Informe seu nome").max(120),
   email: z.string().trim().email("Email inválido").max(255),
   telefone: z
@@ -78,54 +44,21 @@ const schema = z.object({
 const MAX_FILE_MB = 10;
 
 const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
-  const [estados, setEstados] = useState<Estado[]>([]);
-  const [distribuidoras, setDistribuidoras] = useState<Distribuidora[]>([]);
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const [form, setForm] = useState({
     razao_social: "",
-    cnpj: "",
-    estado_sigla: "",
-    distribuidora_id: "",
-    valor_conta: "",
     responsavel_nome: "",
     email: "",
     telefone: "",
   });
   const [accepted, setAccepted] = useState(true);
 
-  useEffect(() => {
-    if (!open) return;
-    supabase
-      .from("estados")
-      .select("*")
-      .order("sigla")
-      .then(({ data }) => setEstados((data ?? []) as Estado[]));
-  }, [open]);
-
-  useEffect(() => {
-    const est = estados.find((e) => e.sigla === form.estado_sigla);
-    if (!est) {
-      setDistribuidoras([]);
-      return;
-    }
-    supabase
-      .from("distribuidoras")
-      .select("*")
-      .eq("estado_id", est.id)
-      .order("nome")
-      .then(({ data }) => setDistribuidoras((data ?? []) as Distribuidora[]));
-  }, [form.estado_sigla, estados]);
-
   const reset = () => {
     setForm({
       razao_social: "",
-      cnpj: "",
-      estado_sigla: "",
-      distribuidora_id: "",
-      valor_conta: "",
       responsavel_nome: "",
       email: "",
       telefone: "",
@@ -167,10 +100,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
       toast.error("Aceite a política de privacidade");
       return;
     }
-    const parsed = schema.safeParse({
-      ...form,
-      valor_conta: form.valor_conta ? Number(form.valor_conta) : undefined,
-    });
+    const parsed = schema.safeParse(form);
     if (!parsed.success) {
       toast.error(parsed.error.errors[0]?.message ?? "Verifique os campos");
       return;
@@ -180,7 +110,10 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
     try {
       // 1) Upload arquivos
       const uploadedPaths: string[] = [];
-      const folder = `${Date.now()}-${parsed.data.cnpj.replace(/\D/g, "")}`;
+      const folder = `${Date.now()}-${parsed.data.razao_social
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .slice(0, 40)}`;
       for (const f of files) {
         const safeName = f.name.replace(/[^a-zA-Z0-9._-]/g, "_");
         const path = `${folder}/${safeName}`;
@@ -195,19 +128,14 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
         }
       }
 
-      // 2) Distribuidora nome
-      const distNome =
-        distribuidoras.find((d) => d.id === parsed.data.distribuidora_id)
-          ?.nome ?? null;
-
-      // 3) Inserir lead
+      // 2) Inserir lead
       const { error } = await supabase.from("leads_empresariais").insert({
         razao_social: parsed.data.razao_social,
-        cnpj: parsed.data.cnpj,
-        estado_sigla: parsed.data.estado_sigla,
-        distribuidora_id: parsed.data.distribuidora_id,
-        distribuidora_nome: distNome,
-        valor_conta: parsed.data.valor_conta ?? null,
+        cnpj: "",
+        estado_sigla: null,
+        distribuidora_id: null,
+        distribuidora_nome: null,
+        valor_conta: null,
         responsavel_nome: parsed.data.responsavel_nome,
         email: parsed.data.email,
         telefone: parsed.data.telefone,
@@ -252,8 +180,8 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                 Comparar Propostas para minha Empresa
               </DialogTitle>
               <DialogDescription>
-                Exclusivo para portadores de CNPJ. Preencha os dados e nossa
-                equipe enviará as melhores ofertas para você.
+                Anexe suas contas de luz e preencha seus dados. Nossa equipe
+                analisará e enviará as melhores propostas para você.
               </DialogDescription>
             </DialogHeader>
 
@@ -261,12 +189,16 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
               {/* Upload */}
               <div>
                 <label className="block text-xs font-bold text-brand-blue mb-1.5">
-                  Conta de luz (PDF ou imagem)
+                  Contas de luz (PDF ou imagem)
                 </label>
-                <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl p-5 cursor-pointer hover:border-brand-blue/50 hover:bg-muted/30 transition-colors">
+                <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl p-5 cursor-pointer hover:border-brand-blue/50 hover:bg-muted/30 transition-colors text-center">
                   <Upload className="h-6 w-6 text-brand-blue" />
                   <span className="text-sm text-muted-foreground">
-                    Clique para anexar sua conta de luz (PDF ou imagem)
+                    Clique para anexar suas contas de luz (PDF ou imagem) — você
+                    pode selecionar múltiplos arquivos
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Limite de 10MB por arquivo
                   </span>
                   <input
                     type="file"
@@ -294,6 +226,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                           type="button"
                           onClick={() => removeFile(i)}
                           className="text-muted-foreground hover:text-destructive"
+                          aria-label={`Remover ${f.name}`}
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -315,81 +248,6 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                     }
                     maxLength={200}
                   />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-brand-blue mb-1">
-                    CNPJ *
-                  </label>
-                  <Input
-                    placeholder="00.000.000/0000-00"
-                    value={form.cnpj}
-                    onChange={(e) =>
-                      setForm({ ...form, cnpj: maskCNPJ(e.target.value) })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-brand-blue mb-1">
-                    Valor médio da conta (R$)
-                  </label>
-                  <Input
-                    type="number"
-                    inputMode="decimal"
-                    placeholder="Opcional"
-                    value={form.valor_conta}
-                    onChange={(e) =>
-                      setForm({ ...form, valor_conta: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-brand-blue mb-1">
-                    Estado *
-                  </label>
-                  <Select
-                    value={form.estado_sigla}
-                    onValueChange={(v) =>
-                      setForm({ ...form, estado_sigla: v, distribuidora_id: "" })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-64">
-                      {estados.map((e) => (
-                        <SelectItem key={e.id} value={e.sigla}>
-                          {e.sigla} — {e.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-brand-blue mb-1">
-                    Distribuidora *
-                  </label>
-                  <Select
-                    value={form.distribuidora_id}
-                    onValueChange={(v) =>
-                      setForm({ ...form, distribuidora_id: v })
-                    }
-                    disabled={!form.estado_sigla}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {distribuidoras.map((d) => (
-                        <SelectItem key={d.id} value={d.id}>
-                          {d.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <div>
