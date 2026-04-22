@@ -94,7 +94,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
     email: "",
     telefone: "",
   });
-  const [accepted, setAccepted] = useState(false);
+  const [accepted, setAccepted] = useState(true);
 
   useEffect(() => {
     if (!open) return;
@@ -131,7 +131,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
       telefone: "",
     });
     setFiles([]);
-    setAccepted(false);
+    setAccepted(true);
     setSuccess(false);
   };
 
