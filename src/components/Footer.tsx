@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const col1 = [
   { label: "Energia por Assinatura", href: "#" },
-  { label: "Mercado Livre", href: "#" },
+  { label: "Mercado Livre de energia", href: "#" },
   { label: "Rankings de Energia", href: "/ranking" },
   { label: "Cashback e Benefícios", href: "#" },
   { label: "Dúvidas Frequentes", href: "#" },
