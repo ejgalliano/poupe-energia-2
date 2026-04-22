@@ -149,11 +149,11 @@ const EconomySimulator = ({
                 <div className="text-[10px] text-brand-success font-semibold uppercase">
                   Sua economia
                 </div>
-                <div className="text-base font-extrabold text-brand-success mt-1">
-                  {formatBRL(economia.mensal)}/mês
+                <div className="text-lg font-extrabold text-brand-success mt-1 leading-tight">
+                  {formatBRL(economia.anual)}/ano
                 </div>
                 <div className="text-[11px] text-brand-success font-semibold">
-                  {formatBRL(economia.anual)}/ano
+                  {formatBRL(economia.mensal)}/mês
                 </div>
               </div>
             </div>
