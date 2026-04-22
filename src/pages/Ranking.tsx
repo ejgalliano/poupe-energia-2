@@ -168,13 +168,6 @@ const Ranking = () => {
       });
   }, [distribuidoraId, estadoSigla, distribuidoraAtual?.nome]);
 
-  const handleEstadoChange = (sigla: string) => {
-    setSearchParams({ estado: sigla, distribuidora: "" });
-  };
-
-  const handleDistribuidoraChange = (id: string) => {
-    setSearchParams({ estado: estadoSigla, distribuidora: id });
-  };
 
   const handleNotify = (e: React.FormEvent) => {
     e.preventDefault();
