@@ -52,6 +52,15 @@ const Ranking = () => {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
 
+  // Form state (search card)
+  const initialProfile = (searchParams.get("perfil") as Profile) || "home";
+  const [profile, setProfile] = useState<Profile>(initialProfile);
+  const [formEstadoId, setFormEstadoId] = useState<string>("");
+  const [formDistribuidoraId, setFormDistribuidoraId] = useState<string>(distribuidoraId);
+  const [formDistribuidoras, setFormDistribuidoras] = useState<Distribuidora[]>([]);
+  const [accepted, setAccepted] = useState(true);
+  const [businessOpen, setBusinessOpen] = useState(false);
+
   // Carrega estados
   useEffect(() => {
     supabase
@@ -60,6 +69,39 @@ const Ranking = () => {
       .order("sigla")
       .then(({ data }) => setEstados(data ?? []));
   }, []);
+
+  // Sincroniza estado do formulário com a sigla da URL
+  useEffect(() => {
+    if (estados.length === 0) return;
+    const e = estados.find((x) => x.sigla === estadoSigla);
+    if (e) setFormEstadoId(String(e.id));
+  }, [estados, estadoSigla]);
+
+  // Carrega distribuidoras do estado selecionado no formulário
+  useEffect(() => {
+    if (!formEstadoId) {
+      setFormDistribuidoras([]);
+      return;
+    }
+    supabase
+      .from("distribuidoras")
+      .select("*")
+      .eq("estado_id", Number(formEstadoId))
+      .order("nome")
+      .then(({ data }) => setFormDistribuidoras(data ?? []));
+  }, [formEstadoId]);
+
+  const canSubmit = formEstadoId && formDistribuidoraId && accepted;
+
+  const handleBuscar = () => {
+    if (!canSubmit) return;
+    const estado = estados.find((e) => String(e.id) === formEstadoId);
+    setSearchParams({
+      estado: estado?.sigla ?? "",
+      distribuidora: formDistribuidoraId,
+      perfil: profile,
+    });
+  };
 
   const estadoAtual = useMemo(
     () => estados.find((e) => e.sigla === estadoSigla),
