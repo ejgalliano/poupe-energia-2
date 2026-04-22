@@ -37,7 +37,7 @@ const SearchSection = ({ onSearch }: Props) => {
   const [distribuidoras, setDistribuidoras] = useState<Distribuidora[]>([]);
   const [estadoId, setEstadoId] = useState<string>("");
   const [distribuidoraId, setDistribuidoraId] = useState<string>("");
-  const [accepted, setAccepted] = useState(false);
+  const [accepted, setAccepted] = useState(true);
   const [businessOpen, setBusinessOpen] = useState(false);
 
   useEffect(() => {

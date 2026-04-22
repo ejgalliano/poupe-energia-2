@@ -53,14 +53,14 @@ const LeadCaptureDialog = ({
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [accept, setAccept] = useState(false);
+  const [accept, setAccept] = useState(true);
   const [loading, setLoading] = useState(false);
 
   const reset = () => {
     setNome("");
     setEmail("");
     setTelefone("");
-    setAccept(false);
+    setAccept(true);
   };
 
   const handleClose = (next: boolean) => {
