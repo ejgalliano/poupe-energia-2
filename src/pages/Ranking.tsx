@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Home, Building2 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CompanyCard, { Company } from "@/components/CompanyCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import BusinessLeadDialog from "@/components/BusinessLeadDialog";
 import {
   Select,
   SelectContent,
@@ -18,6 +20,8 @@ import { toast } from "@/hooks/use-toast";
 import SEO from "@/components/SEO";
 import BackToTop from "@/components/BackToTop";
 import LoadingSpinner from "@/components/LoadingSpinner";
+
+type Profile = "home" | "business";
 
 interface Estado {
   id: number;
