@@ -179,11 +179,62 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
               <DialogTitle className="text-2xl text-brand-blue">
                 Comparar Propostas para minha Empresa
               </DialogTitle>
-              <DialogDescription>
-                Anexe suas contas de luz e preencha seus dados. Nossa equipe
-                analisará e enviará as melhores propostas para você.
-              </DialogDescription>
             </DialogHeader>
+
+            {/* Stepper explicativo */}
+            <div className="bg-[#F9FAFB] rounded-xl p-4 border border-border">
+              <ol className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-2 relative">
+                {[
+                  {
+                    icon: "📎",
+                    title: "Anexe suas faturas",
+                    desc: "Envie uma ou mais contas de luz. Extraímos os dados automaticamente.",
+                  },
+                  {
+                    icon: "📋",
+                    title: "Preencha seus dados",
+                    desc: "Só precisamos do seu nome, email e telefone para retorno.",
+                  },
+                  {
+                    icon: "🏆",
+                    title: "Mesa competitiva",
+                    desc: "Nossa equipe consulta as principais comercializadoras e negocia as melhores condições para você.",
+                  },
+                  {
+                    icon: "💰",
+                    title: "Receba as propostas",
+                    desc: "Você recebe as opções com maior economia e segurança jurídica — sem compromisso.",
+                  },
+                ].map((step, i, arr) => (
+                  <li
+                    key={i}
+                    className="relative flex flex-col items-center text-center px-1"
+                  >
+                    {/* Linha conectora (apenas md+, não no último) */}
+                    {i < arr.length - 1 && (
+                      <span
+                        aria-hidden
+                        className="hidden md:block absolute top-5 left-[calc(50%+1.25rem)] right-[calc(-50%+1.25rem)] h-0.5 bg-border"
+                      />
+                    )}
+                    <div className="relative z-10 h-10 w-10 rounded-full bg-brand-yellow text-brand-blue font-bold flex items-center justify-center shadow-sm">
+                      {i + 1}
+                    </div>
+                    <div className="mt-2 text-lg" aria-hidden>
+                      {step.icon}
+                    </div>
+                    <div className="mt-1 text-xs font-bold text-brand-blue">
+                      {step.title}
+                    </div>
+                    <div className="mt-0.5 text-[11px] text-muted-foreground leading-snug">
+                      {step.desc}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="border-t border-border" />
 
             <div className="space-y-4 pt-2">
               {/* Upload */}
