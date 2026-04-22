@@ -1,3 +1,4 @@
+import * as React from "react";
 import { Helmet } from "react-helmet-async";
 
 interface Props {
@@ -6,14 +7,16 @@ interface Props {
   canonical?: string;
 }
 
+const HelmetComponent = Helmet as unknown as React.ComponentType<React.PropsWithChildren>;
+
 const SEO = ({ title, description, canonical }: Props) => (
-  <Helmet>
+  <HelmetComponent>
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     {canonical && <link rel="canonical" href={canonical} />}
     <meta property="og:title" content={title} />
     {description && <meta property="og:description" content={description} />}
-  </Helmet>
+  </HelmetComponent>
 );
 
 export default SEO;
