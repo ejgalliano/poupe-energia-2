@@ -65,8 +65,8 @@ const Sobre = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
-        title="Sobre o Poupe Energia | Comparador de Energia"
-        description="Startup brasileira de energias renováveis. Conheça a missão, pilares e valores do Poupe Energia."
+        title="Sobre a Poupe Energia | Comparador de Energia"
+        description="Startup brasileira de energias renováveis. Conheça a missão, pilares e valores da Poupe Energia."
       />
       <Header />
 
