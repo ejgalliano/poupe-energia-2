@@ -154,7 +154,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
         {success ? (
           <div className="py-10 text-center space-y-4">
             <div className="mx-auto h-16 w-16 rounded-full bg-brand-success/10 flex items-center justify-center">
@@ -181,53 +181,30 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
               </DialogTitle>
             </DialogHeader>
 
-            {/* Stepper explicativo */}
-            <div className="bg-[#F9FAFB] rounded-xl p-4 border border-border">
-              <ol className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-2 relative">
+            {/* Stepper explicativo compacto */}
+            <div className="bg-[#F9FAFB] rounded-xl py-3 px-3 border border-border">
+              <ol className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-1 relative">
                 {[
-                  {
-                    icon: "📎",
-                    title: "Anexe suas faturas",
-                    desc: "Envie uma ou mais contas de luz. Extraímos os dados automaticamente.",
-                  },
-                  {
-                    icon: "📋",
-                    title: "Preencha seus dados",
-                    desc: "Só precisamos do seu nome, email e telefone para retorno.",
-                  },
-                  {
-                    icon: "🏆",
-                    title: "Mesa competitiva",
-                    desc: "Nossa equipe consulta as principais comercializadoras e negocia as melhores condições para você.",
-                  },
-                  {
-                    icon: "💰",
-                    title: "Receba as propostas",
-                    desc: "Você recebe as opções com maior economia e segurança jurídica — sem compromisso.",
-                  },
-                ].map((step, i, arr) => (
+                  "Anexe suas faturas de luz",
+                  "Preencha seus dados",
+                  "Fazemos a mesa competitiva",
+                  "Receba as melhores propostas",
+                ].map((title, i, arr) => (
                   <li
                     key={i}
                     className="relative flex flex-col items-center text-center px-1"
                   >
-                    {/* Linha conectora (apenas md+, não no último) */}
                     {i < arr.length - 1 && (
                       <span
                         aria-hidden
-                        className="hidden md:block absolute top-5 left-[calc(50%+1.25rem)] right-[calc(-50%+1.25rem)] h-0.5 bg-border"
+                        className="hidden md:block absolute top-4 left-[calc(50%+1rem)] right-[calc(-50%+1rem)] h-0.5 bg-border"
                       />
                     )}
-                    <div className="relative z-10 h-10 w-10 rounded-full bg-brand-yellow text-brand-blue font-bold flex items-center justify-center shadow-sm">
+                    <div className="relative z-10 h-8 w-8 rounded-full bg-brand-yellow text-brand-blue text-xs font-bold flex items-center justify-center shadow-sm">
                       {i + 1}
                     </div>
-                    <div className="mt-2 text-lg" aria-hidden>
-                      {step.icon}
-                    </div>
-                    <div className="mt-1 text-xs font-bold text-brand-blue">
-                      {step.title}
-                    </div>
-                    <div className="mt-0.5 text-[11px] text-muted-foreground leading-snug">
-                      {step.desc}
+                    <div className="mt-1.5 text-[11px] font-semibold text-brand-blue leading-tight">
+                      {title}
                     </div>
                   </li>
                 ))}
@@ -236,19 +213,15 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
 
             <div className="border-t border-border" />
 
-            <div className="space-y-4 pt-2">
+            <div className="space-y-3 pt-1">
               {/* Upload */}
               <div>
-                <label className="block text-xs font-bold text-brand-blue mb-1.5">
-                  Contas de luz (PDF ou imagem)
-                </label>
-                <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-xl p-5 cursor-pointer hover:border-brand-blue/50 hover:bg-muted/30 transition-colors text-center">
-                  <Upload className="h-6 w-6 text-brand-blue" />
-                  <span className="text-sm text-muted-foreground">
-                    Clique para anexar suas contas de luz (PDF ou imagem) — você
-                    pode selecionar múltiplos arquivos
+                <label className="flex flex-col items-center justify-center gap-1 border-2 border-dashed border-border rounded-xl p-3 cursor-pointer hover:border-brand-blue/50 hover:bg-muted/30 transition-colors text-center">
+                  <Upload className="h-5 w-5 text-brand-blue" />
+                  <span className="text-xs text-muted-foreground">
+                    Clique para anexar suas contas de luz (PDF ou imagem) — múltiplos arquivos
                   </span>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-[10px] text-muted-foreground">
                     Limite de 10MB por arquivo
                   </span>
                   <input
@@ -264,7 +237,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                     {files.map((f, i) => (
                       <li
                         key={i}
-                        className="flex items-center justify-between text-xs bg-muted/40 rounded-md px-2 py-1.5"
+                        className="flex items-center justify-between text-xs bg-muted/40 rounded-md px-2 py-1"
                       >
                         <span className="flex items-center gap-2 truncate">
                           <FileText className="h-3 w-3 shrink-0" />
@@ -287,23 +260,24 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                 )}
               </div>
 
-              <div className="grid md:grid-cols-2 gap-3">
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-brand-blue mb-1">
-                    Razão Social / Nome da empresa *
-                  </label>
-                  <Input
-                    value={form.razao_social}
-                    onChange={(e) =>
-                      setForm({ ...form, razao_social: e.target.value })
-                    }
-                    maxLength={200}
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-brand-blue mb-1">
+                  Razão Social / Nome da empresa *
+                </label>
+                <Input
+                  value={form.razao_social}
+                  onChange={(e) =>
+                    setForm({ ...form, razao_social: e.target.value })
+                  }
+                  maxLength={200}
+                  className="h-9"
+                />
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <div>
                   <label className="block text-xs font-bold text-brand-blue mb-1">
-                    Nome do responsável *
+                    Responsável *
                   </label>
                   <Input
                     value={form.responsavel_nome}
@@ -311,6 +285,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                       setForm({ ...form, responsavel_nome: e.target.value })
                     }
                     maxLength={120}
+                    className="h-9"
                   />
                 </div>
 
@@ -323,12 +298,13 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     maxLength={255}
+                    className="h-9"
                   />
                 </div>
 
-                <div className="md:col-span-2">
+                <div>
                   <label className="block text-xs font-bold text-brand-blue mb-1">
-                    Telefone / WhatsApp *
+                    Telefone *
                   </label>
                   <Input
                     placeholder="(00) 00000-0000"
@@ -336,6 +312,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                     onChange={(e) =>
                       setForm({ ...form, telefone: maskPhone(e.target.value) })
                     }
+                    className="h-9"
                   />
                 </div>
               </div>
