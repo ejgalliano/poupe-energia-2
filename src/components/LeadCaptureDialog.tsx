@@ -179,18 +179,9 @@ const LeadCaptureDialog = ({
             {loading ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : null}
-            Continuar para o site
+            Continuar com sua adesão
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
-
-          <button
-            type="button"
-            onClick={() => redirect(false)}
-            disabled={loading}
-            className="w-full text-center text-xs text-muted-foreground hover:text-brand-blue underline pt-1 disabled:opacity-50"
-          >
-            Pular e ir direto ao site →
-          </button>
         </div>
       </DialogContent>
     </Dialog>
