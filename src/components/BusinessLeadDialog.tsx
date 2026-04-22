@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { z } from "zod";
-import { Upload, X, FileText, CheckCircle2, ArrowRight } from "lucide-react";
+import { Upload, X, FileText, CheckCircle2, ArrowRight, Paperclip, ClipboardList, Trophy, Wallet } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -154,7 +154,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-4">
         {success ? (
           <div className="py-10 text-center space-y-4">
             <div className="mx-auto h-16 w-16 rounded-full bg-brand-success/10 flex items-center justify-center">
@@ -176,38 +176,61 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle className="text-2xl text-brand-blue">
+              <DialogTitle className="text-lg font-bold text-brand-blue">
                 Comparar Propostas para minha Empresa
               </DialogTitle>
             </DialogHeader>
 
-            {/* Stepper explicativo compacto */}
-            <div className="bg-[#F9FAFB] rounded-xl py-3 px-3 border border-border">
+            {/* Stepper explicativo detalhado e compacto */}
+            <div className="bg-[#F9FAFB] rounded-xl py-2 px-3 border border-border">
               <ol className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-1 relative">
                 {[
-                  "Anexe suas faturas de luz",
-                  "Preencha seus dados",
-                  "Fazemos a mesa competitiva",
-                  "Receba as melhores propostas",
-                ].map((title, i, arr) => (
-                  <li
-                    key={i}
-                    className="relative flex flex-col items-center text-center px-1"
-                  >
-                    {i < arr.length - 1 && (
-                      <span
-                        aria-hidden
-                        className="hidden md:block absolute top-4 left-[calc(50%+1rem)] right-[calc(-50%+1rem)] h-0.5 bg-border"
-                      />
-                    )}
-                    <div className="relative z-10 h-8 w-8 rounded-full bg-brand-yellow text-brand-blue text-xs font-bold flex items-center justify-center shadow-sm">
-                      {i + 1}
-                    </div>
-                    <div className="mt-1.5 text-[11px] font-semibold text-brand-blue leading-tight">
-                      {title}
-                    </div>
-                  </li>
-                ))}
+                  {
+                    icon: Paperclip,
+                    title: "Anexe suas faturas",
+                    desc: "Envie uma ou mais contas de luz. Extraímos os dados automaticamente.",
+                  },
+                  {
+                    icon: ClipboardList,
+                    title: "Preencha seus dados",
+                    desc: "Só precisamos do seu nome, email e telefone para retorno.",
+                  },
+                  {
+                    icon: Trophy,
+                    title: "Mesa competitiva",
+                    desc: "Consultamos as principais comercializadoras e negociamos para você.",
+                  },
+                  {
+                    icon: Wallet,
+                    title: "Receba as propostas",
+                    desc: "Você recebe as melhores opções com economia e segurança jurídica.",
+                  },
+                ].map((step, i, arr) => {
+                  const Icon = step.icon;
+                  return (
+                    <li
+                      key={i}
+                      className="relative flex flex-col items-center text-center px-1"
+                    >
+                      {i < arr.length - 1 && (
+                        <span
+                          aria-hidden
+                          className="hidden md:block absolute top-8 left-[calc(50%+1rem)] right-[calc(-50%+1rem)] h-0.5 bg-border"
+                        />
+                      )}
+                      <Icon className="h-5 w-5 text-brand-blue mb-1" />
+                      <div className="relative z-10 h-6 w-6 rounded-full bg-brand-yellow text-brand-blue text-[11px] font-bold flex items-center justify-center shadow-sm">
+                        {i + 1}
+                      </div>
+                      <div className="mt-1 text-xs font-bold text-brand-blue leading-tight">
+                        {step.title}
+                      </div>
+                      <div className="mt-0.5 text-[10px] text-gray-500 leading-snug">
+                        {step.desc}
+                      </div>
+                    </li>
+                  );
+                })}
               </ol>
             </div>
 
