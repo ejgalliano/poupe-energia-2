@@ -121,7 +121,7 @@ export default function Notas() {
           <Card>
             <CardHeader><CardTitle>Métricas</CardTitle></CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-4">
-              <div><Label>Desconto %</Label><Input type="number" value={nota.desconto_percentual} onChange={(e) => setNota({ ...nota, desconto_percentual: +e.target.value })} /></div>
+              <div><Label>Desconto Inicial %</Label><Input type="number" value={nota.desconto_percentual} onChange={(e) => setNota({ ...nota, desconto_percentual: +e.target.value })} /></div>
               <div><Label>Reputação Reclame Aqui</Label><Input type="number" step="0.1" value={nota.reputacao_reclame_aqui} onChange={(e) => setNota({ ...nota, reputacao_reclame_aqui: +e.target.value })} /></div>
               <div><Label>Valor mínimo R$</Label><Input type="number" value={nota.valor_minimo_fatura} onChange={(e) => setNota({ ...nota, valor_minimo_fatura: +e.target.value })} /></div>
               <div>
