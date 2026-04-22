@@ -9,6 +9,11 @@ import {
   Phone,
   Globe,
   Zap,
+  Clock,
+  AlertTriangle,
+  Shield,
+  ExternalLink,
+  MessageCircle,
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -30,8 +35,10 @@ const formatBRL = (n: number | null | undefined) =>
         maximumFractionDigits: 0,
       }).format(Number(n));
 
+const NI = () => <span className="text-muted-foreground/70 italic">Não informado</span>;
+
 const Stars = ({ score }: { score: number }) => {
-  const full = Math.round(score / 2); // 0-10 -> 0-5 stars
+  const full = Math.round(score / 2);
   return (
     <div className="flex items-center gap-0.5">
       {Array.from({ length: 5 }).map((_, i) => (
@@ -63,7 +70,7 @@ const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="py-2.5 border-b border-border last:border-0 flex justify-between gap-4">
     <span className="text-sm text-muted-foreground">{label}</span>
     <span className="text-sm font-semibold text-brand-blue text-right">
-      {value}
+      {value ?? <NI />}
     </span>
   </div>
 );
@@ -187,33 +194,43 @@ const Empresa = () => {
     empresa.cnpj ||
     empresa.fundacao ||
     empresa.sede ||
-    empresa.grupo_economico;
+    empresa.grupo_economico ||
+    empresa.estados_atuacao;
 
   const hasOperacional =
     (empresa.fontes_geracao && empresa.fontes_geracao.length) ||
     empresa.possui_usina_propria != null ||
+    empresa.modelo_infraestrutura ||
     empresa.meses_fidelidade != null ||
     empresa.multa_cancelamento != null ||
     empresa.aviso_previo_dias != null ||
     empresa.taxa_adesao != null ||
+    empresa.indice_reajuste ||
     empresa.desconto_divulgado ||
+    empresa.tipo_desconto ||
+    empresa.incide_sobre ||
+    empresa.economia_minima_garantida != null ||
     empresa.consumo_minimo != null ||
     empresa.prazo_ativacao ||
     empresa.modelo_billing ||
     (empresa.canais_atendimento && empresa.canais_atendimento.length) ||
     empresa.reputacao_reclame_aqui != null ||
-    empresa.avaliacao_google != null;
+    empresa.numero_reclamacoes_ra != null ||
+    empresa.avaliacao_google != null ||
+    empresa.processos_judiciais != null;
 
   const hasAnalise =
-    empresa.vantagens || empresa.pontos_atencao || empresa.parecer_tecnico;
+    empresa.vantagens || empresa.pontos_atencao || empresa.parecer_tecnico || empresa.arquetipo;
 
   const hasCancel =
     empresa.cancel_email ||
+    empresa.cancel_ouvidoria ||
     empresa.cancel_telefone ||
     empresa.cancel_site ||
     empresa.cancel_processo ||
     empresa.cancel_dicas ||
-    empresa.cancel_recorrer;
+    empresa.cancel_recorrer ||
+    empresa.cancel_aviso_previo != null;
 
   const vantagens = (empresa.vantagens ?? "")
     .split(/\n+/)
@@ -223,6 +240,14 @@ const Empresa = () => {
     .split(/\n+/)
     .map((s: string) => s.trim())
     .filter(Boolean);
+
+  const reputacaoLabel = empresa.reputacao_reclame_aqui != null
+    ? `${Number(empresa.reputacao_reclame_aqui).toFixed(1).replace(".", ",")}/10${
+        empresa.numero_reclamacoes_ra != null
+          ? ` (${empresa.numero_reclamacoes_ra} reclamações)`
+          : ""
+      }`
+    : null;
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
@@ -303,20 +328,18 @@ const Empresa = () => {
             {hasCadastro && (
               <Block title="Dados Cadastrais">
                 <div>
-                  {empresa.razao_social && (
-                    <Field label="Razão Social" value={empresa.razao_social} />
-                  )}
-                  {empresa.cnpj && <Field label="CNPJ" value={empresa.cnpj} />}
-                  {empresa.fundacao && (
-                    <Field label="Fundação" value={empresa.fundacao} />
-                  )}
-                  {empresa.sede && <Field label="Sede" value={empresa.sede} />}
-                  {empresa.grupo_economico && (
-                    <Field
-                      label="Grupo Econômico"
-                      value={empresa.grupo_economico}
-                    />
-                  )}
+                  <Field label="Razão Social" value={empresa.razao_social} />
+                  <Field label="CNPJ" value={empresa.cnpj} />
+                  <Field label="Fundação" value={empresa.fundacao} />
+                  <Field label="Sede" value={empresa.sede} />
+                  <Field
+                    label="Área de Atuação"
+                    value={empresa.estados_atuacao}
+                  />
+                  <Field
+                    label="Grupo Econômico"
+                    value={empresa.grupo_economico}
+                  />
                 </div>
               </Block>
             )}
@@ -324,93 +347,128 @@ const Empresa = () => {
             {hasOperacional && (
               <Block title="Atributos Operacionais">
                 <div>
-                  {empresa.fontes_geracao?.length > 0 && (
-                    <Field
-                      label="Fontes de Geração"
-                      value={empresa.fontes_geracao.join(", ")}
-                    />
-                  )}
                   <Field
-                    label="Usina Própria"
-                    value={empresa.possui_usina_propria ? "Sim" : "Não"}
+                    label="Fonte de Geração"
+                    value={
+                      empresa.fontes_geracao?.length
+                        ? empresa.fontes_geracao.join(", ")
+                        : null
+                    }
                   />
-                  {empresa.modelo_infraestrutura && (
-                    <Field
-                      label="Modelo de Infraestrutura"
-                      value={empresa.modelo_infraestrutura}
-                    />
-                  )}
+                  <Field
+                    label="Infraestrutura"
+                    value={
+                      empresa.modelo_infraestrutura ||
+                      (empresa.possui_usina_propria != null
+                        ? empresa.possui_usina_propria
+                          ? "Usina Própria"
+                          : "Consórcio / Cooperativa"
+                        : null)
+                    }
+                  />
                   <Field
                     label="Fidelidade"
-                    value={`${empresa.meses_fidelidade ?? 0} meses`}
+                    value={
+                      empresa.meses_fidelidade != null
+                        ? `${empresa.meses_fidelidade} meses`
+                        : null
+                    }
                   />
                   <Field
                     label="Multa de Cancelamento"
-                    value={`${empresa.multa_cancelamento ?? 0}%`}
+                    value={
+                      empresa.multa_cancelamento != null
+                        ? `${empresa.multa_cancelamento}%`
+                        : null
+                    }
                   />
                   <Field
                     label="Aviso Prévio"
-                    value={`${empresa.aviso_previo_dias ?? 0} dias`}
+                    value={
+                      empresa.aviso_previo_dias != null
+                        ? `${empresa.aviso_previo_dias} dias`
+                        : null
+                    }
                   />
                   <Field
                     label="Taxa de Adesão"
-                    value={formatBRL(empresa.taxa_adesao)}
+                    value={
+                      empresa.taxa_adesao != null
+                        ? formatBRL(empresa.taxa_adesao)
+                        : null
+                    }
                   />
-                  {empresa.desconto_divulgado && (
-                    <Field
-                      label="Desconto Divulgado"
-                      value={empresa.desconto_divulgado}
-                    />
-                  )}
-                  {empresa.tipo_desconto && (
-                    <Field
-                      label="Tipo de Desconto"
-                      value={empresa.tipo_desconto}
-                    />
-                  )}
-                  {empresa.incide_sobre && (
-                    <Field label="Incide Sobre" value={empresa.incide_sobre} />
-                  )}
-                  {empresa.consumo_minimo != null && (
-                    <Field
-                      label="Consumo Mínimo"
-                      value={formatBRL(empresa.consumo_minimo)}
-                    />
-                  )}
-                  {empresa.prazo_ativacao && (
-                    <Field
-                      label="Prazo de Ativação"
-                      value={empresa.prazo_ativacao}
-                    />
-                  )}
-                  {empresa.modelo_billing && (
-                    <Field
-                      label="Modelo de Billing"
-                      value={empresa.modelo_billing}
-                    />
-                  )}
-                  {empresa.canais_atendimento?.length > 0 && (
-                    <Field
-                      label="Canais de Atendimento"
-                      value={empresa.canais_atendimento.join(", ")}
-                    />
-                  )}
-                  {empresa.reputacao_reclame_aqui != null && (
-                    <Field
-                      label="Reclame Aqui"
-                      value={`${Number(empresa.reputacao_reclame_aqui)
-                        .toFixed(1)
-                        .replace(".", ",")}/10`}
-                    />
-                  )}
-                  {empresa.avaliacao_google != null && (
-                    <Field
-                      label="Avaliação Google"
-                      value={`${Number(empresa.avaliacao_google)
-                        .toFixed(1)
-                        .replace(".", ",")}/5`}
-                    />
-                  )}
+                  <Field
+                    label="Índice de Reajuste"
+                    value={empresa.indice_reajuste}
+                  />
+                  <Field
+                    label="Desconto Divulgado"
+                    value={empresa.desconto_divulgado}
+                  />
+                  <Field
+                    label="Tipo de Desconto"
+                    value={empresa.tipo_desconto}
+                  />
+                  <Field label="Incide Sobre" value={empresa.incide_sobre} />
+                  <Field
+                    label="Economia Mínima Garantida"
+                    value={
+                      empresa.economia_minima_garantida != null
+                        ? empresa.economia_minima_garantida
+                          ? "Sim"
+                          : "Não"
+                        : null
+                    }
+                  />
+                  <Field
+                    label="Consumo Mínimo"
+                    value={
+                      empresa.consumo_minimo != null
+                        ? formatBRL(empresa.consumo_minimo)
+                        : null
+                    }
+                  />
+                  <Field
+                    label="Prazo de Ativação"
+                    value={empresa.prazo_ativacao}
+                  />
+                  <Field
+                    label="Modelo de Billing"
+                    value={empresa.modelo_billing}
+                  />
+                  <Field
+                    label="Canais de Atendimento"
+                    value={
+                      empresa.canais_atendimento?.length
+                        ? empresa.canais_atendimento.join(", ")
+                        : null
+                    }
+                  />
+                  <Field
+                    label="Reputação Reclame Aqui"
+                    value={reputacaoLabel}
+                  />
+                  <Field
+                    label="Avaliação Google"
+                    value={
+                      empresa.avaliacao_google != null
+                        ? `${Number(empresa.avaliacao_google)
+                            .toFixed(1)
+                            .replace(".", ",")}/5`
+                        : null
+                    }
+                  />
+                  <Field
+                    label="Processos Judiciais Relevantes"
+                    value={
+                      empresa.processos_judiciais != null
+                        ? empresa.processos_judiciais
+                          ? "Sim"
+                          : "Não"
+                        : null
+                    }
+                  />
                 </div>
               </Block>
             )}
@@ -452,26 +510,36 @@ const Empresa = () => {
               <Block title="Análise Crítica">
                 {vantagens.length > 0 && (
                   <div className="mb-5">
-                    <h3 className="font-bold text-brand-success mb-2">
-                      ✅ Vantagens
+                    <h3 className="font-bold text-brand-success mb-3 flex items-center gap-2">
+                      ✅ Vantagens Competitivas
                     </h3>
-                    <ul className="space-y-1.5 list-disc pl-5 text-sm">
+                    <div className="grid sm:grid-cols-2 gap-3">
                       {vantagens.map((v: string, i: number) => (
-                        <li key={i}>{v}</li>
+                        <div
+                          key={i}
+                          className="bg-brand-success/10 border border-brand-success/30 rounded-xl p-3 text-sm text-foreground"
+                        >
+                          {v}
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 )}
                 {pontos.length > 0 && (
                   <div className="mb-5">
-                    <h3 className="font-bold text-brand-yellow mb-2">
+                    <h3 className="font-bold text-brand-yellow mb-3 flex items-center gap-2">
                       ⚠️ Pontos de Atenção
                     </h3>
-                    <ul className="space-y-1.5 list-disc pl-5 text-sm">
+                    <div className="grid sm:grid-cols-2 gap-3">
                       {pontos.map((p: string, i: number) => (
-                        <li key={i}>{p}</li>
+                        <div
+                          key={i}
+                          className="bg-brand-yellow/15 border border-brand-yellow/40 rounded-xl p-3 text-sm text-foreground"
+                        >
+                          {p}
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </div>
                 )}
                 {empresa.parecer_tecnico && (
@@ -487,25 +555,45 @@ const Empresa = () => {
 
             {hasCancel && (
               <Block title="Guia de Cancelamento">
-                <div className="grid md:grid-cols-3 gap-3 mb-5">
+                {/* Canais oficiais */}
+                <h3 className="font-bold text-brand-blue mb-3">
+                  Canais Oficiais
+                </h3>
+                <div className="grid md:grid-cols-2 gap-3 mb-5">
                   {empresa.cancel_email && (
                     <a
                       href={`mailto:${empresa.cancel_email}`}
                       className="flex items-center gap-2 p-3 border border-border rounded-lg text-sm hover:bg-muted/50"
                     >
-                      <Mail className="h-4 w-4 text-brand-blue" />
-                      <span className="truncate">{empresa.cancel_email}</span>
+                      <Mail className="h-4 w-4 text-brand-blue shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted-foreground">E-mail principal</div>
+                        <div className="truncate font-medium">{empresa.cancel_email}</div>
+                      </div>
+                    </a>
+                  )}
+                  {empresa.cancel_ouvidoria && (
+                    <a
+                      href={`mailto:${empresa.cancel_ouvidoria}`}
+                      className="flex items-center gap-2 p-3 border border-border rounded-lg text-sm hover:bg-muted/50"
+                    >
+                      <Shield className="h-4 w-4 text-brand-blue shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted-foreground">Ouvidoria</div>
+                        <div className="truncate font-medium">{empresa.cancel_ouvidoria}</div>
+                      </div>
                     </a>
                   )}
                   {empresa.cancel_telefone && (
                     <a
-                      href={`tel:${empresa.cancel_telefone}`}
+                      href={`tel:${empresa.cancel_telefone.replace(/\D/g, "")}`}
                       className="flex items-center gap-2 p-3 border border-border rounded-lg text-sm hover:bg-muted/50"
                     >
-                      <Phone className="h-4 w-4 text-brand-blue" />
-                      <span className="truncate">
-                        {empresa.cancel_telefone}
-                      </span>
+                      <Phone className="h-4 w-4 text-brand-blue shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted-foreground">Telefone / WhatsApp</div>
+                        <div className="truncate font-medium">{empresa.cancel_telefone}</div>
+                      </div>
                     </a>
                   )}
                   {empresa.cancel_site && (
@@ -515,79 +603,119 @@ const Empresa = () => {
                       rel="noreferrer"
                       className="flex items-center gap-2 p-3 border border-border rounded-lg text-sm hover:bg-muted/50"
                     >
-                      <Globe className="h-4 w-4 text-brand-blue" />
-                      <span className="truncate">Site de cancelamento</span>
+                      <Globe className="h-4 w-4 text-brand-blue shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted-foreground">Área do cliente</div>
+                        <div className="truncate font-medium">Acessar site</div>
+                      </div>
                     </a>
                   )}
                 </div>
 
+                {/* Aviso prévio destaque */}
+                {empresa.cancel_aviso_previo != null && (
+                  <div className="inline-flex items-center gap-2 bg-brand-yellow/20 text-brand-blue px-4 py-2 rounded-full text-sm font-bold mb-5">
+                    <Clock className="h-4 w-4" />
+                    {empresa.cancel_aviso_previo} dias de aviso prévio
+                  </div>
+                )}
+
+                {/* Forma oficial */}
                 {empresa.cancel_processo && (
-                  <div className="mb-4">
-                    <h3 className="font-bold text-brand-blue mb-1.5">
-                      Processo de Cancelamento
+                  <div className="mb-5">
+                    <h3 className="font-bold text-brand-blue mb-2">
+                      Forma Oficial de Cancelamento
                     </h3>
-                    <p className="text-sm whitespace-pre-line text-muted-foreground">
+                    <p className="text-sm whitespace-pre-line text-muted-foreground leading-relaxed">
                       {empresa.cancel_processo}
                     </p>
                   </div>
                 )}
-                {empresa.cancel_aviso_previo != null && (
-                  <Field
-                    label="Aviso prévio"
-                    value={`${empresa.cancel_aviso_previo} dias`}
-                  />
-                )}
+
+                {/* Dicas */}
                 {empresa.cancel_dicas && (
-                  <div className="mt-4">
-                    <h3 className="font-bold text-brand-blue mb-1.5">
+                  <div className="mb-5">
+                    <h3 className="font-bold text-brand-blue mb-2">
                       Dicas ao consumidor
                     </h3>
-                    <p className="text-sm whitespace-pre-line text-muted-foreground">
-                      {empresa.cancel_dicas}
-                    </p>
+                    <ul className="space-y-2">
+                      {empresa.cancel_dicas
+                        .split(/\n+/)
+                        .map((s: string) => s.trim())
+                        .filter(Boolean)
+                        .map((dica: string, i: number) => (
+                          <li
+                            key={i}
+                            className="flex gap-2 items-start text-sm text-foreground bg-muted/40 rounded-lg p-3"
+                          >
+                            <AlertTriangle className="h-4 w-4 text-brand-yellow shrink-0 mt-0.5" />
+                            <span>{dica}</span>
+                          </li>
+                        ))}
+                    </ul>
                   </div>
                 )}
-                <div className="mt-4">
-                  <h3 className="font-bold text-brand-blue mb-1.5">
+
+                {/* Onde recorrer */}
+                <div>
+                  <h3 className="font-bold text-brand-blue mb-3">
                     Onde recorrer
                   </h3>
-                  {empresa.cancel_recorrer ? (
-                    <p className="text-sm whitespace-pre-line text-muted-foreground mb-2">
+                  {empresa.cancel_recorrer && (
+                    <p className="text-sm whitespace-pre-line text-muted-foreground mb-3">
                       {empresa.cancel_recorrer}
                     </p>
-                  ) : null}
-                  <ul className="text-sm space-y-1">
-                    <li>
-                      <a
-                        href="https://www.aneel.gov.br"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-brand-blue underline"
-                      >
-                        ANEEL
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="https://www.consumidor.gov.br"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-brand-blue underline"
-                      >
-                        Consumidor.gov.br
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="https://www.procon.sp.gov.br"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-brand-blue underline"
-                      >
-                        Procon
-                      </a>
-                    </li>
-                  </ul>
+                  )}
+                  <div className="grid sm:grid-cols-3 gap-3">
+                    <a
+                      href="https://www.consumidor.gov.br"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="border border-border rounded-xl p-4 hover:border-brand-blue hover:bg-brand-blue/5 transition"
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <MessageCircle className="h-4 w-4 text-brand-blue" />
+                        <span className="font-bold text-sm text-brand-blue">
+                          Consumidor.gov.br
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Plataforma pública da Senacon
+                      </p>
+                    </a>
+                    <a
+                      href="https://www.procon.sp.gov.br"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="border border-border rounded-xl p-4 hover:border-brand-blue hover:bg-brand-blue/5 transition"
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <Shield className="h-4 w-4 text-brand-blue" />
+                        <span className="font-bold text-sm text-brand-blue">
+                          Procon
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Mediação no seu estado
+                      </p>
+                    </a>
+                    <a
+                      href="https://www.aneel.gov.br"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="border border-border rounded-xl p-4 hover:border-brand-blue hover:bg-brand-blue/5 transition"
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <ExternalLink className="h-4 w-4 text-brand-blue" />
+                        <span className="font-bold text-sm text-brand-blue">
+                          ANEEL (167)
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Regulação da GD
+                      </p>
+                    </a>
+                  </div>
                 </div>
               </Block>
             )}

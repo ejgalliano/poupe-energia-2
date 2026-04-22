@@ -102,6 +102,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
           <Field label="Multa de cancelamento %"><Input type="number" value={f.multa_cancelamento ?? 0} onChange={(e) => set("multa_cancelamento", +e.target.value)} /></Field>
           <Field label="Aviso prévio (dias)"><Input type="number" value={f.aviso_previo_dias ?? 90} onChange={(e) => set("aviso_previo_dias", +e.target.value)} /></Field>
           <Field label="Taxa de adesão R$"><Input type="number" value={f.taxa_adesao ?? 0} onChange={(e) => set("taxa_adesao", +e.target.value)} /></Field>
+          <Field label="Índice de reajuste"><Input value={f.indice_reajuste ?? ""} onChange={(e) => set("indice_reajuste", e.target.value)} placeholder="ex: Reajuste Tarifário Anual ANEEL" /></Field>
           <Field label="Desconto divulgado"><Input value={f.desconto_divulgado ?? ""} onChange={(e) => set("desconto_divulgado", e.target.value)} /></Field>
           <Field label="Tipo de desconto">
             <Select value={f.tipo_desconto ?? ""} onValueChange={(v) => set("tipo_desconto", v)}>
@@ -139,7 +140,8 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
               ))}
             </div>
           </Field>
-          <Field label="Reputação Reclame Aqui"><Input type="number" step="0.1" value={f.reputacao_reclame_aqui ?? ""} onChange={(e) => set("reputacao_reclame_aqui", +e.target.value || null)} /></Field>
+          <Field label="Reputação Reclame Aqui (0-10)"><Input type="number" step="0.1" value={f.reputacao_reclame_aqui ?? ""} onChange={(e) => set("reputacao_reclame_aqui", +e.target.value || null)} /></Field>
+          <Field label="Nº reclamações Reclame Aqui (12 meses)"><Input type="number" value={f.numero_reclamacoes_ra ?? ""} onChange={(e) => set("numero_reclamacoes_ra", +e.target.value || null)} /></Field>
           <Field label="Avaliação Google"><Input type="number" step="0.1" value={f.avaliacao_google ?? ""} onChange={(e) => set("avaliacao_google", +e.target.value || null)} /></Field>
           <CheckField label="Processos judiciais relevantes" checked={!!f.processos_judiciais} onChange={(v) => set("processos_judiciais", v)} />
         </CardContent>
@@ -157,7 +159,8 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
       <Card>
         <CardHeader><CardTitle>Guia de Cancelamento</CardTitle></CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-4">
-          <Field label="Email"><Input value={f.cancel_email ?? ""} onChange={(e) => set("cancel_email", e.target.value)} /></Field>
+          <Field label="E-mail principal"><Input value={f.cancel_email ?? ""} onChange={(e) => set("cancel_email", e.target.value)} /></Field>
+          <Field label="E-mail Ouvidoria"><Input value={f.cancel_ouvidoria ?? ""} onChange={(e) => set("cancel_ouvidoria", e.target.value)} /></Field>
           <Field label="Telefone/WhatsApp"><Input value={f.cancel_telefone ?? ""} onChange={(e) => set("cancel_telefone", e.target.value)} /></Field>
           <Field label="Site"><Input value={f.cancel_site ?? ""} onChange={(e) => set("cancel_site", e.target.value)} /></Field>
           <Field label="Aviso prévio (dias)"><Input type="number" value={f.cancel_aviso_previo ?? ""} onChange={(e) => set("cancel_aviso_previo", +e.target.value || null)} /></Field>

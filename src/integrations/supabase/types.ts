@@ -88,6 +88,7 @@ export type Database = {
           cancel_aviso_previo: number | null
           cancel_dicas: string | null
           cancel_email: string | null
+          cancel_ouvidoria: string | null
           cancel_processo: string | null
           cancel_recorrer: string | null
           cancel_site: string | null
@@ -104,12 +105,14 @@ export type Database = {
           grupo_economico: string | null
           id: string
           incide_sobre: string | null
+          indice_reajuste: string | null
           logo_url: string | null
           meses_fidelidade: number | null
           modelo_billing: string | null
           modelo_infraestrutura: string | null
           multa_cancelamento: number | null
           nome: string
+          numero_reclamacoes_ra: number | null
           parceira: boolean
           parecer_tecnico: string | null
           pontos_atencao: string | null
@@ -134,6 +137,7 @@ export type Database = {
           cancel_aviso_previo?: number | null
           cancel_dicas?: string | null
           cancel_email?: string | null
+          cancel_ouvidoria?: string | null
           cancel_processo?: string | null
           cancel_recorrer?: string | null
           cancel_site?: string | null
@@ -150,12 +154,14 @@ export type Database = {
           grupo_economico?: string | null
           id?: string
           incide_sobre?: string | null
+          indice_reajuste?: string | null
           logo_url?: string | null
           meses_fidelidade?: number | null
           modelo_billing?: string | null
           modelo_infraestrutura?: string | null
           multa_cancelamento?: number | null
           nome: string
+          numero_reclamacoes_ra?: number | null
           parceira?: boolean
           parecer_tecnico?: string | null
           pontos_atencao?: string | null
@@ -180,6 +186,7 @@ export type Database = {
           cancel_aviso_previo?: number | null
           cancel_dicas?: string | null
           cancel_email?: string | null
+          cancel_ouvidoria?: string | null
           cancel_processo?: string | null
           cancel_recorrer?: string | null
           cancel_site?: string | null
@@ -196,12 +203,14 @@ export type Database = {
           grupo_economico?: string | null
           id?: string
           incide_sobre?: string | null
+          indice_reajuste?: string | null
           logo_url?: string | null
           meses_fidelidade?: number | null
           modelo_billing?: string | null
           modelo_infraestrutura?: string | null
           multa_cancelamento?: number | null
           nome?: string
+          numero_reclamacoes_ra?: number | null
           parceira?: boolean
           parecer_tecnico?: string | null
           pontos_atencao?: string | null
