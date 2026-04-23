@@ -1,12 +1,14 @@
 import { Facebook, Instagram, Linkedin, Youtube, Lightbulb } from "lucide-react";
 import { Link } from "react-router-dom";
 
+const CONTACT_EMAIL = "contato.poupeenergia@hotmail.com";
+
 const col1 = [
-  { label: "Energia por Assinatura", href: "#" },
-  { label: "Mercado Livre de energia", href: "#" },
+  { label: "Energia por Assinatura", href: "/" },
+  { label: "Mercado Livre de Energia", href: "/" },
   { label: "Rankings de Energia", href: "/ranking" },
-  { label: "Cashback e Benefícios", href: "#" },
-  { label: "Dúvidas Frequentes", href: "#" },
+  { label: "Cashback e Benefícios", href: "/termos-cashback" },
+  { label: "Dúvidas Frequentes", href: "/como-calculamos" },
 ];
 
 const col2 = [
@@ -15,7 +17,7 @@ const col2 = [
   { label: "Política de Privacidade", href: "/politica-de-privacidade" },
   { label: "Termos de Uso", href: "/termos-de-uso" },
   { label: "Cashback – Termos e Condições", href: "/termos-cashback" },
-  { label: "Fale Conosco", href: "#" },
+  { label: "Fale Conosco", href: `mailto:${CONTACT_EMAIL}`, external: true },
 ];
 
 const Footer = () => {
