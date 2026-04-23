@@ -100,23 +100,13 @@ const CompanyCard = ({ company }: Props) => {
               {company.name}
             </h3>
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
-              {company.estado && (
-                <span className="text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md">
-                  {company.estado}
-                </span>
-              )}
-              {company.distribuidora && (
-                <span className="text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md">
-                  {company.distribuidora}
-                </span>
-              )}
               <Link
                 to={detailHref}
                 onClick={handleSaibaMais}
                 className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
               >
                 <FileText className="h-3 w-3" />
-                Saiba mais
+                Ficha Técnica
               </Link>
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-brand-blue/10 text-brand-blue px-2 py-0.5 rounded-md">
                 <ShieldCheck className="h-3 w-3" />
