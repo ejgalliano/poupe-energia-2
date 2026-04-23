@@ -19,6 +19,9 @@ import Banners from "./pages/admin/Banners";
 import UsuariosAdmin from "./pages/admin/UsuariosAdmin";
 import Parceiros from "./pages/admin/Parceiros";
 import LeadsEmpresariais from "./pages/admin/LeadsEmpresariais";
+import PoliticaDePrivacidade from "./pages/PoliticaDePrivacidade.tsx";
+import TermosDeUso from "./pages/TermosDeUso.tsx";
+import TermosCashback from "./pages/TermosCashback.tsx";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +37,9 @@ const App = () => (
           <Route path="/empresa/:slug" element={<Empresa />} />
           <Route path="/como-calculamos" element={<ComoCalculamos />} />
           <Route path="/sobre" element={<Sobre />} />
+          <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
+          <Route path="/termos-de-uso" element={<TermosDeUso />} />
+          <Route path="/termos-cashback" element={<TermosCashback />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
