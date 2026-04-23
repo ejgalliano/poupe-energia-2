@@ -347,8 +347,15 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                   className="mt-0.5"
                 />
                 <span className="text-muted-foreground">
-                  Concordo com a Política de Privacidade e com o uso dos meus
-                  dados.
+                  Concordo com a{" "}
+                  <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-blue underline">
+                    Política de Privacidade
+                  </a>{" "}
+                  e com os{" "}
+                  <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-blue underline">
+                    Termos de Uso
+                  </a>{" "}
+                  e autorizo o uso dos meus dados.
                 </span>
               </label>
 

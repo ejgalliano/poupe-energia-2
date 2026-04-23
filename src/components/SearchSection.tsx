@@ -185,10 +185,14 @@ const SearchSection = ({ onSearch }: Props) => {
           />
           <span className="text-sm text-brand-blue/80 leading-relaxed">
             Concordo com a{" "}
-            <a href="#" className="font-semibold text-brand-blue underline">
+            <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-blue underline">
               Política de Privacidade
             </a>{" "}
-            e com o uso dos meus dados.
+            e com os{" "}
+            <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-blue underline">
+              Termos de Uso
+            </a>{" "}
+            e autorizo o uso dos meus dados.
           </span>
         </label>
 
