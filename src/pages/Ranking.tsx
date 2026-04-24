@@ -269,6 +269,16 @@ const Ranking = () => {
   }, [distribuidoraId, estadoSigla, distribuidoraAtual?.nome]);
 
 
+  const sortedCompanies = useMemo(() => {
+    const arr = [...companies];
+    arr.sort((a, b) => {
+      const va = getSortValue(a, sortKey);
+      const vb = getSortValue(b, sortKey);
+      return sortDir === "asc" ? va - vb : vb - va;
+    });
+    return arr;
+  }, [companies, sortKey, sortDir]);
+
   const handleNotify = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
