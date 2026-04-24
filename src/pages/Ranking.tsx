@@ -32,13 +32,33 @@ type Profile = "home" | "business";
 type SortKey = "score" | "discount" | "legalSecurity" | "reputation" | "minValue";
 type SortDir = "asc" | "desc";
 
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: "score", label: "Nota Final" },
-  { key: "discount", label: "Desconto Inicial" },
-  { key: "legalSecurity", label: "Segurança Jurídica" },
-  { key: "reputation", label: "Reputação Reclame Aqui" },
-  { key: "minValue", label: "Valor Mínimo de Adesão" },
+type SortOptionValue =
+  | "score-desc"
+  | "discount-desc"
+  | "discount-asc"
+  | "legalSecurity-desc"
+  | "legalSecurity-asc"
+  | "reputation-desc"
+  | "reputation-asc"
+  | "minValue-asc"
+  | "minValue-desc";
+
+const SORT_SELECT_OPTIONS: { value: SortOptionValue; label: string }[] = [
+  { value: "score-desc", label: "Nota Final ↓" },
+  { value: "discount-desc", label: "Desconto Inicial — Maior primeiro" },
+  { value: "discount-asc", label: "Desconto Inicial — Menor primeiro" },
+  { value: "legalSecurity-desc", label: "Segurança Jurídica — Maior primeiro" },
+  { value: "legalSecurity-asc", label: "Segurança Jurídica — Menor primeiro" },
+  { value: "reputation-desc", label: "Reputação Reclame Aqui — Maior primeiro" },
+  { value: "reputation-asc", label: "Reputação Reclame Aqui — Menor primeiro" },
+  { value: "minValue-asc", label: "Valor Mínimo de Adesão — Menor primeiro" },
+  { value: "minValue-desc", label: "Valor Mínimo de Adesão — Maior primeiro" },
 ];
+
+const parseSortValue = (v: SortOptionValue): { key: SortKey; dir: SortDir } => {
+  const [key, dir] = v.split("-") as [SortKey, SortDir];
+  return { key, dir };
+};
 
 const parseNum = (s: string) =>
   parseFloat(String(s).replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".")) || 0;
@@ -52,72 +72,6 @@ const getSortValue = (c: Company, key: SortKey): number => {
     case "minValue": return parseNum(c.minValue);
   }
 };
-
-const SortBar = ({
-  sortKey,
-  sortDir,
-  onChange,
-}: {
-  sortKey: SortKey;
-  sortDir: SortDir;
-  onChange: (k: SortKey, d: SortDir) => void;
-}) => (
-  <div className="hidden md:flex max-w-4xl mx-auto flex-wrap items-center gap-2 mb-6">
-    <span className="text-sm font-semibold text-brand-blue mr-1">Ordenar por:</span>
-    {SORT_OPTIONS.map((opt) => {
-      const isActive = sortKey === opt.key;
-      const baseBtn =
-        "inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-sm font-medium transition";
-      const activeCls = "bg-brand-blue text-white border-brand-blue";
-      const inactiveCls = "bg-white text-brand-blue border-gray-300 hover:border-brand-blue";
-      // "Nota Final" só tem um botão (sem setas), padrão desc
-      if (opt.key === "score") {
-        return (
-          <button
-            key={opt.key}
-            onClick={() => onChange("score", "desc")}
-            className={`${baseBtn} ${isActive ? activeCls : inactiveCls}`}
-          >
-            {opt.label}
-          </button>
-        );
-      }
-      return (
-        <div key={opt.key} className="inline-flex items-center rounded-lg overflow-hidden border border-gray-300">
-          <span
-            className={`px-3 py-1.5 text-sm font-medium ${
-              isActive ? "bg-brand-blue text-white" : "bg-white text-brand-blue"
-            }`}
-          >
-            {opt.label}
-          </span>
-          <button
-            onClick={() => onChange(opt.key, "asc")}
-            className={`px-2 py-1.5 text-sm border-l border-gray-300 transition ${
-              isActive && sortDir === "asc"
-                ? "bg-brand-blue text-white"
-                : "bg-white text-brand-blue hover:bg-gray-50"
-            }`}
-            aria-label={`Ordenar ${opt.label} crescente`}
-          >
-            ↑
-          </button>
-          <button
-            onClick={() => onChange(opt.key, "desc")}
-            className={`px-2 py-1.5 text-sm border-l border-gray-300 transition ${
-              isActive && sortDir === "desc"
-                ? "bg-brand-blue text-white"
-                : "bg-white text-brand-blue hover:bg-gray-50"
-            }`}
-            aria-label={`Ordenar ${opt.label} decrescente`}
-          >
-            ↓
-          </button>
-        </div>
-      );
-    })}
-  </div>
-);
 
 interface Estado {
   id: number;
@@ -501,8 +455,31 @@ const Ranking = () => {
             </div>
           </header>
 
-          {/* Desktop: barra de ordenação */}
-          <SortBar sortKey={sortKey} sortDir={sortDir} onChange={(k, d) => { setSortKey(k); setSortDir(d); }} />
+          {/* Barra de ordenação (desktop + mobile) */}
+          <div className="max-w-4xl mx-auto w-full flex items-center gap-3 mb-6">
+            <label htmlFor="sort-select" className="text-sm font-semibold text-brand-blue whitespace-nowrap">
+              Ordenar por:
+            </label>
+            <Select
+              value={`${sortKey}-${sortDir}` as SortOptionValue}
+              onValueChange={(v) => {
+                const { key, dir } = parseSortValue(v as SortOptionValue);
+                setSortKey(key);
+                setSortDir(dir);
+              }}
+            >
+              <SelectTrigger id="sort-select" className="rounded-xl h-10 w-auto min-w-[260px] bg-white border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SORT_SELECT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="max-w-4xl mx-auto flex flex-col gap-5">
             {loading && <LoadingSpinner label="Carregando ofertas..." />}
