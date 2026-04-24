@@ -377,7 +377,8 @@ const Ranking = () => {
       <main className="flex-1">
         <section className="container mx-auto px-4 pt-8 pb-16">
           <header className="max-w-3xl mx-auto text-center mb-8">
-            <h1 className="text-2xl md:text-4xl font-extrabold text-brand-blue leading-tight">
+            {/* Mobile: mantém comportamento atual em uma linha */}
+            <h1 className="md:hidden text-2xl font-extrabold text-brand-blue leading-tight">
               Ranking de Comercializadoras
               {estadoAtual && distribuidoraAtual && (
                 <>
@@ -385,6 +386,17 @@ const Ranking = () => {
                 </>
               )}
             </h1>
+            {/* Desktop: hierarquia em duas linhas */}
+            <div className="hidden md:block">
+              <h1 className="text-2xl font-bold text-brand-blue leading-tight">
+                Ranking de Comercializadoras
+              </h1>
+              {estadoAtual && distribuidoraAtual && (
+                <p className="mt-1 text-lg font-normal text-gray-500">
+                  {estadoAtual.nome} / {distribuidoraAtual.nome}
+                </p>
+              )}
+            </div>
           </header>
 
           <div className="max-w-4xl mx-auto flex flex-col gap-5">
