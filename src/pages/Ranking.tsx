@@ -67,6 +67,8 @@ const Ranking = () => {
   const [accepted, setAccepted] = useState(true);
   const [businessOpen, setBusinessOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [sortKey, setSortKey] = useState<SortKey>("score");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   // Carrega estados
   useEffect(() => {
