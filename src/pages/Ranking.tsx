@@ -539,7 +539,7 @@ const Ranking = () => {
             )}
 
             {!loading &&
-              companies.map((c) => <CompanyCard key={c.name} company={c} />)}
+              sortedCompanies.map((c) => <CompanyCard key={c.name} company={c} />)}
           </div>
 
           {companies.length > 0 && (
