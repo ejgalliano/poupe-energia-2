@@ -66,6 +66,7 @@ const Ranking = () => {
   const [formDistribuidoras, setFormDistribuidoras] = useState<Distribuidora[]>([]);
   const [accepted, setAccepted] = useState(true);
   const [businessOpen, setBusinessOpen] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Carrega estados
   useEffect(() => {
