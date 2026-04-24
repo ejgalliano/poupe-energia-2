@@ -455,8 +455,31 @@ const Ranking = () => {
             </div>
           </header>
 
-          {/* Desktop: barra de ordenação */}
-          <SortBar sortKey={sortKey} sortDir={sortDir} onChange={(k, d) => { setSortKey(k); setSortDir(d); }} />
+          {/* Barra de ordenação (desktop + mobile) */}
+          <div className="max-w-4xl mx-auto w-full flex items-center gap-3 mb-6">
+            <label htmlFor="sort-select" className="text-sm font-semibold text-brand-blue whitespace-nowrap">
+              Ordenar por:
+            </label>
+            <Select
+              value={`${sortKey}-${sortDir}` as SortOptionValue}
+              onValueChange={(v) => {
+                const { key, dir } = parseSortValue(v as SortOptionValue);
+                setSortKey(key);
+                setSortDir(dir);
+              }}
+            >
+              <SelectTrigger id="sort-select" className="rounded-xl h-10 w-auto min-w-[260px] bg-white border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SORT_SELECT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="max-w-4xl mx-auto flex flex-col gap-5">
             {loading && <LoadingSpinner label="Carregando ofertas..." />}
