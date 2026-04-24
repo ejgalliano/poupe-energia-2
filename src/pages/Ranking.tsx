@@ -200,137 +200,179 @@ const Ranking = () => {
       />
       <Header />
 
-      {/* Filtros — mesmo card de busca da home */}
-      <section className="container mx-auto px-4 py-6 md:py-8">
-        <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg border border-border/60 p-6 md:p-8">
-          {/* Tabs */}
-          <div className="flex border-b border-border mb-6">
-            <button
-              onClick={() => setProfile("home")}
-              className={`flex-1 flex items-center justify-center gap-2 pb-3 text-sm md:text-base font-bold transition relative ${
-                profile === "home"
-                  ? "text-brand-blue"
-                  : "text-muted-foreground hover:text-brand-blue"
-              }`}
-            >
-              <Home className="h-4 w-4" />
-              Para minha Casa
-              {profile === "home" && (
-                <span className="absolute bottom-0 left-0 right-0 h-1 bg-brand-blue rounded-t-full" />
-              )}
-            </button>
-            <button
-              onClick={() => setProfile("business")}
-              className={`flex-1 flex items-center justify-center gap-2 pb-3 text-sm md:text-base font-bold transition relative ${
-                profile === "business"
-                  ? "text-brand-blue"
-                  : "text-muted-foreground hover:text-brand-blue"
-              }`}
-            >
-              <Building2 className="h-4 w-4" />
-              Para minha Empresa
-              {profile === "business" && (
-                <span className="absolute bottom-0 left-0 right-0 h-1 bg-brand-blue rounded-t-full" />
-              )}
-            </button>
-          </div>
+      {(() => {
+        const formContent = (
+          <>
+            {/* Tabs */}
+            <div className="flex border-b border-border mb-6">
+              <button
+                onClick={() => setProfile("home")}
+                className={`flex-1 flex items-center justify-center gap-2 pb-3 text-sm md:text-base font-bold transition relative ${
+                  profile === "home"
+                    ? "text-brand-blue"
+                    : "text-muted-foreground hover:text-brand-blue"
+                }`}
+              >
+                <Home className="h-4 w-4" />
+                Para minha Casa
+                {profile === "home" && (
+                  <span className="absolute bottom-0 left-0 right-0 h-1 bg-brand-blue rounded-t-full" />
+                )}
+              </button>
+              <button
+                onClick={() => setProfile("business")}
+                className={`flex-1 flex items-center justify-center gap-2 pb-3 text-sm md:text-base font-bold transition relative ${
+                  profile === "business"
+                    ? "text-brand-blue"
+                    : "text-muted-foreground hover:text-brand-blue"
+                }`}
+              >
+                <Building2 className="h-4 w-4" />
+                Para minha Empresa
+                {profile === "business" && (
+                  <span className="absolute bottom-0 left-0 right-0 h-1 bg-brand-blue rounded-t-full" />
+                )}
+              </button>
+            </div>
 
-          {/* Dropdowns */}
-          <div className="grid md:grid-cols-2 gap-4 mb-5">
-            <div>
-              <label className="block text-sm font-bold text-brand-blue mb-2">
-                Seu Estado:
-              </label>
-              <Select
-                value={formEstadoId}
-                onValueChange={(v) => {
-                  setFormEstadoId(v);
-                  setFormDistribuidoraId("");
+            {/* Dropdowns */}
+            <div className="grid md:grid-cols-2 gap-4 mb-5">
+              <div>
+                <label className="block text-sm font-bold text-brand-blue mb-2">
+                  Seu Estado:
+                </label>
+                <Select
+                  value={formEstadoId}
+                  onValueChange={(v) => {
+                    setFormEstadoId(v);
+                    setFormDistribuidoraId("");
+                  }}
+                >
+                  <SelectTrigger className="rounded-xl h-12 bg-background border-border">
+                    <SelectValue placeholder="Selecione seu estado" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {estados.map((s) => (
+                      <SelectItem key={s.id} value={String(s.id)}>
+                        {s.sigla} — {s.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-brand-blue mb-2">
+                  Sua Distribuidora:
+                </label>
+                <Select
+                  value={formDistribuidoraId}
+                  onValueChange={setFormDistribuidoraId}
+                  disabled={!formEstadoId}
+                >
+                  <SelectTrigger className="rounded-xl h-12 bg-background border-border disabled:opacity-60">
+                    <SelectValue
+                      placeholder={
+                        formEstadoId
+                          ? "Selecione a distribuidora"
+                          : "Escolha um estado primeiro"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {formDistribuidoras.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>
+                        {d.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Checkbox */}
+            <label className="flex items-start gap-3 mb-6 cursor-pointer">
+              <Checkbox
+                checked={accepted}
+                onCheckedChange={(v) => setAccepted(v === true)}
+                className="mt-0.5"
+              />
+              <span className="text-sm text-brand-blue/80 leading-relaxed">
+                Concordo com a{" "}
+                <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-blue underline">
+                  Política de Privacidade
+                </a>{" "}
+                e com os{" "}
+                <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-blue underline">
+                  Termos de Uso
+                </a>{" "}
+                e autorizo o uso dos meus dados.
+              </span>
+            </label>
+
+            {/* CTA */}
+            {profile === "home" ? (
+              <Button
+                onClick={handleBuscar}
+                disabled={!canSubmit}
+                className="w-full h-12 bg-brand-blue text-white hover:bg-brand-blue/90 rounded-xl font-bold text-base shadow-md disabled:opacity-50"
+              >
+                Buscar economia <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  setBusinessOpen(true);
+                  setMobileFiltersOpen(false);
                 }}
+                className="w-full h-12 bg-brand-blue text-white hover:bg-brand-blue/90 rounded-xl font-bold text-base shadow-md"
               >
-                <SelectTrigger className="rounded-xl h-12 bg-background border-border">
-                  <SelectValue placeholder="Selecione seu estado" />
-                </SelectTrigger>
-                <SelectContent className="max-h-72">
-                  {estados.map((s) => (
-                    <SelectItem key={s.id} value={String(s.id)}>
-                      {s.sigla} — {s.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                Comparar Propostas para minha Empresa <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+          </>
+        );
 
-            <div>
-              <label className="block text-sm font-bold text-brand-blue mb-2">
-                Sua Distribuidora:
-              </label>
-              <Select
-                value={formDistribuidoraId}
-                onValueChange={setFormDistribuidoraId}
-                disabled={!formEstadoId}
-              >
-                <SelectTrigger className="rounded-xl h-12 bg-background border-border disabled:opacity-60">
-                  <SelectValue
-                    placeholder={
-                      formEstadoId
-                        ? "Selecione a distribuidora"
-                        : "Escolha um estado primeiro"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {formDistribuidoras.map((d) => (
-                    <SelectItem key={d.id} value={d.id}>
-                      {d.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+        return (
+          <>
+            {/* Desktop: card completo */}
+            <section className="hidden md:block container mx-auto px-4 py-6 md:py-8">
+              <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg border border-border/60 p-6 md:p-8">
+                {formContent}
+              </div>
+            </section>
 
-          {/* Checkbox */}
-          <label className="flex items-start gap-3 mb-6 cursor-pointer">
-            <Checkbox
-              checked={accepted}
-              onCheckedChange={(v) => setAccepted(v === true)}
-              className="mt-0.5"
-            />
-            <span className="text-sm text-brand-blue/80 leading-relaxed">
-              Concordo com a{" "}
-              <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-blue underline">
-                Política de Privacidade
-              </a>{" "}
-              e com os{" "}
-              <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-blue underline">
-                Termos de Uso
-              </a>{" "}
-              e autorizo o uso dos meus dados.
-            </span>
-          </label>
+            {/* Mobile: barra compacta + drawer */}
+            <section className="md:hidden container mx-auto px-4 py-3">
+              <div className="flex items-center justify-between gap-3 bg-white rounded-xl shadow-sm border border-border/60 px-4 py-3">
+                <div className="flex items-center gap-2 min-w-0 text-sm text-brand-blue font-semibold">
+                  <MapPin className="h-4 w-4 shrink-0" />
+                  <span className="truncate">
+                    {estadoAtual?.sigla ?? "—"} / {distribuidoraAtual?.nome ?? "Selecione"}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setMobileFiltersOpen(true)}
+                  className="text-sm font-bold text-brand-blue whitespace-nowrap hover:underline"
+                >
+                  Alterar →
+                </button>
+              </div>
+            </section>
 
-          {/* CTA */}
-          {profile === "home" ? (
-            <Button
-              onClick={handleBuscar}
-              disabled={!canSubmit}
-              className="w-full h-12 bg-brand-blue text-white hover:bg-brand-blue/90 rounded-xl font-bold text-base shadow-md disabled:opacity-50"
-            >
-              Buscar economia <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              onClick={() => setBusinessOpen(true)}
-              className="w-full h-12 bg-brand-blue text-white hover:bg-brand-blue/90 rounded-xl font-bold text-base shadow-md"
-            >
-              Comparar Propostas para minha Empresa <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          )}
-        </div>
+            <Drawer open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+              <DrawerContent className="px-4 pb-6 max-h-[90vh] overflow-y-auto">
+                <DrawerHeader className="px-0">
+                  <DrawerTitle className="text-brand-blue">Alterar filtros</DrawerTitle>
+                </DrawerHeader>
+                {formContent}
+              </DrawerContent>
+            </Drawer>
 
-        <BusinessLeadDialog open={businessOpen} onOpenChange={setBusinessOpen} />
-      </section>
+            <BusinessLeadDialog open={businessOpen} onOpenChange={setBusinessOpen} />
+          </>
+        );
+      })()}
 
       <main className="flex-1">
         <section className="container mx-auto px-4 pt-8 pb-16">
