@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ArrowRight, Home, Building2 } from "lucide-react";
+import { ArrowRight, Home, Building2, MapPin } from "lucide-react";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CompanyCard, { Company } from "@/components/CompanyCard";
