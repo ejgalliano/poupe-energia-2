@@ -29,6 +29,96 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 
 type Profile = "home" | "business";
 
+type SortKey = "score" | "discount" | "legalSecurity" | "reputation" | "minValue";
+type SortDir = "asc" | "desc";
+
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: "score", label: "Nota Final" },
+  { key: "discount", label: "Desconto Inicial" },
+  { key: "legalSecurity", label: "Segurança Jurídica" },
+  { key: "reputation", label: "Reputação Reclame Aqui" },
+  { key: "minValue", label: "Valor Mínimo de Adesão" },
+];
+
+const parseNum = (s: string) =>
+  parseFloat(String(s).replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".")) || 0;
+
+const getSortValue = (c: Company, key: SortKey): number => {
+  switch (key) {
+    case "score": return c.score;
+    case "discount": return parseFloat(String(c.discount).replace("%", "").replace(",", ".")) || 0;
+    case "legalSecurity": return parseFloat(String(c.legalSecurity).replace(",", ".")) || 0;
+    case "reputation": return parseFloat(String(c.reputation).replace(",", ".")) || 0;
+    case "minValue": return parseNum(c.minValue);
+  }
+};
+
+const SortBar = ({
+  sortKey,
+  sortDir,
+  onChange,
+}: {
+  sortKey: SortKey;
+  sortDir: SortDir;
+  onChange: (k: SortKey, d: SortDir) => void;
+}) => (
+  <div className="hidden md:flex max-w-4xl mx-auto flex-wrap items-center gap-2 mb-6">
+    <span className="text-sm font-semibold text-brand-blue mr-1">Ordenar por:</span>
+    {SORT_OPTIONS.map((opt) => {
+      const isActive = sortKey === opt.key;
+      const baseBtn =
+        "inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border text-sm font-medium transition";
+      const activeCls = "bg-brand-blue text-white border-brand-blue";
+      const inactiveCls = "bg-white text-brand-blue border-gray-300 hover:border-brand-blue";
+      // "Nota Final" só tem um botão (sem setas), padrão desc
+      if (opt.key === "score") {
+        return (
+          <button
+            key={opt.key}
+            onClick={() => onChange("score", "desc")}
+            className={`${baseBtn} ${isActive ? activeCls : inactiveCls}`}
+          >
+            {opt.label}
+          </button>
+        );
+      }
+      return (
+        <div key={opt.key} className="inline-flex items-center rounded-lg overflow-hidden border border-gray-300">
+          <span
+            className={`px-3 py-1.5 text-sm font-medium ${
+              isActive ? "bg-brand-blue text-white" : "bg-white text-brand-blue"
+            }`}
+          >
+            {opt.label}
+          </span>
+          <button
+            onClick={() => onChange(opt.key, "asc")}
+            className={`px-2 py-1.5 text-sm border-l border-gray-300 transition ${
+              isActive && sortDir === "asc"
+                ? "bg-brand-blue text-white"
+                : "bg-white text-brand-blue hover:bg-gray-50"
+            }`}
+            aria-label={`Ordenar ${opt.label} crescente`}
+          >
+            ↑
+          </button>
+          <button
+            onClick={() => onChange(opt.key, "desc")}
+            className={`px-2 py-1.5 text-sm border-l border-gray-300 transition ${
+              isActive && sortDir === "desc"
+                ? "bg-brand-blue text-white"
+                : "bg-white text-brand-blue hover:bg-gray-50"
+            }`}
+            aria-label={`Ordenar ${opt.label} decrescente`}
+          >
+            ↓
+          </button>
+        </div>
+      );
+    })}
+  </div>
+);
+
 interface Estado {
   id: number;
   sigla: string;
