@@ -388,16 +388,19 @@ const Ranking = () => {
             </h1>
             {/* Desktop: hierarquia em duas linhas */}
             <div className="hidden md:block">
-              <h1 className="text-2xl font-bold text-brand-blue leading-tight">
+              <h1 className="text-3xl font-bold text-brand-blue leading-tight">
                 Ranking de Comercializadoras
               </h1>
               {estadoAtual && distribuidoraAtual && (
-                <p className="mt-1 text-lg font-normal text-gray-500">
+                <p className="mt-1 text-xl font-normal text-gray-500">
                   {estadoAtual.nome} / {distribuidoraAtual.nome}
                 </p>
               )}
             </div>
           </header>
+
+          {/* Desktop: barra de ordenação */}
+          <SortBar sortKey={sortKey} sortDir={sortDir} onChange={(k, d) => { setSortKey(k); setSortDir(d); }} />
 
           <div className="max-w-4xl mx-auto flex flex-col gap-5">
             {loading && <LoadingSpinner label="Carregando ofertas..." />}
