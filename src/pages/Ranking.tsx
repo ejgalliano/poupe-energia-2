@@ -108,6 +108,7 @@ const Ranking = () => {
       distribuidora: formDistribuidoraId,
       perfil: profile,
     });
+    setMobileFiltersOpen(false);
   };
 
   const estadoAtual = useMemo(
