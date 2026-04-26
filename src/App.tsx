@@ -22,6 +22,7 @@ import LeadsEmpresariais from "./pages/admin/LeadsEmpresariais";
 import PoliticaDePrivacidade from "./pages/PoliticaDePrivacidade.tsx";
 import TermosDeUso from "./pages/TermosDeUso.tsx";
 import TermosCashback from "./pages/TermosCashback.tsx";
+import RankingNacional from "./pages/RankingNacional.tsx";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/ranking" element={<Ranking />} />
+          <Route path="/ranking-nacional" element={<RankingNacional />} />
           <Route path="/empresa/:slug" element={<Empresa />} />
           <Route path="/como-calculamos" element={<ComoCalculamos />} />
           <Route path="/sobre" element={<Sobre />} />

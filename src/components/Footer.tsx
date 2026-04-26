@@ -7,6 +7,7 @@ const col1 = [
   { label: "Energia por Assinatura", href: "/" },
   { label: "Mercado Livre de Energia", href: "/" },
   { label: "Rankings de Energia", href: "/ranking" },
+  { label: "Ranking Nacional", href: "/ranking-nacional" },
   { label: "Cashback e Benefícios", href: "/termos-cashback" },
   { label: "Dúvidas Frequentes", href: "/como-calculamos" },
 ];
