@@ -119,7 +119,7 @@ const Ranking = () => {
     supabase
       .from("estados")
       .select("*")
-      .order("sigla")
+      .order("nome")
       .then(({ data }) => setEstados(data ?? []));
   }, []);
 

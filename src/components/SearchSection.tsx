@@ -44,7 +44,7 @@ const SearchSection = ({ onSearch }: Props) => {
     supabase
       .from("estados")
       .select("*")
-      .order("sigla")
+      .order("nome")
       .then(({ data }) => setEstados(data ?? []));
   }, []);
 
