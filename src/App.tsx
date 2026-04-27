@@ -23,6 +23,13 @@ import PoliticaDePrivacidade from "./pages/PoliticaDePrivacidade.tsx";
 import TermosDeUso from "./pages/TermosDeUso.tsx";
 import TermosCashback from "./pages/TermosCashback.tsx";
 import RankingNacional from "./pages/RankingNacional.tsx";
+import PoupeFacilEmpresas from "./pages/PoupeFacilEmpresas.tsx";
+import EnergiaPorAssinatura from "./pages/EnergiaPorAssinatura.tsx";
+import MercadoLivreDeEnergia from "./pages/MercadoLivreDeEnergia.tsx";
+import UsinasDeInvestimento from "./pages/UsinasDeInvestimento.tsx";
+import Cogeracao from "./pages/Cogeracao.tsx";
+import Bess from "./pages/Bess.tsx";
+import Eletropostos from "./pages/Eletropostos.tsx";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +49,14 @@ const App = () => (
           <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
           <Route path="/termos-de-uso" element={<TermosDeUso />} />
           <Route path="/termos-cashback" element={<TermosCashback />} />
+          <Route path="/duvidas-frequentes" element={<ComoCalculamos />} />
+          <Route path="/poupe-facil-empresas" element={<PoupeFacilEmpresas />} />
+          <Route path="/energia-por-assinatura" element={<EnergiaPorAssinatura />} />
+          <Route path="/mercado-livre-de-energia" element={<MercadoLivreDeEnergia />} />
+          <Route path="/usinas-de-investimento" element={<UsinasDeInvestimento />} />
+          <Route path="/cogeracao" element={<Cogeracao />} />
+          <Route path="/bess" element={<Bess />} />
+          <Route path="/eletropostos" element={<Eletropostos />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
