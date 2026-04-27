@@ -30,6 +30,7 @@ import UsinasDeInvestimento from "./pages/UsinasDeInvestimento.tsx";
 import Cogeracao from "./pages/Cogeracao.tsx";
 import Bess from "./pages/Bess.tsx";
 import Eletropostos from "./pages/Eletropostos.tsx";
+import WhatsAppFloat from "./components/WhatsAppFloat";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <WhatsAppFloat />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/ranking" element={<Ranking />} />
