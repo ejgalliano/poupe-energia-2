@@ -98,6 +98,7 @@ interface Props {
   tipo?: TipoFornecedor | null;
   size?: "sm" | "md" | "lg";
   showLabel?: boolean;
+  compact?: boolean;
   className?: string;
 }
 
