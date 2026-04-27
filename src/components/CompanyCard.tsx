@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { slugify } from "@/lib/slug";
 import EconomySimulator from "@/components/EconomySimulator";
 import LeadCaptureDialog from "@/components/LeadCaptureDialog";
+import SupplierBadge, { TipoFornecedor } from "@/components/SupplierBadge";
 import { registerLead } from "@/lib/leadTracking";
 
 export interface Company {
@@ -20,6 +21,7 @@ export interface Company {
   distribuidora?: string;
   empresaId?: string;
   distribuidoraId?: string;
+  tipoFornecedor?: TipoFornecedor | null;
 }
 
 interface Props {
