@@ -18,7 +18,7 @@ const BackToTop = () => {
     <Button
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       aria-label="Voltar ao topo"
-      className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-brand-blue text-white hover:bg-brand-blue/90 shadow-lg p-0"
+      className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-40 h-12 w-12 rounded-full bg-brand-blue text-white hover:bg-brand-blue/90 shadow-lg p-0"
     >
       <ArrowUp className="h-5 w-5" />
     </Button>
