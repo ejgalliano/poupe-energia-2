@@ -465,30 +465,35 @@ const Ranking = () => {
             </div>
           </header>
 
-          {/* Barra de ordenação (desktop + mobile) */}
-          <div className="max-w-4xl mx-auto w-full flex items-center gap-3 mb-6">
-            <label htmlFor="sort-select" className="text-sm font-semibold text-brand-blue whitespace-nowrap">
-              Ordenar por:
-            </label>
-            <Select
-              value={`${sortKey}-${sortDir}` as SortOptionValue}
-              onValueChange={(v) => {
-                const { key, dir } = parseSortValue(v as SortOptionValue);
-                setSortKey(key);
-                setSortDir(dir);
-              }}
-            >
-              <SelectTrigger id="sort-select" className="rounded-xl h-10 w-auto min-w-[260px] bg-white border-border">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SORT_SELECT_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Total + Ordenação (desktop + mobile) */}
+          <div className="max-w-4xl mx-auto w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+            <span className="inline-flex items-center self-start sm:self-auto rounded-full bg-brand-blue/10 text-brand-blue text-sm font-semibold px-3 py-1">
+              {sortedCompanies.length} {sortedCompanies.length === 1 ? "comercializadora avaliada" : "comercializadoras avaliadas"}
+            </span>
+            <div className="flex items-center gap-3">
+              <label htmlFor="sort-select" className="text-sm font-semibold text-brand-blue whitespace-nowrap">
+                Ordenar por:
+              </label>
+              <Select
+                value={`${sortKey}-${sortDir}` as SortOptionValue}
+                onValueChange={(v) => {
+                  const { key, dir } = parseSortValue(v as SortOptionValue);
+                  setSortKey(key);
+                  setSortDir(dir);
+                }}
+              >
+                <SelectTrigger id="sort-select" className="rounded-xl h-10 w-auto min-w-[260px] bg-white border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_SELECT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="max-w-4xl mx-auto flex flex-col gap-5">
