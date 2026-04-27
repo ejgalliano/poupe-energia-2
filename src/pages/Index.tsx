@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import SearchSection from "@/components/SearchSection";
+import HowItWorksSection from "@/components/HowItWorksSection";
 import CredibilitySection from "@/components/CredibilitySection";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
@@ -15,6 +16,7 @@ const Index = () => {
       <Header />
       <main className="flex-1">
         <SearchSection />
+        <HowItWorksSection />
         <CredibilitySection />
       </main>
       <Footer />
