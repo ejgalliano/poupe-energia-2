@@ -81,7 +81,7 @@ const RankingNacional = () => {
       setLoading(true);
       const { data: empresas } = await supabase
         .from("empresas")
-        .select("id, nome, parceira, ativa")
+        .select("id, nome, parceira, ativa, tipo_fornecedor")
         .eq("ativa", true);
 
       const { data: notas } = await supabase
@@ -120,6 +120,7 @@ const RankingNacional = () => {
             partner: Boolean(e.parceira),
             empresaId: e.id,
             estadosCount: distinctDistribuidoras.size,
+            tipoFornecedor: (e as any).tipo_fornecedor ?? null,
           } as CompanyNacional;
         })
         .filter(Boolean) as CompanyNacional[];

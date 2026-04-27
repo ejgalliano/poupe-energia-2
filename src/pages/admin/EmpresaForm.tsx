@@ -17,6 +17,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
     empresa ?? {
       nome: "", tipo: "GD", ativa: true, parceira: false, cashback_percentual: 10,
       fontes_geracao: [], canais_atendimento: [], aviso_previo_dias: 90,
+      tipo_fornecedor: "intermediador",
     }
   );
   const [saving, setSaving] = useState(false);
@@ -28,6 +29,10 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
   };
 
   const save = async () => {
+    if (!f.tipo_fornecedor) {
+      toast.error("Selecione o Tipo de Fornecedor");
+      return;
+    }
     setSaving(true);
     const payload = { ...f, parceira: !!f.parceira, ativa: !!f.ativa };
     delete payload.created_at;
@@ -62,6 +67,16 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
             <Select value={f.tipo} onValueChange={(v) => set("tipo", v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="GD">GD</SelectItem><SelectItem value="Mercado Livre">Mercado Livre</SelectItem></SelectContent>
+            </Select>
+          </Field>
+          <Field label="Tipo de Fornecedor *">
+            <Select value={f.tipo_fornecedor ?? ""} onValueChange={(v) => set("tipo_fornecedor", v)}>
+              <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="fornecedor_direto">Fornecedor Direto (Ouro) ⭐⭐⭐⭐⭐</SelectItem>
+                <SelectItem value="operador">Operador (Prata) ⭐⭐⭐⭐☆</SelectItem>
+                <SelectItem value="intermediador">Intermediador (Bronze) ⭐⭐⭐☆☆</SelectItem>
+              </SelectContent>
             </Select>
           </Field>
           <Field label="Site URL"><Input value={f.site_url ?? ""} onChange={(e) => set("site_url", e.target.value)} /></Field>

@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/slug";
 import LeadCaptureDialog from "@/components/LeadCaptureDialog";
+import SupplierBadge, { SUPPLIER_TIERS, TipoFornecedor } from "@/components/SupplierBadge";
 
 const formatBRL = (n: number | null | undefined) =>
   n == null
@@ -292,6 +293,22 @@ const Empresa = () => {
               <h1 className="text-3xl md:text-4xl font-extrabold text-brand-blue leading-tight">
                 {empresa.nome}
               </h1>
+
+              {/* Selo de classificação */}
+              {(() => {
+                const tipo = (empresa.tipo_fornecedor ?? "intermediador") as TipoFornecedor;
+                const tier = SUPPLIER_TIERS[tipo];
+                return (
+                  <div className="mt-3 inline-flex flex-col gap-2 bg-muted/50 border border-border rounded-xl p-3">
+                    <SupplierBadge tipo={tipo} size="lg" showLabel />
+                    <p className="text-sm text-muted-foreground max-w-xl">
+                      <span className="font-semibold text-brand-blue">{tier.label}:</span>{" "}
+                      {tier.description}
+                    </p>
+                  </div>
+                );
+              })()}
+
               <div className="flex flex-wrap gap-2 mt-3">
                 {empresa.arquetipo && (
                   <Badge className="bg-brand-blue text-white hover:bg-brand-blue/90">

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { slugify } from "@/lib/slug";
 import EconomySimulator from "@/components/EconomySimulator";
 import LeadCaptureDialog from "@/components/LeadCaptureDialog";
+import SupplierBadge, { TipoFornecedor } from "@/components/SupplierBadge";
 import { registerLead } from "@/lib/leadTracking";
 
 export interface Company {
@@ -20,6 +21,7 @@ export interface Company {
   distribuidora?: string;
   empresaId?: string;
   distribuidoraId?: string;
+  tipoFornecedor?: TipoFornecedor | null;
 }
 
 interface Props {
@@ -99,6 +101,9 @@ const CompanyCard = ({ company }: Props) => {
             <h3 className="text-lg md:text-xl font-extrabold text-brand-blue leading-tight truncate">
               {company.name}
             </h3>
+            <div className="mt-1.5">
+              <SupplierBadge tipo={company.tipoFornecedor} size="sm" />
+            </div>
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
               <Link
                 to={detailHref}

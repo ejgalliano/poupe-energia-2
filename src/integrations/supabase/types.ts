@@ -126,6 +126,7 @@ export type Database = {
           taxa_adesao: number | null
           tipo: string
           tipo_desconto: string | null
+          tipo_fornecedor: string
           vantagens: string | null
         }
         Insert: {
@@ -175,6 +176,7 @@ export type Database = {
           taxa_adesao?: number | null
           tipo: string
           tipo_desconto?: string | null
+          tipo_fornecedor?: string
           vantagens?: string | null
         }
         Update: {
@@ -224,6 +226,7 @@ export type Database = {
           taxa_adesao?: number | null
           tipo?: string
           tipo_desconto?: string | null
+          tipo_fornecedor?: string
           vantagens?: string | null
         }
         Relationships: []
