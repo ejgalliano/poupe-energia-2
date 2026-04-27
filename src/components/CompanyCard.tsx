@@ -26,11 +26,12 @@ export interface Company {
 
 interface Props {
   company: Company;
+  hideActions?: boolean;
 }
 
 const ordinal = (n: number) => `${n}º`;
 
-const CompanyCard = ({ company }: Props) => {
+const CompanyCard = ({ company, hideActions = false }: Props) => {
   const isTop1 = company.rank === 1;
   const initial = company.name.trim().charAt(0).toUpperCase();
   const [searchParams] = useSearchParams();
@@ -160,22 +161,24 @@ const CompanyCard = ({ company }: Props) => {
       )}
 
       {/* Linha 3: CTAs */}
-      <div className="flex flex-col sm:flex-row gap-2">
-        <Button
-          onClick={() => setSimOpen(true)}
-          variant="outline"
-          className="flex-1 h-12 rounded-xl font-bold border-foreground/20"
-        >
-          <Zap className="h-4 w-4 mr-2" fill="currentColor" />
-          Simular economia
-        </Button>
-        <Button
-          onClick={handleAderir}
-          className="flex-1 h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
-        >
-          Ver plano e Aderir
-        </Button>
-      </div>
+      {!hideActions && (
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button
+            onClick={() => setSimOpen(true)}
+            variant="outline"
+            className="flex-1 h-12 rounded-xl font-bold border-foreground/20"
+          >
+            <Zap className="h-4 w-4 mr-2" fill="currentColor" />
+            Simular economia
+          </Button>
+          <Button
+            onClick={handleAderir}
+            className="flex-1 h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
+          >
+            Ver plano e Aderir
+          </Button>
+        </div>
+      )}
 
       <EconomySimulator
         open={simOpen}
