@@ -433,6 +433,15 @@ const Ranking = () => {
 
       <main className="flex-1">
         <section className="container mx-auto px-4 pt-8 pb-16">
+          <div className="max-w-4xl mx-auto mb-4">
+            <a
+              href="/"
+              className="text-sm font-medium hover:underline"
+              style={{ color: "#1E3A5F" }}
+            >
+              ← Ir para Home
+            </a>
+          </div>
           <header className="max-w-3xl mx-auto text-center mb-8">
             {/* Mobile: mantém comportamento atual em uma linha */}
             <h1 className="md:hidden text-2xl font-extrabold text-brand-blue leading-tight">
