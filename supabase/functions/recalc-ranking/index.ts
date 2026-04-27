@@ -15,7 +15,7 @@ interface NotaRow {
   reputacao_reclame_aqui: number;
   valor_minimo_fatura: number;
   nota_final: number;
-  empresas: { nome: string; parceira: boolean; ativa: boolean } | null;
+  empresas: { nome: string; parceira: boolean; ativa: boolean; tipo_fornecedor: string | null } | null;
 }
 
 Deno.serve(async (req) => {
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const { data, error } = await supabase
       .from("notas_empresas")
       .select(
-        "id, empresa_id, distribuidora_id, desconto_percentual, seguranca_juridica, reputacao_reclame_aqui, valor_minimo_fatura, nota_final, empresas(nome, parceira, ativa)",
+        "id, empresa_id, distribuidora_id, desconto_percentual, seguranca_juridica, reputacao_reclame_aqui, valor_minimo_fatura, nota_final, empresas(nome, parceira, ativa, tipo_fornecedor)",
       )
       .eq("distribuidora_id", distribuidora_id);
 

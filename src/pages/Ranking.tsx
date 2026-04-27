@@ -216,6 +216,7 @@ const Ranking = () => {
           distribuidora: distribuidoraAtual?.nome,
           empresaId: row.empresa_id,
           distribuidoraId: distribuidoraId,
+          tipoFornecedor: row.empresas?.tipo_fornecedor ?? null,
         }));
         setCompanies(mapped);
         setLoading(false);
