@@ -131,6 +131,7 @@ const SupplierBadge = ({
   tipo,
   size = "sm",
   showLabel = false,
+  compact = false,
   className,
 }: Props) => {
   const key: TipoFornecedor = (tipo ?? "intermediador") as TipoFornecedor;
@@ -151,16 +152,18 @@ const SupplierBadge = ({
                 emptyColor={tier.emptyColor}
                 size={starSize}
               />
-              <span
-                className={cn(
-                  "font-bold rounded-md tracking-wide",
-                  tier.badgeBg,
-                  tier.badgeText,
-                  badgePadding,
-                )}
-              >
-                {tier.shortLabel}
-              </span>
+              {!compact && (
+                <span
+                  className={cn(
+                    "font-bold rounded-md tracking-wide",
+                    tier.badgeBg,
+                    tier.badgeText,
+                    badgePadding,
+                  )}
+                >
+                  {tier.shortLabel}
+                </span>
+              )}
               {showLabel && (
                 <span className="text-sm font-semibold text-brand-blue">
                   {tier.label}
