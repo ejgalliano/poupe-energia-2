@@ -383,7 +383,7 @@ const Ranking = () => {
                 }}
                 className="w-full h-12 bg-brand-blue text-white hover:bg-brand-blue/90 rounded-xl font-bold text-base shadow-md"
               >
-                Comparar Propostas para minha Empresa <ArrowRight className="ml-2 h-4 w-4" />
+                👉 Pregão de Energia para Empresas <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             )}
           </>

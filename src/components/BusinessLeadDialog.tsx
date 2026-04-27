@@ -177,7 +177,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
           <>
             <DialogHeader>
               <DialogTitle className="text-lg font-bold text-brand-blue">
-                Comparar Propostas para minha Empresa
+                👉 Pregão de Energia para Empresas
               </DialogTitle>
             </DialogHeader>
 
