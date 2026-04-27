@@ -21,7 +21,7 @@ const RankingSection = ({ distribuidoraId, distribuidoraNome }: Props) => {
     supabase
       .from("notas_empresas")
       .select(
-        "empresa_id, desconto_percentual, seguranca_juridica, reputacao_reclame_aqui, valor_minimo_fatura, nota_final, empresas(nome)"
+        "empresa_id, desconto_percentual, seguranca_juridica, reputacao_reclame_aqui, valor_minimo_fatura, nota_final, empresas(nome, tipo_fornecedor)"
       )
       .eq("distribuidora_id", distribuidoraId)
       .order("nota_final", { ascending: false })
@@ -36,6 +36,7 @@ const RankingSection = ({ distribuidoraId, distribuidoraNome }: Props) => {
           score: Number(row.nota_final),
           empresaId: row.empresa_id,
           distribuidoraId,
+          tipoFornecedor: row.empresas?.tipo_fornecedor ?? null,
         }));
         setCompanies(mapped);
         setLoading(false);
