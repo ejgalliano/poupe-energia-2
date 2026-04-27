@@ -98,13 +98,14 @@ interface Props {
   tipo?: TipoFornecedor | null;
   size?: "sm" | "md" | "lg";
   showLabel?: boolean;
+  compact?: boolean;
   className?: string;
 }
 
 const TiersLegend = () => (
   <div className="space-y-2.5 text-sm">
     <p className="font-semibold text-brand-blue mb-2">
-      Classificação de comercializadoras
+      Modelo de Negócios
     </p>
     {(Object.keys(SUPPLIER_TIERS) as TipoFornecedor[]).map((k) => {
       const t = SUPPLIER_TIERS[k];
@@ -130,6 +131,7 @@ const SupplierBadge = ({
   tipo,
   size = "sm",
   showLabel = false,
+  compact = false,
   className,
 }: Props) => {
   const key: TipoFornecedor = (tipo ?? "intermediador") as TipoFornecedor;
@@ -150,16 +152,18 @@ const SupplierBadge = ({
                 emptyColor={tier.emptyColor}
                 size={starSize}
               />
-              <span
-                className={cn(
-                  "font-bold rounded-md tracking-wide",
-                  tier.badgeBg,
-                  tier.badgeText,
-                  badgePadding,
-                )}
-              >
-                {tier.shortLabel}
-              </span>
+              {!compact && (
+                <span
+                  className={cn(
+                    "font-bold rounded-md tracking-wide",
+                    tier.badgeBg,
+                    tier.badgeText,
+                    badgePadding,
+                  )}
+                >
+                  {tier.shortLabel}
+                </span>
+              )}
               {showLabel && (
                 <span className="text-sm font-semibold text-brand-blue">
                   {tier.label}

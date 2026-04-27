@@ -102,7 +102,7 @@ const CompanyCard = ({ company }: Props) => {
               {company.name}
             </h3>
             <div className="mt-1.5">
-              <SupplierBadge tipo={company.tipoFornecedor} size="sm" />
+              <SupplierBadge tipo={company.tipoFornecedor} size="sm" compact />
             </div>
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
               <Link
