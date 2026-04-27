@@ -213,7 +213,7 @@ const SearchSection = ({ onSearch }: Props) => {
           onClick={() => setBusinessOpen(true)}
           className="rounded-xl border-2 border-brand-blue/30 text-brand-blue font-semibold hover:bg-brand-blue/5"
         >
-          Comparar Propostas para minha Empresa <ArrowRight className="ml-2 h-4 w-4" />
+          👉 Pregão de Energia para Empresas <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
 
