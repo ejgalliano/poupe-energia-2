@@ -436,7 +436,7 @@ const Ranking = () => {
           <div className="max-w-4xl mx-auto mb-4">
             <a
               href="/"
-              className="text-sm font-medium hover:underline"
+              className="inline-block text-sm font-medium px-3 py-1 hover:underline"
               style={{ color: "#1E3A5F" }}
             >
               ← Ir para Home
