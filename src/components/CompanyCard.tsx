@@ -98,10 +98,10 @@ const CompanyCard = ({ company }: Props) => {
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg md:text-xl font-extrabold text-brand-blue leading-tight truncate">
-              {company.name}
-            </h3>
-            <div className="mt-1.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-lg md:text-xl font-extrabold text-brand-blue leading-tight truncate">
+                {company.name}
+              </h3>
               <SupplierBadge tipo={company.tipoFornecedor} size="sm" compact />
             </div>
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
