@@ -105,7 +105,7 @@ interface Props {
 const TiersLegend = () => (
   <div className="space-y-2.5 text-sm">
     <p className="font-semibold text-brand-blue mb-2">
-      Modelo de Negócios
+      Modelo de Negócio
     </p>
     {(Object.keys(SUPPLIER_TIERS) as TipoFornecedor[]).map((k) => {
       const t = SUPPLIER_TIERS[k];
