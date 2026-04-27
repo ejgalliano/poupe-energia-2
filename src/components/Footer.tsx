@@ -4,17 +4,20 @@ import { Link } from "react-router-dom";
 const CONTACT_EMAIL = "contato.poupeenergia@hotmail.com";
 
 const col1 = [
-  { label: "Energia por Assinatura", href: "/" },
-  { label: "Mercado Livre de Energia", href: "/" },
-  { label: "Rankings de Energia", href: "/ranking" },
-  { label: "Ranking Nacional", href: "/ranking-nacional" },
-  { label: "Cashback e Benefícios", href: "/termos-cashback" },
-  { label: "Dúvidas Frequentes", href: "/como-calculamos" },
+  { label: "Poupe Fácil - Empresas", href: "/poupe-facil-empresas" },
+  { label: "Energia por Assinatura", href: "/energia-por-assinatura" },
+  { label: "Mercado Livre de Energia", href: "/mercado-livre-de-energia" },
+  { label: "Usinas de Investimento", href: "/usinas-de-investimento" },
+  { label: "Cogeração", href: "/cogeracao" },
+  { label: "Bess – Armazenamento de energia em Baterias", href: "/bess" },
+  { label: "Eletropostos – Carregadores de carros Elétricos", href: "/eletropostos" },
 ];
 
 const col2 = [
   { label: "Sobre a Poupe Energia", href: "/sobre" },
   { label: "Como Calculamos os Rankings", href: "/como-calculamos" },
+  { label: "Ranking Nacional", href: "/ranking-nacional" },
+  { label: "Dúvidas Frequentes", href: "/duvidas-frequentes" },
   { label: "Política de Privacidade", href: "/politica-de-privacidade" },
   { label: "Termos de Uso", href: "/termos-de-uso" },
   { label: "Cashback – Termos e Condições", href: "/termos-cashback" },
