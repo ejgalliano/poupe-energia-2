@@ -78,6 +78,51 @@ export type Database = {
           },
         ]
       }
+      embaixadores: {
+        Row: {
+          ativo: boolean
+          chave_pix: string | null
+          codigo: string
+          comissao_percentual: number
+          cpf_cnpj: string | null
+          created_at: string
+          email: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          chave_pix?: string | null
+          codigo: string
+          comissao_percentual?: number
+          cpf_cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          chave_pix?: string | null
+          codigo?: string
+          comissao_percentual?: number
+          cpf_cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       empresas: {
         Row: {
           arquetipo: string | null
@@ -308,6 +353,70 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads_embaixadores: {
+        Row: {
+          created_at: string
+          data_adesao: string | null
+          data_pagamento: string | null
+          embaixador_id: string
+          empresa_id: string
+          id: string
+          lead_id: string
+          observacoes: string | null
+          status_comissao: string
+          updated_at: string
+          valor_comissao: number
+        }
+        Insert: {
+          created_at?: string
+          data_adesao?: string | null
+          data_pagamento?: string | null
+          embaixador_id: string
+          empresa_id: string
+          id?: string
+          lead_id: string
+          observacoes?: string | null
+          status_comissao?: string
+          updated_at?: string
+          valor_comissao?: number
+        }
+        Update: {
+          created_at?: string
+          data_adesao?: string | null
+          data_pagamento?: string | null
+          embaixador_id?: string
+          empresa_id?: string
+          id?: string
+          lead_id?: string
+          observacoes?: string | null
+          status_comissao?: string
+          updated_at?: string
+          valor_comissao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_embaixadores_embaixador_id_fkey"
+            columns: ["embaixador_id"]
+            isOneToOne: false
+            referencedRelation: "embaixadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_embaixadores_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_embaixadores_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]
