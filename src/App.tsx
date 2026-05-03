@@ -30,6 +30,7 @@ import UsinasDeInvestimento from "./pages/UsinasDeInvestimento.tsx";
 import Cogeracao from "./pages/Cogeracao.tsx";
 import Bess from "./pages/Bess.tsx";
 import Eletropostos from "./pages/Eletropostos.tsx";
+import DuvidasFrequentes from "./pages/DuvidasFrequentes.tsx";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 
 const queryClient = new QueryClient();
