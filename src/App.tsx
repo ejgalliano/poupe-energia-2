@@ -31,7 +31,9 @@ import Cogeracao from "./pages/Cogeracao.tsx";
 import Bess from "./pages/Bess.tsx";
 import Eletropostos from "./pages/Eletropostos.tsx";
 import DuvidasFrequentes from "./pages/DuvidasFrequentes.tsx";
+import Embaixadores from "./pages/admin/Embaixadores";
 import WhatsAppFloat from "./components/WhatsAppFloat";
+import EmbCapture from "./components/EmbCapture";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <WhatsAppFloat />
+        <EmbCapture />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/ranking" element={<Ranking />} />
@@ -70,6 +73,7 @@ const App = () => (
             <Route path="usuarios" element={<UsuariosAdmin />} />
             <Route path="parceiros" element={<Parceiros />} />
             <Route path="leads-empresariais" element={<LeadsEmpresariais />} />
+            <Route path="embaixadores" element={<Embaixadores />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
