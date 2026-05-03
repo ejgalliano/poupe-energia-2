@@ -205,29 +205,31 @@ const LeadCaptureDialog = ({
             <p className="text-base text-brand-blue mt-0.5">{empresaNome}</p>
           </div>
 
-          <div className="border-t border-border my-4" />
-
-          {(embValidation.state === "valid" || embaixador) && (
-            <>
+          {/* Bloco do Embaixador */}
+          <hr className="border-gray-200 my-2" />
+          {(embValidation.state === "valid" || embaixador) ? (
+            <div className="py-2">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 shrink-0 rounded-full bg-muted flex items-center justify-center">
-                  <User className="h-5 w-5 text-muted-foreground" />
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
+                  </svg>
                 </div>
-                <div className="min-w-0">
-                  <div className="text-sm font-bold text-brand-blue">
+                <div>
+                  <p className="font-bold text-sm text-gray-800">
                     {embValidation.state === "valid" ? embValidation.nome : embaixador?.nome}
-                  </div>
-                  <div className="text-xs text-brand-blue">
-                    Embaixador Poupe Energia
-                  </div>
+                  </p>
+                  <p className="text-xs text-gray-500">Embaixador Poupe Energia</p>
                 </div>
               </div>
-              <p className="text-[11px] text-muted-foreground mt-2">
-                (Só aparece se já existir vínculo)
-              </p>
-              <div className="border-t border-border my-4" />
-            </>
+              <p className="text-xs text-gray-400 mt-1">(Só aparece se já existir vínculo)</p>
+            </div>
+          ) : (
+            <div className="py-2 h-16 flex items-center">
+              <p className="text-xs text-gray-300 italic">Nenhum embaixador vinculado</p>
+            </div>
           )}
+          <hr className="border-gray-200 my-2" />
 
           <div className="space-y-3">
             <div>
@@ -281,7 +283,7 @@ const LeadCaptureDialog = ({
             </div>
           </div>
 
-          <div className="border-t border-border my-4" />
+          <hr className="border-gray-200 my-2" />
 
           <label className="flex items-center gap-2 cursor-pointer mb-4">
             <Checkbox checked={accept} onCheckedChange={(v) => setAccept(v === true)} />
