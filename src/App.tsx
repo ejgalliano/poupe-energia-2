@@ -30,6 +30,7 @@ import UsinasDeInvestimento from "./pages/UsinasDeInvestimento.tsx";
 import Cogeracao from "./pages/Cogeracao.tsx";
 import Bess from "./pages/Bess.tsx";
 import Eletropostos from "./pages/Eletropostos.tsx";
+import DuvidasFrequentes from "./pages/DuvidasFrequentes.tsx";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 
 const queryClient = new QueryClient();
@@ -51,7 +52,7 @@ const App = () => (
           <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
           <Route path="/termos-de-uso" element={<TermosDeUso />} />
           <Route path="/termos-cashback" element={<TermosCashback />} />
-          <Route path="/duvidas-frequentes" element={<ComoCalculamos />} />
+          <Route path="/duvidas-frequentes" element={<DuvidasFrequentes />} />
           <Route path="/poupe-facil-empresas" element={<PoupeFacilEmpresas />} />
           <Route path="/energia-por-assinatura" element={<EnergiaPorAssinatura />} />
           <Route path="/mercado-livre-de-energia" element={<MercadoLivreDeEnergia />} />
