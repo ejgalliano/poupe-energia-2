@@ -220,6 +220,9 @@ const LeadCaptureDialog = ({
                   <div className="text-xs text-muted-foreground">
                     Embaixador Poupe Energia
                   </div>
+                  <div className="text-[11px] text-muted-foreground/70 mt-0.5">
+                    (Só aparece se já existir vínculo)
+                  </div>
                 </div>
               </div>
               <div className="border-t border-border my-4" />
@@ -228,16 +231,22 @@ const LeadCaptureDialog = ({
 
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-bold text-brand-blue">Nome completo *</label>
-              <Input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={120} className="rounded-xl mt-1" />
+              <label className="text-xs font-bold text-brand-blue">
+                Nome completo <span style={{ color: "#F59E0B" }}>*</span>
+              </label>
+              <Input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={120} className="rounded-xl mt-1 bg-[#FFFBEB]" />
             </div>
             <div>
-              <label className="text-xs font-bold text-brand-blue">Email *</label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} className="rounded-xl mt-1" />
+              <label className="text-xs font-bold text-brand-blue">
+                Email <span style={{ color: "#F59E0B" }}>*</span>
+              </label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} className="rounded-xl mt-1 bg-[#FFFBEB]" />
             </div>
             <div>
-              <label className="text-xs font-bold text-brand-blue">WhatsApp *</label>
-              <Input inputMode="tel" value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} className="rounded-xl mt-1" />
+              <label className="text-xs font-bold text-brand-blue">
+                WhatsApp <span style={{ color: "#F59E0B" }}>*</span>
+              </label>
+              <Input inputMode="tel" value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} className="rounded-xl mt-1 bg-[#FFFBEB]" />
             </div>
             <div>
               <label className="text-[11px] font-medium text-muted-foreground">
@@ -247,7 +256,7 @@ const LeadCaptureDialog = ({
                 value={codigoEmbaixador}
                 onChange={(e) => setCodigoEmbaixador(e.target.value)}
                 maxLength={30}
-                className="h-8 w-32 rounded-md mt-1 text-xs border-muted bg-muted/30"
+                className="h-8 w-32 rounded-md mt-1 text-xs border-muted bg-[#FFFBEB]"
               />
               {embValidation.state === "loading" && (
                 <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
