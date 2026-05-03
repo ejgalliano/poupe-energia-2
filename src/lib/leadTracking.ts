@@ -26,23 +26,30 @@ const hashIp = async (): Promise<string> => {
   }
 };
 
-/** Registra um lead (não bloqueia se falhar). */
-export async function registerLead(params: TrackLeadParams): Promise<void> {
+/** Registra um lead (não bloqueia se falhar). Retorna o id do lead inserido se possível. */
+export async function registerLead(params: TrackLeadParams): Promise<string | null> {
   const ipHash = await hashIp();
   try {
-    await supabase.from("leads").insert({
-      empresa_id: params.empresaId,
-      distribuidora_id: params.distribuidoraId ?? null,
-      estado_sigla: params.estadoSigla ?? null,
-      evento: params.evento,
-      ip_hash: ipHash,
-      user_agent: navigator.userAgent.slice(0, 500),
-      nome: params.nome ?? null,
-      email: params.email ?? null,
-      telefone: params.telefone ?? null,
-    } as any);
+    const { data, error } = await supabase
+      .from("leads")
+      .insert({
+        empresa_id: params.empresaId,
+        distribuidora_id: params.distribuidoraId ?? null,
+        estado_sigla: params.estadoSigla ?? null,
+        evento: params.evento,
+        ip_hash: ipHash,
+        user_agent: navigator.userAgent.slice(0, 500),
+        nome: params.nome ?? null,
+        email: params.email ?? null,
+        telefone: params.telefone ?? null,
+      } as any)
+      .select("id")
+      .single();
+    if (error) throw error;
+    return (data as any)?.id ?? null;
   } catch (err) {
     console.error("Falha ao registrar lead:", err);
+    return null;
   }
 }
 
