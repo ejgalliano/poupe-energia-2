@@ -275,11 +275,7 @@ const LeadCaptureDialog = ({
                   <XCircle className="h-3 w-3" /> Código não encontrado
                 </p>
               )}
-              {embValidation.state === "idle" && (
-                <p className="text-[11px] text-muted-foreground mt-1">
-                  (campo pequeno, sem destaque visual)
-                </p>
-              )}
+              {embValidation.state === "idle" && null}
             </div>
           </div>
 
