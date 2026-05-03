@@ -79,10 +79,15 @@ const RankingNacional = () => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const { data: empresas } = await supabase
+      const params = new URLSearchParams(window.location.search);
+      const perfil = (params.get("perfil") as "home" | "business") || "home";
+      const empresasQuery = supabase
         .from("empresas")
-        .select("id, nome, parceira, ativa, tipo_fornecedor")
+        .select("id, nome, parceira, ativa, tipo_fornecedor, atende_residencial, atende_empresarial")
         .eq("ativa", true);
+      if (perfil === "home") empresasQuery.eq("atende_residencial", true);
+      else empresasQuery.eq("atende_empresarial", true);
+      const { data: empresas } = await empresasQuery;
 
       const { data: notas } = await supabase
         .from("notas_empresas")
