@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, User, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { z } from "zod";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { registerLead, getRedirectUrl } from "@/lib/leadTracking";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Embaixador {
   nome: string;
@@ -42,6 +43,12 @@ const openInNewTab = (url: string) => {
   if (!w) window.location.href = url;
 };
 
+type EmbValidation =
+  | { state: "idle" }
+  | { state: "loading" }
+  | { state: "valid"; id: string; nome: string; comissao: number }
+  | { state: "invalid" };
+
 const LeadCaptureDialog = ({
   open,
   onOpenChange,
@@ -55,14 +62,60 @@ const LeadCaptureDialog = ({
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [codigoEmbaixador, setCodigoEmbaixador] = useState("");
+  const [embValidation, setEmbValidation] = useState<EmbValidation>({ state: "idle" });
   const [accept, setAccept] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  // Pré-preenche código a partir de sessionStorage / URL
+  useEffect(() => {
+    if (!open) return;
+    try {
+      const url = new URL(window.location.href);
+      const fromUrl = url.searchParams.get("emb");
+      const fromStorage = sessionStorage.getItem("emb_codigo");
+      const code = (fromUrl || fromStorage || "").trim();
+      if (code && !codigoEmbaixador) {
+        setCodigoEmbaixador(code);
+        if (fromUrl) sessionStorage.setItem("emb_codigo", code);
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Validação debounced do código
+  useEffect(() => {
+    const code = codigoEmbaixador.trim();
+    if (!code) {
+      setEmbValidation({ state: "idle" });
+      return;
+    }
+    setEmbValidation({ state: "loading" });
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("embaixadores")
+        .select("id, nome, comissao_percentual, ativo")
+        .ilike("codigo", code)
+        .maybeSingle();
+      if (data && (data as any).ativo !== false) {
+        setEmbValidation({
+          state: "valid",
+          id: (data as any).id,
+          nome: (data as any).nome,
+          comissao: Number((data as any).comissao_percentual ?? 0),
+        });
+      } else {
+        setEmbValidation({ state: "invalid" });
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [codigoEmbaixador]);
 
   const reset = () => {
     setNome("");
     setEmail("");
     setTelefone("");
     setCodigoEmbaixador("");
+    setEmbValidation({ state: "idle" });
     setAccept(true);
   };
 
@@ -93,7 +146,7 @@ const LeadCaptureDialog = ({
         return;
       }
 
-      registerLead({
+      const leadId = await registerLead({
         empresaId,
         distribuidoraId,
         estadoSigla,
@@ -102,6 +155,17 @@ const LeadCaptureDialog = ({
         email: email.trim(),
         telefone: telefone.trim(),
       });
+
+      // Vínculo embaixador
+      if (leadId && embValidation.state === "valid") {
+        await supabase.from("leads_embaixadores").insert({
+          lead_id: leadId,
+          embaixador_id: embValidation.id,
+          empresa_id: empresaId,
+          status_comissao: "pendente",
+          valor_comissao: 0,
+        } as any);
+      }
 
       handleClose(false);
       openInNewTab(url);
@@ -127,7 +191,6 @@ const LeadCaptureDialog = ({
             "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           )}
         >
-          {/* Close button top-left */}
           <DialogPrimitive.Close
             className="absolute left-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity focus:outline-none"
             aria-label="Fechar"
@@ -135,7 +198,6 @@ const LeadCaptureDialog = ({
             <X className="h-5 w-5 text-brand-blue" />
           </DialogPrimitive.Close>
 
-          {/* Title */}
           <div className="pt-6 text-center">
             <DialogPrimitive.Title className="text-2xl font-extrabold text-brand-blue leading-tight">
               Finalizar adesão
@@ -145,8 +207,7 @@ const LeadCaptureDialog = ({
 
           <div className="border-t border-border my-4" />
 
-          {/* Embaixador block */}
-          {embaixador && (
+          {(embValidation.state === "valid" || embaixador) && (
             <>
               <div className="flex items-start gap-3">
                 <div className="h-10 w-10 shrink-0 rounded-full bg-muted flex items-center justify-center">
@@ -154,13 +215,10 @@ const LeadCaptureDialog = ({
                 </div>
                 <div className="min-w-0">
                   <div className="text-sm font-bold text-brand-blue">
-                    {embaixador.nome}
+                    {embValidation.state === "valid" ? embValidation.nome : embaixador?.nome}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Embaixador Poupe Energia
-                  </div>
-                  <div className="text-[11px] text-muted-foreground/70 mt-0.5">
-                    (Só aparece se já existir vínculo)
                   </div>
                 </div>
               </div>
@@ -168,41 +226,18 @@ const LeadCaptureDialog = ({
             </>
           )}
 
-          {/* Form */}
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-bold text-brand-blue">
-                Nome completo *
-              </label>
-              <Input
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                maxLength={120}
-                className="rounded-xl mt-1"
-              />
+              <label className="text-xs font-bold text-brand-blue">Nome completo *</label>
+              <Input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={120} className="rounded-xl mt-1" />
             </div>
             <div>
-              <label className="text-xs font-bold text-brand-blue">
-                Email *
-              </label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                maxLength={255}
-                className="rounded-xl mt-1"
-              />
+              <label className="text-xs font-bold text-brand-blue">Email *</label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} className="rounded-xl mt-1" />
             </div>
             <div>
-              <label className="text-xs font-bold text-brand-blue">
-                WhatsApp *
-              </label>
-              <Input
-                inputMode="tel"
-                value={telefone}
-                onChange={(e) => setTelefone(maskPhone(e.target.value))}
-                className="rounded-xl mt-1"
-              />
+              <label className="text-xs font-bold text-brand-blue">WhatsApp *</label>
+              <Input inputMode="tel" value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} className="rounded-xl mt-1" />
             </div>
             <div>
               <label className="text-[11px] font-medium text-muted-foreground">
@@ -214,22 +249,29 @@ const LeadCaptureDialog = ({
                 maxLength={30}
                 className="h-8 w-32 rounded-md mt-1 text-xs border-muted bg-muted/30"
               />
-              <p className="text-[10px] text-muted-foreground/70 mt-1">
-                (campo pequeno, sem destaque visual)
-              </p>
+              {embValidation.state === "loading" && (
+                <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Validando...
+                </p>
+              )}
+              {embValidation.state === "valid" && (
+                <p className="text-[11px] text-green-600 mt-1 flex items-center gap-1 font-medium">
+                  <CheckCircle2 className="h-3 w-3" /> {embValidation.nome} — Embaixador Poupe Energia
+                </p>
+              )}
+              {embValidation.state === "invalid" && (
+                <p className="text-[11px] text-red-600 mt-1 flex items-center gap-1 font-medium">
+                  <XCircle className="h-3 w-3" /> Código não encontrado
+                </p>
+              )}
             </div>
           </div>
 
           <div className="border-t border-border my-4" />
 
           <label className="flex items-center gap-2 cursor-pointer mb-4">
-            <Checkbox
-              checked={accept}
-              onCheckedChange={(v) => setAccept(v === true)}
-            />
-            <span className="text-sm text-foreground">
-              Concordo com os termos
-            </span>
+            <Checkbox checked={accept} onCheckedChange={(v) => setAccept(v === true)} />
+            <span className="text-sm text-foreground">Concordo com os termos</span>
           </label>
 
           <Button
