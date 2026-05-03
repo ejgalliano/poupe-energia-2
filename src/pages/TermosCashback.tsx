@@ -36,7 +36,7 @@ const TermosCashback = () => {
 
       <LegalSection number={3} title="Da Base de Cálculo do Cashback">
         <p>
-          O cashback corresponde a um <strong>percentual sobre a economia mensal</strong>
+          O cashback corresponde a um <strong>percentual sobre a economia mensal</strong>{" "}
           gerada ao usuário em decorrência da adesão à comercializadora parceira, conforme
           divulgado em cada empresa específica na plataforma.
         </p>
