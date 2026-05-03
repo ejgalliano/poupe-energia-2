@@ -18,6 +18,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
       nome: "", tipo: "GD", ativa: true, parceira: false, cashback_percentual: 10,
       fontes_geracao: [], canais_atendimento: [], aviso_previo_dias: 90,
       tipo_fornecedor: "intermediador",
+      atende_residencial: true, atende_empresarial: true,
     }
   );
   const [saving, setSaving] = useState(false);
@@ -86,6 +87,8 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
           <Field label="Arquétipo"><Input value={f.arquetipo ?? ""} onChange={(e) => set("arquetipo", e.target.value)} /></Field>
           <CheckField label="Parceira" checked={!!f.parceira} onChange={(v) => set("parceira", v)} />
           <CheckField label="Ativa" checked={!!f.ativa} onChange={(v) => set("ativa", v)} />
+          <CheckField label="Atende Residencial (Grupo B — Baixa Tensão)" checked={f.atende_residencial !== false} onChange={(v) => set("atende_residencial", v)} />
+          <CheckField label="Atende Empresarial (Grupo A e B — Média e Alta Tensão)" checked={f.atende_empresarial !== false} onChange={(v) => set("atende_empresarial", v)} />
         </CardContent>
       </Card>
 

@@ -198,7 +198,14 @@ const Ranking = () => {
           setLoading(false);
           return;
         }
-        const rows = (data?.rows ?? []) as any[];
+        const allRows = (data?.rows ?? []) as any[];
+        const perfilUrl = (searchParams.get("perfil") as Profile) || "home";
+        const rows = allRows.filter((row) => {
+          const e = row.empresas;
+          if (!e) return false;
+          if (perfilUrl === "home") return e.atende_residencial !== false;
+          return e.atende_empresarial !== false;
+        });
         const mapped: Company[] = rows.map((row, idx) => ({
           rank: idx + 1,
           name: row.empresas?.nome ?? "Empresa",
@@ -221,7 +228,7 @@ const Ranking = () => {
         setCompanies(mapped);
         setLoading(false);
       });
-  }, [distribuidoraId, estadoSigla, distribuidoraAtual?.nome]);
+  }, [distribuidoraId, estadoSigla, distribuidoraAtual?.nome, searchParams]);
 
 
   const sortedCompanies = useMemo(() => {
