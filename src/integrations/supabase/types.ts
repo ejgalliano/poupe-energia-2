@@ -81,6 +81,8 @@ export type Database = {
       empresas: {
         Row: {
           arquetipo: string | null
+          atende_empresarial: boolean
+          atende_residencial: boolean
           ativa: boolean
           avaliacao_google: number | null
           aviso_previo_dias: number | null
@@ -131,6 +133,8 @@ export type Database = {
         }
         Insert: {
           arquetipo?: string | null
+          atende_empresarial?: boolean
+          atende_residencial?: boolean
           ativa?: boolean
           avaliacao_google?: number | null
           aviso_previo_dias?: number | null
@@ -181,6 +185,8 @@ export type Database = {
         }
         Update: {
           arquetipo?: string | null
+          atende_empresarial?: boolean
+          atende_residencial?: boolean
           ativa?: boolean
           avaliacao_google?: number | null
           aviso_previo_dias?: number | null
