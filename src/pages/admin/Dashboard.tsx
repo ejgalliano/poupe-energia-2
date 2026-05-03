@@ -11,7 +11,8 @@ export default function Dashboard() {
     leadsMes: 0,
     leadsComContato: 0,
     leadsEmpHoje: 0,
-    leadsEmpPendentes: 0,
+    leadsEmbHoje: 0,
+    comissoesPendentes: 0,
   });
   const [recent, setRecent] = useState<any[]>([]);
 
@@ -23,7 +24,7 @@ export default function Dashboard() {
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      const [e, d, s, r, lh, lm, lc, leh, lep] = await Promise.all([
+      const [e, d, s, r, lh, lm, lc, leh, lep, leb, com] = await Promise.all([
         supabase.from("empresas").select("id", { count: "exact", head: true }),
         supabase.from("distribuidoras").select("id", { count: "exact", head: true }),
         supabase.from("estados").select("id", { count: "exact", head: true }),
@@ -52,7 +53,19 @@ export default function Dashboard() {
           .from("leads_empresariais")
           .select("id", { count: "exact", head: true })
           .eq("status", "novo"),
+        supabase
+          .from("leads_embaixadores")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", startOfDay.toISOString()),
+        supabase
+          .from("leads_embaixadores")
+          .select("valor_comissao")
+          .in("status_comissao", ["pendente", "validado"]),
       ]);
+      const comissoesPendentes = (com.data ?? []).reduce(
+        (acc: number, r: any) => acc + (Number(r.valor_comissao) || 0),
+        0,
+      );
       setStats({
         empresas: e.count ?? 0,
         distribuidoras: d.count ?? 0,
@@ -62,6 +75,8 @@ export default function Dashboard() {
         leadsComContato: lc.count ?? 0,
         leadsEmpHoje: leh.count ?? 0,
         leadsEmpPendentes: lep.count ?? 0,
+        leadsEmbHoje: leb.count ?? 0,
+        comissoesPendentes,
       });
       setRecent(r.data ?? []);
     })();
