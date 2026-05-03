@@ -49,7 +49,7 @@ const TermosCashback = () => {
 
       <LegalSection number={4} title="Da Referência de Consumo e Auditoria">
         <p>
-          Para cálculo do benefício, será considerada a <strong>fatura mensal emitida</strong>
+          Para cálculo do benefício, será considerada a <strong>fatura mensal emitida</strong>{" "}
           pela comercializadora ou pela distribuidora local, conforme aplicável. A Poupe
           Energia poderá realizar auditoria nos valores informados, podendo solicitar cópia
           das faturas para validação.
