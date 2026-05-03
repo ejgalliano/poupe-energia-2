@@ -375,25 +375,13 @@ const Ranking = () => {
             </label>
 
             {/* CTA */}
-            {profile === "home" ? (
-              <Button
-                onClick={handleBuscar}
-                disabled={!canSubmit}
-                className="w-full h-12 bg-brand-blue text-white hover:bg-brand-blue/90 rounded-xl font-bold text-base shadow-md disabled:opacity-50"
-              >
-                Buscar economia <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            ) : (
-              <Button
-                onClick={() => {
-                  setBusinessOpen(true);
-                  setMobileFiltersOpen(false);
-                }}
-                className="w-full h-12 bg-brand-blue text-white hover:bg-brand-blue/90 rounded-xl font-bold text-base shadow-md"
-              >
-                👉 Pregão de Energia para Empresas <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            )}
+            <Button
+              onClick={handleBuscar}
+              disabled={!canSubmit}
+              className="w-full h-12 bg-brand-blue text-white hover:bg-brand-blue/90 rounded-xl font-bold text-base shadow-md disabled:opacity-50"
+            >
+              Buscar economia <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </>
         );
 
