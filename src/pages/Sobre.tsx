@@ -1,64 +1,43 @@
 import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  Mail,
-  Phone,
-  MapPin,
-  Building2,
-  Lightbulb,
-} from "lucide-react";
+import { ArrowRight, Mail, Phone, MapPin } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import BackToTop from "@/components/BackToTop";
 import { Button } from "@/components/ui/button";
 
-const missao = [
-  {
-    icon: "🛡️",
-    title: "Proteger o consumidor",
-    desc: "Eliminar assimetrias de informação no mercado de energia.",
-  },
+const oQueFazemos = [
   {
     icon: "📊",
-    title: "Organizar o mercado",
-    desc: "Criar padrões de transparência e comparação.",
+    title: "Comparador de Comercializadoras",
+    desc: "Apresentamos um ranking estruturado com base em critérios objetivos, permitindo a comparação real entre empresas.",
   },
   {
-    icon: "🤝",
-    title: "Fortalecer parcerias",
-    desc: "Conectar consumidores às melhores opções com confiança.",
+    icon: "🛒",
+    title: "Marketplace de Energia",
+    desc: "Conectamos consumidores às melhores ofertas disponíveis, de forma simples, digital e sem burocracia.",
   },
 ];
 
+const missao = [
+  "Proteger o consumidor com informação clara e confiável",
+  "Reduzir a complexidade do mercado de energia",
+  "Estabelecer padrões de transparência e comparação",
+  "Conectar consumidores às melhores oportunidades",
+];
+
 const pilares = [
-  {
-    icon: "💰",
-    title: "Valor do desconto",
-    desc: "Economia real e clara na conta de energia.",
-  },
-  {
-    icon: "⚖️",
-    title: "Segurança jurídica",
-    desc: "Contratos sólidos e transparentes.",
-  },
-  {
-    icon: "⭐",
-    title: "Reputação da empresa",
-    desc: "Análise do histórico e avaliação pública.",
-  },
-  {
-    icon: "🏠",
-    title: "Valor mínimo para adesão",
-    desc: "Acessibilidade para mais consumidores.",
-  },
+  { icon: "💰", title: "Valor do desconto inicial", desc: "Economia real na conta de energia." },
+  { icon: "⚖️", title: "Segurança jurídica", desc: "Contratos claros e confiáveis." },
+  { icon: "⭐", title: "Reputação da empresa", desc: "Histórico, avaliações e presença no mercado." },
+  { icon: "🏠", title: "Acessibilidade", desc: "Facilidade de adesão e valor mínimo exigido." },
 ];
 
 const numeros = [
   { value: "23", label: "Estados + DF" },
-  { value: "36+", label: "Comercializadoras avaliadas" },
+  { value: "100+", label: "Comercializadoras avaliadas" },
   { value: "40+", label: "Distribuidoras cobertas" },
-  { value: "4", label: "Pilares de avaliação" },
+  { value: "4", label: "Pilares de análise" },
 ];
 
 const Sobre = () => {
@@ -66,7 +45,7 @@ const Sobre = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
         title="Sobre a Poupe Energia | Comparador de Energia"
-        description="Startup brasileira de energias renováveis. Conheça a missão, pilares e valores da Poupe Energia."
+        description="O primeiro comparador independente de comercializadoras de energia elétrica do Brasil."
       />
       <Header />
 
@@ -74,140 +53,98 @@ const Sobre = () => {
       <section className="bg-brand-blue text-white">
         <div className="container mx-auto px-4 py-16 md:py-24 text-center max-w-4xl">
           <h1 className="text-3xl md:text-5xl font-extrabold leading-tight mb-4">
-            Sobre o <span className="text-brand-yellow">Poupe Energia</span>
+            Sobre a <span className="text-brand-yellow">Poupe Energia</span>
           </h1>
           <p className="text-lg md:text-xl text-white/85 leading-relaxed">
-            O primeiro comparador independente de comercializadoras de energia
-            elétrica do Brasil.
+            O primeiro comparador independente de comercializadoras de energia elétrica do Brasil.
           </p>
         </div>
       </section>
 
       <main className="flex-1">
-        {/* Quem Somos */}
+        {/* Abertura */}
         <section className="container mx-auto px-4 py-14 max-w-4xl">
           <div className="bg-white border border-border rounded-2xl p-8 shadow-sm">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-brand-blue mb-5">
-              Quem Somos
-            </h2>
-            <p className="text-muted-foreground leading-relaxed mb-4">
-              A Poupe Energia é uma startup brasileira de energias renováveis
-              criada para organizar, comparar e dar transparência ao mercado
-              de energia, com foco em Geração Distribuída e Mercado Livre.
-            </p>
             <p className="text-muted-foreground leading-relaxed">
-              Fundada em Londrina, no Paraná, a Poupe Energia atua em{" "}
-              <strong className="text-brand-blue">
-                23 estados + Distrito Federal
-              </strong>
-              , conectando consumidores, parceiros comerciais e as melhores
-              comercializadoras de energia do país.
+              Nossa plataforma foi criada para trazer clareza a um mercado historicamente complexo,
+              permitindo que consumidores e empresas encontrem, comparem e escolham as melhores opções
+              de energia com segurança. Atuamos como um hub de inteligência e conexão, reunindo em um só
+              lugar as principais comercializadoras do país e organizando suas ofertas de forma transparente,
+              padronizada e acessível.
             </p>
           </div>
         </section>
 
-        {/* Missão */}
-        <section className="container mx-auto px-4 pb-14 max-w-6xl">
+        {/* O que fazemos */}
+        <section className="container mx-auto px-4 pb-14 max-w-5xl">
           <h2 className="text-2xl md:text-3xl font-extrabold text-brand-blue text-center mb-10">
-            Nossa Missão
+            O que fazemos
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {missao.map((m) => (
+          <div className="grid md:grid-cols-2 gap-6">
+            {oQueFazemos.map((c) => (
               <div
-                key={m.title}
-                className="bg-white border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow text-center"
+                key={c.title}
+                className="bg-white border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="text-5xl mb-4">{m.icon}</div>
-                <h3 className="text-lg font-extrabold text-brand-blue mb-2">
-                  {m.title}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {m.desc}
-                </p>
+                <div className="text-5xl mb-4">{c.icon}</div>
+                <h3 className="text-lg font-extrabold text-brand-blue mb-2">{c.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{c.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Pilares */}
+        {/* Missão */}
         <section className="bg-muted/40 py-14">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-brand-blue text-center mb-10">
-              Nossos 4 Pilares
+          <div className="container mx-auto px-4 max-w-4xl">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-brand-blue text-center mb-8">
+              Nossa missão
             </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {pilares.map((p) => (
-                <div
-                  key={p.title}
-                  className="bg-white border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
+            <ul className="grid sm:grid-cols-2 gap-4">
+              {missao.map((m) => (
+                <li
+                  key={m}
+                  className="bg-white border border-border rounded-xl p-4 shadow-sm flex items-start gap-3"
                 >
-                  <div className="text-4xl mb-3">{p.icon}</div>
-                  <h3 className="font-extrabold text-brand-blue mb-1.5">
-                    {p.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {p.desc}
-                  </p>
-                </div>
+                  <div className="h-2 w-2 rounded-full bg-brand-yellow mt-2 shrink-0" />
+                  <span className="text-sm font-semibold text-brand-blue">{m}</span>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </section>
 
-        {/* Logomarca */}
-        <section className="container mx-auto px-4 py-14 max-w-5xl">
+        {/* Como avaliamos */}
+        <section className="container mx-auto px-4 py-14 max-w-6xl">
           <h2 className="text-2xl md:text-3xl font-extrabold text-brand-blue text-center mb-10">
-            Significado da Logomarca
+            Como avaliamos as empresas
           </h2>
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div className="flex justify-center">
-              <img
-                src="https://tvyjosqitdgwqjpzvgib.supabase.co/storage/v1/object/public/assets//logo poupe energia.jpeg"
-                alt="Poupe Energia"
-                className="h-20 md:h-32 w-auto object-contain"
-              />
-            </div>
-            <div>
-              <p className="text-muted-foreground leading-relaxed mb-5">
-                A mordida na lâmpada representa{" "}
-                <strong className="text-brand-blue">economia</strong> — um
-                pedaço da sua conta de luz foi removido.
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {pilares.map((p) => (
+              <div
+                key={p.title}
+                className="bg-white border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="text-4xl mb-3">{p.icon}</div>
+                <h3 className="font-extrabold text-brand-blue mb-1.5">{p.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Por que existimos */}
+        <section className="bg-muted/40 py-14">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-brand-blue text-center mb-6">
+              Por que a Poupe Energia existe
+            </h2>
+            <div className="bg-white border border-border rounded-2xl p-8 shadow-sm">
+              <p className="text-muted-foreground leading-relaxed">
+                O mercado de energia no Brasil sempre foi marcado por falta de transparência e dificuldade
+                de comparação. A Poupe Energia nasce para mudar isso. Aqui, o consumidor deixa de depender
+                de promessas e passa a tomar decisões com base em dados, critérios e comparação real.
               </p>
-              <div className="bg-white border border-border rounded-xl overflow-hidden mb-5">
-                <table className="w-full text-sm">
-                  <tbody>
-                    <tr className="border-b border-border">
-                      <td className="p-3 font-bold text-brand-blue bg-muted/30">
-                        Lâmpada
-                      </td>
-                      <td className="p-3 text-muted-foreground">
-                        Energia e tradição
-                      </td>
-                    </tr>
-                    <tr className="border-b border-border">
-                      <td className="p-3 font-bold text-brand-blue bg-muted/30">
-                        Mordida
-                      </td>
-                      <td className="p-3 text-muted-foreground">
-                        Escolha e economia
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="p-3 font-bold text-brand-blue bg-muted/30">
-                        Poupe Energia
-                      </td>
-                      <td className="p-3 text-muted-foreground">
-                        Inteligência e liberdade
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="bg-brand-yellow/15 border-l-4 border-brand-yellow rounded-md p-4">
-                <p className="text-brand-blue font-extrabold text-lg">
-                  "A mordida é o que você deixa de pagar."
-                </p>
-              </div>
             </div>
           </div>
         </section>
@@ -216,7 +153,7 @@ const Sobre = () => {
         <section className="bg-brand-blue text-white py-14">
           <div className="container mx-auto px-4 max-w-6xl">
             <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-10">
-              Poupe Energia em <span className="text-brand-yellow">Números</span>
+              Nossos <span className="text-brand-yellow">Números</span>
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {numeros.map((n) => (
@@ -224,17 +161,34 @@ const Sobre = () => {
                   <div className="text-4xl md:text-6xl font-extrabold text-brand-yellow leading-none mb-2">
                     {n.value}
                   </div>
-                  <div className="text-sm text-white/80 font-semibold">
-                    {n.label}
-                  </div>
+                  <div className="text-sm text-white/80 font-semibold">{n.label}</div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Contato */}
+        {/* Conceito da marca */}
         <section className="container mx-auto px-4 py-14 max-w-4xl">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-brand-blue text-center mb-6">
+            Conceito da marca
+          </h2>
+          <div className="bg-white border border-border rounded-2xl p-8 shadow-sm flex flex-col md:flex-row items-center gap-6">
+            <img
+              src="https://tvyjosqitdgwqjpzvgib.supabase.co/storage/v1/object/public/assets//logo poupe energia.jpeg"
+              alt="Poupe Energia"
+              className="h-20 md:h-28 w-auto object-contain"
+            />
+            <p className="text-muted-foreground leading-relaxed text-center md:text-left">
+              A mordida na lâmpada simboliza economia. Representa a parte da conta de energia que o consumidor
+              deixa de pagar ao escolher melhor.{" "}
+              <strong className="text-brand-blue">Poupe Energia é escolha inteligente.</strong>
+            </p>
+          </div>
+        </section>
+
+        {/* Contato */}
+        <section className="container mx-auto px-4 pb-14 max-w-4xl">
           <h2 className="text-2xl md:text-3xl font-extrabold text-brand-blue text-center mb-10">
             Contato
           </h2>
@@ -247,28 +201,22 @@ const Sobre = () => {
                 <Mail className="h-5 w-5 text-brand-blue" />
               </div>
               <div className="min-w-0">
-                <div className="text-xs text-muted-foreground font-semibold uppercase mb-0.5">
-                  Email
-                </div>
+                <div className="text-xs text-muted-foreground font-semibold uppercase mb-0.5">Email</div>
                 <div className="text-sm font-bold text-brand-blue truncate">
                   contato.poupeenergia@hotmail.com
                 </div>
               </div>
             </a>
             <a
-              href="tel:+554396796546"
+              href="tel:+5543996796546"
               className="flex items-start gap-3 bg-white border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="h-10 w-10 rounded-lg bg-brand-blue/10 flex items-center justify-center shrink-0">
                 <Phone className="h-5 w-5 text-brand-blue" />
               </div>
               <div>
-                <div className="text-xs text-muted-foreground font-semibold uppercase mb-0.5">
-                  Telefone
-                </div>
-                <div className="text-sm font-bold text-brand-blue">
-                  (43) 99679-6546
-                </div>
+                <div className="text-xs text-muted-foreground font-semibold uppercase mb-0.5">Telefone</div>
+                <div className="text-sm font-bold text-brand-blue">(43) 99679-6546</div>
               </div>
             </a>
             <div className="flex items-start gap-3 bg-white border border-border rounded-xl p-5 shadow-sm sm:col-span-2">
@@ -276,26 +224,8 @@ const Sobre = () => {
                 <MapPin className="h-5 w-5 text-brand-blue" />
               </div>
               <div>
-                <div className="text-xs text-muted-foreground font-semibold uppercase mb-0.5">
-                  Endereço
-                </div>
-                <div className="text-sm font-bold text-brand-blue">
-                  Av. Paraná, 427 Sala 201 Edif. Metrópole — Londrina/PR —
-                  86010-920
-                </div>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 bg-white border border-border rounded-xl p-5 shadow-sm sm:col-span-2">
-              <div className="h-10 w-10 rounded-lg bg-brand-blue/10 flex items-center justify-center shrink-0">
-                <Building2 className="h-5 w-5 text-brand-blue" />
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground font-semibold uppercase mb-0.5">
-                  CNPJ
-                </div>
-                <div className="text-sm font-bold text-brand-blue">
-                  64.498.960/0001-06
-                </div>
+                <div className="text-xs text-muted-foreground font-semibold uppercase mb-0.5">Endereço</div>
+                <div className="text-sm font-bold text-brand-blue">Londrina/PR</div>
               </div>
             </div>
           </div>
