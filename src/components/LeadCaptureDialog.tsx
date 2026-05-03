@@ -198,18 +198,18 @@ const LeadCaptureDialog = ({
             <X className="h-5 w-5 text-brand-blue" />
           </DialogPrimitive.Close>
 
-          <div className="pt-6 text-center">
+          <div className="pt-6">
             <DialogPrimitive.Title className="text-2xl font-extrabold text-brand-blue leading-tight">
               Finalizar adesão
             </DialogPrimitive.Title>
-            <p className="text-sm text-brand-blue mt-1">{empresaNome}</p>
+            <p className="text-base text-brand-blue mt-0.5">{empresaNome}</p>
           </div>
 
           <div className="border-t border-border my-4" />
 
           {(embValidation.state === "valid" || embaixador) && (
             <>
-              <div className="flex items-start gap-3">
+              <div className="flex items-center gap-3">
                 <div className="h-10 w-10 shrink-0 rounded-full bg-muted flex items-center justify-center">
                   <User className="h-5 w-5 text-muted-foreground" />
                 </div>
@@ -217,46 +217,46 @@ const LeadCaptureDialog = ({
                   <div className="text-sm font-bold text-brand-blue">
                     {embValidation.state === "valid" ? embValidation.nome : embaixador?.nome}
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-xs text-brand-blue">
                     Embaixador Poupe Energia
-                  </div>
-                  <div className="text-[11px] text-muted-foreground/70 mt-0.5">
-                    (Só aparece se já existir vínculo)
                   </div>
                 </div>
               </div>
+              <p className="text-[11px] text-muted-foreground mt-2">
+                (Só aparece se já existir vínculo)
+              </p>
               <div className="border-t border-border my-4" />
             </>
           )}
 
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-bold text-brand-blue">
+              <label className="text-sm font-semibold text-brand-blue">
                 Nome completo <span style={{ color: "#F59E0B" }}>*</span>
               </label>
-              <Input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={120} className="rounded-xl mt-1 bg-[#FFFBEB]" />
+              <Input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={120} className="rounded-md mt-1 bg-white" />
             </div>
             <div>
-              <label className="text-xs font-bold text-brand-blue">
+              <label className="text-sm font-semibold text-brand-blue">
                 Email <span style={{ color: "#F59E0B" }}>*</span>
               </label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} className="rounded-xl mt-1 bg-[#FFFBEB]" />
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={255} className="rounded-md mt-1 bg-white" />
             </div>
             <div>
-              <label className="text-xs font-bold text-brand-blue">
+              <label className="text-sm font-semibold text-brand-blue">
                 WhatsApp <span style={{ color: "#F59E0B" }}>*</span>
               </label>
-              <Input inputMode="tel" value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} className="rounded-xl mt-1 bg-[#FFFBEB]" />
+              <Input inputMode="tel" value={telefone} onChange={(e) => setTelefone(maskPhone(e.target.value))} className="rounded-md mt-1 bg-white" />
             </div>
             <div>
-              <label className="text-[11px] font-medium text-muted-foreground">
+              <label className="text-sm text-brand-blue">
                 Código do embaixador (opcional)
               </label>
               <Input
                 value={codigoEmbaixador}
                 onChange={(e) => setCodigoEmbaixador(e.target.value)}
                 maxLength={30}
-                className="h-8 w-32 rounded-md mt-1 text-xs border-muted bg-[#FFFBEB]"
+                className="h-9 w-24 rounded-md mt-1 text-xs bg-white"
               />
               {embValidation.state === "loading" && (
                 <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
@@ -265,12 +265,17 @@ const LeadCaptureDialog = ({
               )}
               {embValidation.state === "valid" && (
                 <p className="text-[11px] text-green-600 mt-1 flex items-center gap-1 font-medium">
-                  <CheckCircle2 className="h-3 w-3" /> {embValidation.nome} — Embaixador Poupe Energia
+                  <CheckCircle2 className="h-3 w-3" /> {embValidation.nome}
                 </p>
               )}
               {embValidation.state === "invalid" && (
                 <p className="text-[11px] text-red-600 mt-1 flex items-center gap-1 font-medium">
                   <XCircle className="h-3 w-3" /> Código não encontrado
+                </p>
+              )}
+              {embValidation.state === "idle" && (
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  (campo pequeno, sem destaque visual)
                 </p>
               )}
             </div>
