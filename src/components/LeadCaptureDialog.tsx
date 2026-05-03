@@ -291,7 +291,7 @@ const LeadCaptureDialog = ({
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full h-12 rounded-xl font-bold uppercase tracking-wide text-white"
+            className="w-full h-12 rounded-md font-bold uppercase tracking-wide text-white"
             style={{ backgroundColor: "#F59E0B" }}
           >
             Finalizar adesão →
