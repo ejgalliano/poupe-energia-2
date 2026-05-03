@@ -11,6 +11,7 @@ export default function Dashboard() {
     leadsMes: 0,
     leadsComContato: 0,
     leadsEmpHoje: 0,
+    leadsEmpPendentes: 0,
     leadsEmbHoje: 0,
     comissoesPendentes: 0,
   });
@@ -95,6 +96,8 @@ export default function Dashboard() {
           { label: "Leads com contato", value: stats.leadsComContato },
           { label: "Leads Empresariais hoje", value: stats.leadsEmpHoje },
           { label: "Leads Empresariais pendentes", value: stats.leadsEmpPendentes },
+          { label: "Leads c/ embaixador hoje", value: stats.leadsEmbHoje },
+          { label: "Comissões pendentes", value: stats.comissoesPendentes.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) },
         ].map((c) => (
           <Card key={c.label}>
             <CardHeader><CardTitle className="text-sm text-muted-foreground">{c.label}</CardTitle></CardHeader>
