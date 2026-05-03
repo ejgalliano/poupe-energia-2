@@ -283,7 +283,7 @@ const LeadCaptureDialog = ({
             </div>
           </div>
 
-          <div className="border-t border-border my-4" />
+          <hr className="border-gray-200 my-2" />
 
           <label className="flex items-center gap-2 cursor-pointer mb-4">
             <Checkbox checked={accept} onCheckedChange={(v) => setAccept(v === true)} />
