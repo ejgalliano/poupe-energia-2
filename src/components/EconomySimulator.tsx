@@ -79,21 +79,21 @@ const EconomySimulator = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-2xl">
+      <DialogContent className="max-w-lg rounded-2xl p-4 md:p-6 max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl text-brand-blue">
-            <Zap className="h-6 w-6 text-brand-yellow" fill="currentColor" />
-            Simule sua economia — {companyName}
+          <DialogTitle className="flex items-center gap-2 text-base md:text-xl font-bold text-brand-blue pr-6">
+            <Zap className="h-5 w-5 md:h-6 md:w-6 text-brand-yellow shrink-0" fill="currentColor" />
+            <span className="truncate">Simule sua economia — {companyName}</span>
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5 pt-2">
+        <div className="space-y-3 md:space-y-5 pt-2">
           {/* Faixas com desconto da empresa */}
           <div className="rounded-xl border border-border overflow-hidden">
             {faixas.map((f, i) => (
               <div
                 key={f.label}
-                className={`flex items-center justify-between px-4 py-2.5 ${
+                className={`flex items-center justify-between px-3 py-2 md:px-4 md:py-2.5 ${
                   i < faixas.length - 1 ? "border-b border-border" : ""
                 } bg-muted/30`}
               >
@@ -101,11 +101,11 @@ const EconomySimulator = ({
                   <div className="text-sm font-semibold text-brand-blue">
                     {f.label}
                   </div>
-                  <div className="text-[11px] text-muted-foreground">
+                  <div className="text-xs text-muted-foreground">
                     {f.desc}
                   </div>
                 </div>
-                <div className="text-base font-extrabold text-brand-success">
+                <div className="text-sm md:text-base font-bold md:font-extrabold text-brand-success">
                   {discountPercent}% OFF
                 </div>
               </div>
@@ -122,7 +122,7 @@ const EconomySimulator = ({
               placeholder="R$ 0,00"
               value={formatMoneyInput(valor)}
               onChange={(e) => setValor(parseMoneyInput(e.target.value))}
-              className="rounded-xl h-12 text-lg font-bold text-brand-blue"
+              className="rounded-xl h-11 md:h-12 px-3 py-2 text-base md:text-lg font-bold text-brand-blue"
             />
           </div>
 
@@ -133,7 +133,7 @@ const EconomySimulator = ({
                 <div className="text-[10px] text-muted-foreground font-semibold uppercase">
                   Sua conta atual
                 </div>
-                <div className="text-base font-extrabold text-brand-blue mt-1">
+                <div className="text-lg font-bold md:font-extrabold text-brand-blue mt-1">
                   {formatBRL(valor)}
                 </div>
               </div>
@@ -141,7 +141,7 @@ const EconomySimulator = ({
                 <div className="text-[10px] text-muted-foreground font-semibold uppercase">
                   Nova conta estimada
                 </div>
-                <div className="text-base font-extrabold text-brand-blue mt-1">
+                <div className="text-lg font-bold md:font-extrabold text-brand-blue mt-1">
                   {formatBRL(economia.novaConta)}
                 </div>
               </div>
@@ -149,10 +149,10 @@ const EconomySimulator = ({
                 <div className="text-[10px] text-brand-success font-semibold uppercase">
                   Sua economia
                 </div>
-                <div className="text-lg font-extrabold text-brand-success mt-1 leading-tight">
+                <div className="text-lg font-bold md:font-extrabold text-brand-success mt-1 leading-tight">
                   {formatBRL(economia.anual)}/ano
                 </div>
-                <div className="text-[11px] text-brand-success font-semibold">
+                <div className="text-xs text-brand-success font-semibold">
                   {formatBRL(economia.mensal)}/mês
                 </div>
               </div>
@@ -160,7 +160,7 @@ const EconomySimulator = ({
           )}
 
           {/* Disclaimer */}
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             * O desconto incide sobre a Tarifa de Energia (TE) da sua conta, não
             sobre o valor total. Impostos, taxas e outros encargos não entram no
             cálculo. Os valores são estimativas baseadas em Bandeira Verde.
@@ -169,7 +169,7 @@ const EconomySimulator = ({
           {/* CTA */}
           <Button
             onClick={handleAderir}
-            className="w-full h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
+            className="w-full py-3 h-auto rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
             disabled={valor === 0 || !empresaId}
           >
             Ver plano e Aderir
