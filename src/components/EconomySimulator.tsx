@@ -79,21 +79,27 @@ const EconomySimulator = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-2xl p-4 md:p-6 max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg rounded-2xl p-4 md:p-6 max-h-[80vh] md:max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base md:text-xl font-bold text-brand-blue pr-6">
-            <Zap className="h-5 w-5 md:h-6 md:w-6 text-brand-yellow shrink-0" fill="currentColor" />
+          <DialogTitle className="flex items-center gap-2 text-sm md:text-xl font-bold text-brand-blue pr-6">
+            <Zap className="h-4 w-4 md:h-6 md:w-6 text-brand-yellow shrink-0" fill="currentColor" />
             <span className="truncate">Simule sua economia — {companyName}</span>
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-3 md:space-y-5 pt-2">
-          {/* Faixas com desconto da empresa */}
-          <div className="rounded-xl border border-border overflow-hidden">
+          {/* Mobile: linha simples de desconto */}
+          <div className="md:hidden rounded-xl bg-brand-success/10 px-3 py-2 flex items-center justify-between">
+            <span className="text-sm font-semibold text-brand-blue">Desconto</span>
+            <span className="text-base font-bold text-brand-success">{discountPercent}%</span>
+          </div>
+
+          {/* Desktop: faixas com desconto da empresa */}
+          <div className="hidden md:block rounded-xl border border-border overflow-hidden">
             {faixas.map((f, i) => (
               <div
                 key={f.label}
-                className={`flex items-center justify-between px-3 py-2 md:px-4 md:py-2.5 ${
+                className={`flex items-center justify-between px-4 py-2.5 ${
                   i < faixas.length - 1 ? "border-b border-border" : ""
                 } bg-muted/30`}
               >
@@ -101,11 +107,11 @@ const EconomySimulator = ({
                   <div className="text-sm font-semibold text-brand-blue">
                     {f.label}
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-[11px] text-muted-foreground">
                     {f.desc}
                   </div>
                 </div>
-                <div className="text-sm md:text-base font-bold md:font-extrabold text-brand-success">
+                <div className="text-base font-extrabold text-brand-success">
                   {discountPercent}% OFF
                 </div>
               </div>
@@ -122,48 +128,61 @@ const EconomySimulator = ({
               placeholder="R$ 0,00"
               value={formatMoneyInput(valor)}
               onChange={(e) => setValor(parseMoneyInput(e.target.value))}
-              className="rounded-xl h-11 md:h-12 px-3 py-2 text-base md:text-lg font-bold text-brand-blue"
+              className="rounded-xl h-10 md:h-12 px-3 py-2 text-base md:text-lg font-bold text-brand-blue"
             />
           </div>
 
           {/* Resultados */}
           {valor > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <div className="bg-muted/40 rounded-xl p-3 text-center">
-                <div className="text-[10px] text-muted-foreground font-semibold uppercase">
-                  Sua conta atual
+            <>
+              {/* Mobile: 2 informações simples */}
+              <div className="md:hidden space-y-2">
+                <div className="flex items-center justify-between bg-brand-success/10 rounded-xl px-3 py-2">
+                  <span className="text-xs font-semibold text-brand-success uppercase">Economia mensal</span>
+                  <span className="text-base font-bold text-brand-success">{formatBRL(economia.mensal)}</span>
                 </div>
-                <div className="text-lg font-bold md:font-extrabold text-brand-blue mt-1">
-                  {formatBRL(valor)}
-                </div>
-              </div>
-              <div className="bg-brand-blue/5 rounded-xl p-3 text-center">
-                <div className="text-[10px] text-muted-foreground font-semibold uppercase">
-                  Nova conta estimada
-                </div>
-                <div className="text-lg font-bold md:font-extrabold text-brand-blue mt-1">
-                  {formatBRL(economia.novaConta)}
+                <div className="flex items-center justify-between bg-brand-success/10 rounded-xl px-3 py-2">
+                  <span className="text-xs font-semibold text-brand-success uppercase">Economia anual</span>
+                  <span className="text-base font-bold text-brand-success">{formatBRL(economia.anual)}</span>
                 </div>
               </div>
-              <div className="bg-brand-success/10 rounded-xl p-3 text-center">
-                <div className="text-[10px] text-brand-success font-semibold uppercase">
-                  Sua economia
+
+              {/* Desktop: 3 cards */}
+              <div className="hidden md:grid grid-cols-3 gap-2">
+                <div className="bg-muted/40 rounded-xl p-3 text-center">
+                  <div className="text-[10px] text-muted-foreground font-semibold uppercase">
+                    Sua conta atual
+                  </div>
+                  <div className="text-base font-extrabold text-brand-blue mt-1">
+                    {formatBRL(valor)}
+                  </div>
                 </div>
-                <div className="text-lg font-bold md:font-extrabold text-brand-success mt-1 leading-tight">
-                  {formatBRL(economia.anual)}/ano
+                <div className="bg-brand-blue/5 rounded-xl p-3 text-center">
+                  <div className="text-[10px] text-muted-foreground font-semibold uppercase">
+                    Nova conta estimada
+                  </div>
+                  <div className="text-base font-extrabold text-brand-blue mt-1">
+                    {formatBRL(economia.novaConta)}
+                  </div>
                 </div>
-                <div className="text-xs text-brand-success font-semibold">
-                  {formatBRL(economia.mensal)}/mês
+                <div className="bg-brand-success/10 rounded-xl p-3 text-center">
+                  <div className="text-[10px] text-brand-success font-semibold uppercase">
+                    Sua economia
+                  </div>
+                  <div className="text-lg font-extrabold text-brand-success mt-1 leading-tight">
+                    {formatBRL(economia.anual)}/ano
+                  </div>
+                  <div className="text-[11px] text-brand-success font-semibold">
+                    {formatBRL(economia.mensal)}/mês
+                  </div>
                 </div>
               </div>
-            </div>
+            </>
           )}
 
           {/* Disclaimer */}
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            * O desconto incide sobre a Tarifa de Energia (TE) da sua conta, não
-            sobre o valor total. Impostos, taxas e outros encargos não entram no
-            cálculo. Os valores são estimativas baseadas em Bandeira Verde.
+          <p className="text-xs text-muted-foreground leading-snug line-clamp-2 md:line-clamp-none">
+            * Desconto incide sobre a Tarifa de Energia (TE), não sobre o valor total. Estimativa em Bandeira Verde.
           </p>
 
           {/* CTA */}
