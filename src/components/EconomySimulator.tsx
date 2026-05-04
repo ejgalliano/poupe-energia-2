@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Zap, ArrowRight } from "lucide-react";
+import { Zap, ArrowRight, TrendingDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -45,11 +45,20 @@ const formatMoneyInput = (value: number) =>
       }).format(value);
 
 const faixas = [
-  { label: "Até 1 MWh/mês", desc: "Residencial pequeno" },
-  { label: "1 a 3 MWh/mês", desc: "Residencial médio / comércio" },
-  { label: "3 a 5 MWh/mês", desc: "Comércio médio" },
-  { label: "Acima de 5 MWh/mês", desc: "Comércio / indústria" },
+  { label: "< 1 MWh", range: "Até 1 MWh", color: "text-foreground" },
+  { label: "1-3 MWh", range: "1 a 3 MWh", color: "text-brand-yellow" },
+  { label: "3-5 MWh", range: "3 a 5 MWh", color: "text-brand-yellow" },
+  { label: "> 5 MWh", range: "Acima de 5 MWh", color: "text-brand-success" },
 ];
+
+const detectFaixa = (valor: number) => {
+  // valor estimado em R$/mês -> usar tarifa média ~1000/MWh para detecção rough
+  // Mas como é genérico, vamos usar faixas por valor conta:
+  if (valor < 1000) return faixas[0];
+  if (valor < 3000) return faixas[1];
+  if (valor < 5000) return faixas[2];
+  return faixas[3];
+};
 
 const EconomySimulator = ({
   open,
@@ -77,112 +86,114 @@ const EconomySimulator = ({
     };
   }, [valor, discountPercent]);
 
+  const faixaDetectada = valor > 0 ? detectFaixa(valor) : null;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-2xl p-4 md:p-6 max-h-[80vh] md:max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg rounded-2xl p-3 md:p-6 max-h-[90vh] overflow-y-auto">
+        {/* Cabeçalho */}
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-sm md:text-xl font-bold text-brand-blue pr-6">
-            <Zap className="h-4 w-4 md:h-6 md:w-6 text-brand-yellow shrink-0" fill="currentColor" />
-            <span className="truncate">Simule sua economia — {companyName}</span>
-          </DialogTitle>
+          <div className="flex items-start gap-3 pr-6">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-brand-success/15 flex items-center justify-center shrink-0">
+              <Zap className="h-5 w-5 md:h-6 md:w-6 text-brand-success" fill="currentColor" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-base md:text-xl font-bold text-foreground leading-tight">
+                Simule sua economia
+              </DialogTitle>
+              <p className="text-xs md:text-sm text-muted-foreground truncate">{companyName}</p>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-3 md:space-y-5 pt-2">
-          {/* Mobile: linha simples de desconto */}
-          <div className="md:hidden rounded-xl bg-brand-success/10 px-3 py-2 flex items-center justify-between">
-            <span className="text-sm font-semibold text-brand-blue">Desconto</span>
-            <span className="text-base font-bold text-brand-success">{discountPercent}%</span>
-          </div>
-
-          {/* Desktop: faixas com desconto da empresa */}
-          <div className="hidden md:block rounded-xl border border-border overflow-hidden">
-            {faixas.map((f, i) => (
-              <div
-                key={f.label}
-                className={`flex items-center justify-between px-4 py-2.5 ${
-                  i < faixas.length - 1 ? "border-b border-border" : ""
-                } bg-muted/30`}
-              >
-                <div>
-                  <div className="text-sm font-semibold text-brand-blue">
-                    {f.label}
-                  </div>
-                  <div className="text-[11px] text-muted-foreground">
-                    {f.desc}
+        <div className="space-y-3 md:space-y-4 pt-1">
+          {/* Faixas de desconto */}
+          <div className="rounded-xl bg-muted/40 p-3">
+            <p className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Descontos por faixa de consumo
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {faixas.map((f) => (
+                <div
+                  key={f.label}
+                  className="bg-background rounded-lg px-2 py-2 text-center shadow-sm"
+                >
+                  <div className="text-[11px] md:text-xs text-muted-foreground">{f.label}</div>
+                  <div className={`text-sm md:text-base font-bold ${f.color}`}>
+                    {discountPercent}%
                   </div>
                 </div>
-                <div className="text-base font-extrabold text-brand-success">
-                  {discountPercent}% OFF
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {/* Input valor */}
           <div>
-            <label className="block text-xs font-bold text-brand-blue mb-1.5">
-              Qual o valor médio da sua conta de luz?
+            <label className="block text-sm font-bold text-foreground mb-1.5">
+              💡 Qual é o valor da sua conta de luz?
             </label>
-            <Input
-              inputMode="numeric"
-              placeholder="R$ 0,00"
-              value={formatMoneyInput(valor)}
-              onChange={(e) => setValor(parseMoneyInput(e.target.value))}
-              className="rounded-xl h-10 md:h-12 px-3 py-2 text-base md:text-lg font-bold text-brand-blue"
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base md:text-lg font-semibold text-muted-foreground">
+                R$
+              </span>
+              <Input
+                inputMode="numeric"
+                placeholder="0,00"
+                value={formatMoneyInput(valor).replace("R$", "").trim()}
+                onChange={(e) => setValor(parseMoneyInput(e.target.value))}
+                className="rounded-xl h-11 md:h-12 pl-12 pr-3 text-base md:text-lg font-bold text-foreground focus-visible:ring-brand-blue focus-visible:border-brand-blue"
+              />
+            </div>
+            {faixaDetectada && (
+              <p className="text-xs md:text-sm text-muted-foreground mt-1.5 flex items-center gap-1">
+                <TrendingDown className="h-3 w-3 text-brand-blue" />
+                Faixa detectada:{" "}
+                <span className="text-brand-blue font-semibold">{faixaDetectada.range}</span>
+                {" "}— desconto de{" "}
+                <span className="text-brand-success font-semibold">{discountPercent}%</span>
+              </p>
+            )}
           </div>
 
           {/* Resultados */}
           {valor > 0 && (
             <>
-              {/* Mobile: 2 informações simples */}
-              <div className="md:hidden space-y-2">
-                <div className="flex items-center justify-between bg-brand-success/10 rounded-xl px-3 py-2">
-                  <span className="text-xs font-semibold text-brand-success uppercase">Economia mensal</span>
-                  <span className="text-base font-bold text-brand-success">{formatBRL(economia.mensal)}</span>
-                </div>
-                <div className="flex items-center justify-between bg-brand-success/10 rounded-xl px-3 py-2">
-                  <span className="text-xs font-semibold text-brand-success uppercase">Economia anual</span>
-                  <span className="text-base font-bold text-brand-success">{formatBRL(economia.anual)}</span>
-                </div>
-              </div>
-
-              {/* Desktop: 3 cards */}
-              <div className="hidden md:grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="bg-muted/40 rounded-xl p-3 text-center">
-                  <div className="text-[10px] text-muted-foreground font-semibold uppercase">
+                  <div className="text-[11px] md:text-xs text-muted-foreground">
                     Sua conta atual
                   </div>
-                  <div className="text-base font-extrabold text-brand-blue mt-1">
+                  <div className="text-base md:text-lg font-extrabold text-foreground mt-0.5">
                     {formatBRL(valor)}
                   </div>
                 </div>
-                <div className="bg-brand-blue/5 rounded-xl p-3 text-center">
-                  <div className="text-[10px] text-muted-foreground font-semibold uppercase">
+                <div className="bg-brand-success/10 rounded-xl p-3 text-center">
+                  <div className="text-[11px] md:text-xs text-brand-success">
                     Nova conta estimada
                   </div>
-                  <div className="text-base font-extrabold text-brand-blue mt-1">
+                  <div className="text-base md:text-lg font-extrabold text-brand-success mt-0.5">
                     {formatBRL(economia.novaConta)}
                   </div>
                 </div>
-                <div className="bg-brand-success/10 rounded-xl p-3 text-center">
-                  <div className="text-[10px] text-brand-success font-semibold uppercase">
-                    Sua economia
-                  </div>
-                  <div className="text-lg font-extrabold text-brand-success mt-1 leading-tight">
-                    {formatBRL(economia.anual)}/ano
-                  </div>
-                  <div className="text-[11px] text-brand-success font-semibold">
-                    {formatBRL(economia.mensal)}/mês
-                  </div>
+              </div>
+
+              <div className="bg-brand-success rounded-2xl p-4 text-center text-white">
+                <div className="text-sm md:text-base font-semibold">Sua economia estimada</div>
+                <div className="text-2xl md:text-3xl font-extrabold mt-1 leading-tight">
+                  {formatBRL(economia.anual)}
+                  <span className="text-base md:text-lg font-bold">/ano</span>
+                </div>
+                <div className="text-xs md:text-sm opacity-90 mt-0.5">
+                  {formatBRL(economia.mensal)} por mês
                 </div>
               </div>
             </>
           )}
 
           {/* Disclaimer */}
-          <p className="text-xs text-muted-foreground leading-snug line-clamp-2 md:line-clamp-none">
-            * Desconto incide sobre a Tarifa de Energia (TE), não sobre o valor total. Estimativa em Bandeira Verde.
+          <p className="text-xs text-muted-foreground leading-snug">
+            * O desconto vale sobre a parte de energia da conta. Impostos e taxas não entram no
+            cálculo, por isso o valor pode variar.
           </p>
 
           {/* CTA */}
