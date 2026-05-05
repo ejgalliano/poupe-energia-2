@@ -90,36 +90,36 @@ const EconomySimulator = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-2xl p-3 md:p-6 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg rounded-2xl p-4 sm:p-6 max-h-[95vh] overflow-y-auto">
         {/* Cabeçalho */}
         <DialogHeader>
-          <div className="flex items-start gap-3 pr-6">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-brand-success/15 flex items-center justify-center shrink-0">
-              <Zap className="h-5 w-5 md:h-6 md:w-6 text-brand-success" fill="currentColor" />
+          <div className="flex items-center gap-3 pr-6">
+            <div className="w-12 h-12 rounded-xl bg-brand-success/15 flex items-center justify-center shrink-0">
+              <Zap className="h-6 w-6 text-brand-success" fill="currentColor" />
             </div>
             <div className="flex-1 min-w-0">
-              <DialogTitle className="text-base md:text-xl font-bold text-foreground leading-tight">
+              <DialogTitle className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
                 Simule sua economia
               </DialogTitle>
-              <p className="text-xs md:text-sm text-muted-foreground truncate">{companyName}</p>
+              <p className="text-sm text-muted-foreground truncate">{companyName}</p>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="space-y-3 md:space-y-4 pt-1">
+        <div className="space-y-4 pt-1">
           {/* Faixas de desconto */}
           <div className="rounded-xl bg-muted/40 p-3">
-            <p className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
               Descontos por faixa de consumo
             </p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {faixas.map((f) => (
                 <div
                   key={f.label}
-                  className="bg-background rounded-lg px-2 py-2 text-center shadow-sm"
+                  className="bg-background rounded-lg px-1 py-2 text-center shadow-sm"
                 >
-                  <div className="text-[11px] md:text-xs text-muted-foreground">{f.label}</div>
-                  <div className={`text-sm md:text-base font-bold ${f.color}`}>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">{f.label}</div>
+                  <div className={`text-sm sm:text-base font-bold ${f.color}`}>
                     {discountPercent}%
                   </div>
                 </div>
@@ -129,11 +129,11 @@ const EconomySimulator = ({
 
           {/* Input valor */}
           <div>
-            <label className="block text-sm font-bold text-foreground mb-1.5">
+            <label className="block text-sm sm:text-base font-bold text-foreground mb-1.5">
               💡 Qual é o valor da sua conta de luz?
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base md:text-lg font-semibold text-muted-foreground">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base sm:text-lg font-semibold text-muted-foreground">
                 R$
               </span>
               <Input
@@ -141,11 +141,11 @@ const EconomySimulator = ({
                 placeholder="0,00"
                 value={formatMoneyInput(valor).replace("R$", "").trim()}
                 onChange={(e) => setValor(parseMoneyInput(e.target.value))}
-                className="rounded-xl h-11 md:h-12 pl-12 pr-3 text-base md:text-lg font-bold text-foreground focus-visible:ring-brand-blue focus-visible:border-brand-blue"
+                className="rounded-xl h-12 pl-12 pr-3 text-lg font-bold text-foreground focus-visible:ring-brand-blue focus-visible:border-brand-blue"
               />
             </div>
             {faixaDetectada && (
-              <p className="text-xs md:text-sm text-muted-foreground mt-1.5 flex items-center gap-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 flex items-center gap-1 flex-wrap">
                 <TrendingDown className="h-3 w-3 text-brand-blue" />
                 Faixa detectada:{" "}
                 <span className="text-brand-blue font-semibold">{faixaDetectada.range}</span>
@@ -160,30 +160,30 @@ const EconomySimulator = ({
             <>
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-muted/40 rounded-xl p-3 text-center">
-                  <div className="text-[11px] md:text-xs text-muted-foreground">
+                  <div className="text-xs sm:text-sm text-muted-foreground">
                     Sua conta atual
                   </div>
-                  <div className="text-base md:text-lg font-extrabold text-foreground mt-0.5">
+                  <div className="text-lg sm:text-xl font-extrabold text-foreground mt-0.5">
                     {formatBRL(valor)}
                   </div>
                 </div>
                 <div className="bg-brand-success/10 rounded-xl p-3 text-center">
-                  <div className="text-[11px] md:text-xs text-brand-success">
+                  <div className="text-xs sm:text-sm text-brand-success">
                     Nova conta estimada
                   </div>
-                  <div className="text-base md:text-lg font-extrabold text-brand-success mt-0.5">
+                  <div className="text-lg sm:text-xl font-extrabold text-brand-success mt-0.5">
                     {formatBRL(economia.novaConta)}
                   </div>
                 </div>
               </div>
 
               <div className="bg-brand-success rounded-2xl p-4 text-center text-white">
-                <div className="text-sm md:text-base font-semibold">Sua economia estimada</div>
-                <div className="text-2xl md:text-3xl font-extrabold mt-1 leading-tight">
+                <div className="text-sm sm:text-base font-semibold">Sua economia estimada</div>
+                <div className="text-2xl sm:text-3xl font-extrabold mt-1 leading-tight">
                   {formatBRL(economia.anual)}
-                  <span className="text-base md:text-lg font-bold">/ano</span>
+                  <span className="text-base sm:text-lg font-bold">/ano</span>
                 </div>
-                <div className="text-xs md:text-sm opacity-90 mt-0.5">
+                <div className="text-xs sm:text-sm opacity-90 mt-0.5">
                   {formatBRL(economia.mensal)} por mês
                 </div>
               </div>
