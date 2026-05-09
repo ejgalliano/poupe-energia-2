@@ -35,6 +35,25 @@ const Eletropostos = () => (
         ],
       },
       {
+        title: "Como funciona",
+        body:
+          "São instalados carregadores em locais estratégicos — próprios ou alugados — onde motoristas podem recarregar seus veículos.",
+        bullets: [
+          "Monetizar diretamente o uso (cobrança por recarga)",
+          "Firmar parcerias com estabelecimentos",
+          "Explorar regiões com alta circulação (urbana ou rodoviária)",
+        ],
+      },
+      {
+        title: "Segurança e estrutura",
+        cards: [
+          "Equipamentos modernos e certificados",
+          "Instalação adequada à infraestrutura elétrica",
+          "Gestão e monitoramento do uso",
+          "Suporte técnico especializado",
+        ],
+      },
+      {
         title: "Modelo para investidores",
         body:
           "Você pode investir na instalação de eletropostos em locais estratégicos — inclusive alugando espaços — e gerar receita com a operação de recarga. Não precisa ser dono do imóvel para entrar nesse mercado.",
