@@ -34,6 +34,7 @@ import DuvidasFrequentes from "./pages/DuvidasFrequentes.tsx";
 import Embaixadores from "./pages/admin/Embaixadores";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 import EmbCapture from "./components/EmbCapture";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <WhatsAppFloat />
         <EmbCapture />
         <Routes>
