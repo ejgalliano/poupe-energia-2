@@ -139,28 +139,28 @@ const LeadCaptureDialog = ({
 
     setLoading(true);
     try {
-      const url = await getRedirectUrl(empresaId);
-      if (!url) {
-        toast.error("Link da empresa indisponível no momento.");
-        setLoading(false);
-        return;
-      }
+      const embId = embValidation.state === "valid" ? embValidation.id : null;
 
-      const leadId = await registerLead({
-        empresaId,
-        distribuidoraId,
-        estadoSigla,
-        evento: "clique_aderir",
-        nome: nome.trim(),
-        email: email.trim(),
-        telefone: telefone.trim(),
-      });
+      // Salva lead e busca URL em paralelo — lead é gravado independente do URL
+      const [leadId, url] = await Promise.all([
+        registerLead({
+          empresaId,
+          distribuidoraId,
+          estadoSigla,
+          evento: "clique_aderir",
+          nome: nome.trim(),
+          email: email.trim(),
+          whatsapp: telefone.trim(),
+          codigoEmbaixador: embValidation.state === "valid" ? codigoEmbaixador.trim() : null,
+        }),
+        getRedirectUrl(empresaId),
+      ]);
 
       // Vínculo embaixador
-      if (leadId && embValidation.state === "valid") {
+      if (leadId && embId) {
         await supabase.from("leads_embaixadores").insert({
           lead_id: leadId,
-          embaixador_id: embValidation.id,
+          embaixador_id: embId,
           empresa_id: empresaId,
           status_comissao: "pendente",
           valor_comissao: 0,
@@ -168,7 +168,12 @@ const LeadCaptureDialog = ({
       }
 
       handleClose(false);
-      openInNewTab(url);
+
+      if (url) {
+        openInNewTab(url);
+      } else {
+        toast.success("Interesse registrado! A empresa entrará em contato em breve.");
+      }
     } finally {
       setLoading(false);
     }

@@ -9,7 +9,8 @@ export interface TrackLeadParams {
   evento: LeadEvento;
   nome?: string | null;
   email?: string | null;
-  telefone?: string | null;
+  whatsapp?: string | null;
+  codigoEmbaixador?: string | null;
 }
 
 /** Hash leve do user-agent + timestamp do dia (privacidade — sem IP real no cliente). */
@@ -41,7 +42,8 @@ export async function registerLead(params: TrackLeadParams): Promise<string | nu
         user_agent: navigator.userAgent.slice(0, 500),
         nome: params.nome ?? null,
         email: params.email ?? null,
-        telefone: params.telefone ?? null,
+        whatsapp: params.whatsapp ?? null,
+        codigo_embaixador: params.codigoEmbaixador ?? null,
       } as any)
       .select("id")
       .single();
