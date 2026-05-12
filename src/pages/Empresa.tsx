@@ -765,26 +765,30 @@ const Empresa = () => {
               </div>
             )}
 
-            <Button
-              onClick={() => {
-                if (!empresa?.id) return;
-                setCaptureOpen(true);
-              }}
-              className="w-full bg-brand-success hover:bg-brand-success/90 text-white rounded-xl h-12 font-bold"
-            >
-              <Zap className="h-4 w-4 mr-2" fill="currentColor" />
-              Ver plano e Aderir
-            </Button>
+            {empresa.tipo_fornecedor !== "intermediador" && (
+              <>
+                <Button
+                  onClick={() => {
+                    if (!empresa?.id) return;
+                    setCaptureOpen(true);
+                  }}
+                  className="w-full bg-brand-success hover:bg-brand-success/90 text-white rounded-xl h-12 font-bold"
+                >
+                  <Zap className="h-4 w-4 mr-2" fill="currentColor" />
+                  Ver plano e Aderir
+                </Button>
 
-            {empresa?.id && (
-              <LeadCaptureDialog
-                open={captureOpen}
-                onOpenChange={setCaptureOpen}
-                empresaId={empresa.id}
-                empresaNome={empresa.nome}
-                distribuidoraId={distribuidoraId || null}
-                estadoSigla={estadoSigla || null}
-              />
+                {empresa?.id && (
+                  <LeadCaptureDialog
+                    open={captureOpen}
+                    onOpenChange={setCaptureOpen}
+                    empresaId={empresa.id}
+                    empresaNome={empresa.nome}
+                    distribuidoraId={distribuidoraId || null}
+                    estadoSigla={estadoSigla || null}
+                  />
+                )}
+              </>
             )}
 
             {empresa.parceira && (

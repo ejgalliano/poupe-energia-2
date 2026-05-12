@@ -22,6 +22,7 @@ export interface Company {
   empresaId?: string;
   distribuidoraId?: string;
   tipoFornecedor?: TipoFornecedor | null;
+  nivelRisco?: string | null;
 }
 
 interface Props {
@@ -31,7 +32,17 @@ interface Props {
 
 const ordinal = (n: number) => `${n}º`;
 
+const RISCO_STYLE: Record<string, { bg: string; text: string }> = {
+  "Baixo":      { bg: "bg-green-100",  text: "text-green-700" },
+  "Médio":      { bg: "bg-yellow-100", text: "text-yellow-700" },
+  "Medio":      { bg: "bg-yellow-100", text: "text-yellow-700" },
+  "Médio-Alto": { bg: "bg-orange-100", text: "text-orange-700" },
+  "Medio-Alto": { bg: "bg-orange-100", text: "text-orange-700" },
+  "Alto":       { bg: "bg-red-100",    text: "text-red-700" },
+};
+
 const CompanyCard = ({ company, hideActions = false }: Props) => {
+  const isBronze = company.tipoFornecedor === "intermediador";
   const isTop1 = company.rank === 1;
   const initial = company.name.trim().charAt(0).toUpperCase();
   const [searchParams] = useSearchParams();
@@ -106,18 +117,25 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
               <SupplierBadge tipo={company.tipoFornecedor} size="sm" compact />
             </div>
             <div className="flex flex-wrap items-center gap-1.5 mt-2">
-              <Link
-                to={detailHref}
-                onClick={handleSaibaMais}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
-              >
-                <FileText className="h-3 w-3" />
-                Ficha Técnica
-              </Link>
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-brand-blue/10 text-brand-blue px-2 py-0.5 rounded-md">
-                <ShieldCheck className="h-3 w-3" />
-                Risco Baixo
-              </span>
+              {!isBronze && (
+                <Link
+                  to={detailHref}
+                  onClick={handleSaibaMais}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
+                >
+                  <FileText className="h-3 w-3" />
+                  Ficha Técnica
+                </Link>
+              )}
+              {!isBronze && company.nivelRisco && (() => {
+                const s = RISCO_STYLE[company.nivelRisco] ?? { bg: "bg-brand-blue/10", text: "text-brand-blue" };
+                return (
+                  <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md ${s.bg} ${s.text}`}>
+                    <ShieldCheck className="h-3 w-3" />
+                    Risco {company.nivelRisco}
+                  </span>
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -161,7 +179,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
       )}
 
       {/* Linha 3: CTAs */}
-      {!hideActions && (
+      {!hideActions && !isBronze && (
         <div className="flex flex-col sm:flex-row gap-2">
           <Button
             onClick={() => setSimOpen(true)}
