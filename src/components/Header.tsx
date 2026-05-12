@@ -1,4 +1,4 @@
-import { Menu, Lightbulb } from "lucide-react";
+import { Menu, User } from "lucide-react";
 
 const LOGO_URL = "https://tvyjosqitdgwqjpzvgib.supabase.co/storage/v1/object/public/assets//logo poupe energia.jpeg";
 import { Link } from "react-router-dom";
@@ -20,7 +20,7 @@ const navLinks = [
 
 const Header = () => {
   return (
-    <header className="sticky top-0 z-50 bg-brand-yellow shadow-md">
+    <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
       <div className="container mx-auto flex items-center justify-between px-4 py-3">
         <Link to="/" className="flex items-center" aria-label="Poupe Energia">
           <img
@@ -42,6 +42,17 @@ const Header = () => {
             </Link>
           ))}
         </nav>
+
+        {/* Desktop CTA */}
+        <div className="hidden md:flex">
+          <button className="flex items-center gap-2 border border-brand-blue rounded-lg px-4 py-2 text-sm font-bold text-brand-blue hover:bg-brand-blue/5 transition">
+            <User className="h-4 w-4" />
+            <div className="text-left leading-tight">
+              <div>Entrar</div>
+              <div className="text-[10px] font-normal text-brand-blue/70">Ativar Cashback</div>
+            </div>
+          </button>
+        </div>
 
         {/* Mobile actions */}
         <div className="flex items-center gap-2 md:hidden">
