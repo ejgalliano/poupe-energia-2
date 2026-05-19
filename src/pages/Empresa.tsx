@@ -328,7 +328,7 @@ const Empresa = () => {
               {score != null && (
                 <div className="mt-4 flex items-center gap-3">
                   <div className="text-3xl font-extrabold text-brand-blue">
-                    {score.toFixed(1).replace(".", ",")}
+                    {score.toFixed(2).replace(".", ",")}
                   </div>
                   <Stars score={score} />
                   <span className="text-sm text-muted-foreground">
@@ -743,7 +743,7 @@ const Empresa = () => {
             {score != null && (
               <div className="text-center mb-5">
                 <div className="text-5xl font-extrabold text-brand-blue leading-none">
-                  {score.toFixed(1).replace(".", ",")}
+                  {score.toFixed(2).replace(".", ",")}
                 </div>
                 <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mt-1">
                   Nota Geral

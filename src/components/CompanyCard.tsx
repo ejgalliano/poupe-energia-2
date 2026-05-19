@@ -142,7 +142,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
 
         <div className="text-right shrink-0">
           <div className="text-3xl md:text-4xl font-extrabold text-brand-blue leading-none">
-            {company.score.toFixed(1).replace(".", ",")}
+            {company.score.toFixed(2).replace(".", ",")}
           </div>
           <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wide mt-1">
             Nota Final
