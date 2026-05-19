@@ -53,18 +53,14 @@ Deno.serve(async (req) => {
       (r: any) => r.empresas?.ativa !== false,
     ) as NotaRow[];
 
-    const maiorDesconto = rows.reduce(
-      (m, r) => Math.max(m, Number(r.desconto_percentual) || 0),
-      0,
-    );
-
     const computed = rows.map((r) => {
       const desconto = Number(r.desconto_percentual) || 0;
       const sj = Number(r.seguranca_juridica) || 0;
       const ra = Number(r.reputacao_reclame_aqui) || 0;
       const vm = Number(r.valor_minimo_fatura) || 0;
 
-      const notaDS = maiorDesconto > 0 ? (desconto / maiorDesconto) * 10 : 0;
+      // notaDS = desconto / 2 (planilha: desconto em %, ex: 20% → nota 10)
+      const notaDS = desconto / 2;
       const notaVM = Math.max(0, Math.min(10, ((1000 - vm) / 900) * 10));
       const notaFinal =
         notaDS * 0.4 + sj * 0.3 + ra * 0.2 + notaVM * 0.1;
