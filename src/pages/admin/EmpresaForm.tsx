@@ -24,6 +24,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
   const [saving, setSaving] = useState(false);
 
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
+  const isBronze = f.tipo_fornecedor === "intermediador";
   const toggleArr = (k: string, v: string) => {
     const arr = f[k] ?? [];
     set(k, arr.includes(v) ? arr.filter((x: string) => x !== v) : [...arr, v]);
@@ -92,8 +93,15 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle>Atributos Operacionais</CardTitle></CardHeader>
+      <Card className={isBronze ? "opacity-50 pointer-events-none" : ""}>
+        <CardHeader>
+          <CardTitle>Atributos Operacionais</CardTitle>
+          {isBronze && (
+            <p className="text-sm text-amber-600 font-medium mt-1">
+              ⚠️ Empresa Bronze (Intermediador) — notas e atributos operacionais não se aplicam. Altere o Tipo de Fornecedor para habilitar estes campos.
+            </p>
+          )}
+        </CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-4">
           <Field label="Fontes de geração">
             <div className="flex flex-wrap gap-3">
@@ -165,7 +173,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className={isBronze ? "opacity-50 pointer-events-none" : ""}>
         <CardHeader><CardTitle>Análise Técnica</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <Field label="Vantagens / Prós"><Textarea rows={3} value={f.vantagens ?? ""} onChange={(e) => set("vantagens", e.target.value)} /></Field>
@@ -174,7 +182,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className={isBronze ? "opacity-50 pointer-events-none" : ""}>
         <CardHeader><CardTitle>Guia de Cancelamento</CardTitle></CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-4">
           <Field label="E-mail principal"><Input value={f.cancel_email ?? ""} onChange={(e) => set("cancel_email", e.target.value)} /></Field>

@@ -32,7 +32,7 @@ export default function Notas() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    supabase.from("empresas").select("id,nome").order("nome").then(({ data }) => setEmpresas(data ?? []));
+    supabase.from("empresas").select("id,nome,tipo_fornecedor").neq("tipo_fornecedor", "intermediador").order("nome").then(({ data }) => setEmpresas(data ?? []));
     supabase.from("distribuidoras").select("id,nome").order("nome").then(({ data }) => setDistribuidoras(data ?? []));
   }, []);
 
@@ -65,8 +65,8 @@ export default function Notas() {
     const desc = Number(nota.desconto_percentual) || 0;
     const ra = Number(nota.reputacao_reclame_aqui) || 0;
     const vm = Number(nota.valor_minimo_fatura) || 0;
-    const maxD = Math.max(maiorDesconto, desc);
-    const ds = maxD > 0 ? (desc / maxD) * 10 : 0;
+    // notaDS = desconto / 2  (desconto máximo possível = 20% → nota 10)
+    const ds = desc / 2;
     const sj = sjCount;
     const nvm = Math.max(0, Math.min(10, ((1000 - vm) / 900) * 10));
     return ds * 0.4 + sj * 0.3 + ra * 0.2 + nvm * 0.1;
