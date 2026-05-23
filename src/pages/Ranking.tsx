@@ -83,6 +83,11 @@ interface Distribuidora {
   nome: string;
   estado_id: number;
 }
+interface BronzeEmpresa {
+  id: string;
+  nome: string;
+  site_url: string | null;
+}
 
 const formatBRL = (n: number) =>
   new Intl.NumberFormat("pt-BR", {
@@ -99,6 +104,7 @@ const Ranking = () => {
   const [estados, setEstados] = useState<Estado[]>([]);
   const [distribuidoras, setDistribuidoras] = useState<Distribuidora[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [bronzeCompanies, setBronzeCompanies] = useState<BronzeEmpresa[]>([]);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
 
@@ -121,6 +127,17 @@ const Ranking = () => {
       .select("*")
       .order("nome")
       .then(({ data }) => setEstados(data ?? []));
+  }, []);
+
+  // Carrega empresas Bronze (intermediadoras) — aparecem no final em todos os estados
+  useEffect(() => {
+    supabase
+      .from("empresas")
+      .select("id, nome, site_url")
+      .eq("tipo_fornecedor", "intermediador")
+      .eq("ativa", true)
+      .order("nome")
+      .then(({ data }) => setBronzeCompanies((data ?? []) as BronzeEmpresa[]));
   }, []);
 
   // Sincroniza estado do formulário com a sigla da URL
@@ -527,6 +544,53 @@ const Ranking = () => {
 
             {!loading &&
               sortedCompanies.map((c) => <CompanyCard key={c.name} company={c} />)}
+
+            {/* Seção Bronze — aparece quando há distribuidora selecionada */}
+            {!loading && distribuidoraId && bronzeCompanies.length > 0 && (
+              <div className="mt-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest px-2">
+                    Outros representantes na sua região
+                  </span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  {bronzeCompanies.map((b) => (
+                    <div
+                      key={b.id}
+                      className="flex items-center justify-between gap-4 bg-white border border-border rounded-xl px-4 py-3 hover:shadow-sm transition-shadow"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-9 w-9 shrink-0 rounded-lg bg-brand-blue/10 flex items-center justify-center">
+                          <span className="text-sm font-extrabold text-brand-blue">
+                            {b.nome.trim().charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-semibold text-brand-blue text-sm truncate block">
+                            {b.nome}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            ⭐⭐⭐☆☆ Representante
+                          </span>
+                        </div>
+                      </div>
+                      {b.site_url && (
+                        <a
+                          href={b.site_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 inline-flex items-center gap-1.5 bg-brand-blue text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-brand-blue/90 transition-colors whitespace-nowrap"
+                        >
+                          Ir para o site
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {companies.length > 0 && (
