@@ -57,22 +57,23 @@ const CredibilitySection = () => {
             <strong>Agência Nacional de Energia Elétrica</strong>,{" "}
             <strong>Procon</strong> e <strong>Código Civil Brasileiro</strong>.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+          <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16">
             {/* ANEEL */}
             <img
               src="/aneel.jpeg"
               alt="ANEEL – Agência Nacional de Energia Elétrica"
-              className="h-12 w-auto object-contain"
+              className="h-14 w-auto object-contain"
             />
             {/* Brasão oficial do Brasil */}
             <img
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Coat_of_arms_of_Brazil.svg/120px-Coat_of_arms_of_Brazil.svg.png"
+              src="/brasao-brasil.svg"
               alt="Brasão da República Federativa do Brasil"
-              className="h-14 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
             {/* PROCON */}
-            <div className="border-2 border-[#1E3A5F] rounded px-3 py-1.5 font-bold text-[#1E3A5F] text-sm tracking-wider">
-              PRO<span className="text-primary">CON</span>
+            <div className="flex flex-col items-center justify-center bg-[#1E3A5F] text-white rounded-sm px-5 py-2 font-extrabold text-2xl leading-tight tracking-widest">
+              <span>PRO</span>
+              <span>CON</span>
             </div>
           </div>
         </div>
