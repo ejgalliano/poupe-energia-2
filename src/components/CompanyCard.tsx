@@ -57,10 +57,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
   }`;
 
   const handleAderir = () => {
-    if (!company.empresaId) {
-      setSimOpen(true);
-      return;
-    }
+    if (!company.empresaId) { setSimOpen(true); return; }
     setCaptureOpen(true);
   };
 
@@ -78,59 +75,47 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
   };
 
   const metrics = [
-    { label: "Desconto Inicial", value: company.discount },
-    { label: "Segurança Jurídica", value: company.legalSecurity },
-    { label: "Reputação Reclame Aqui", value: company.reputation },
-    { label: "Valor Mínimo para Adesão", value: company.minValue },
+    { label: "Desconto Inicial",          value: company.discount },
+    { label: "Segurança Jurídica",        value: company.legalSecurity },
+    { label: "Reputação Reclame Aqui",    value: company.reputation },
+    { label: "Valor Mínimo para Adesão",  value: company.minValue },
   ];
+
+  const scoreColor = isTop1 ? "text-brand-yellow" : "text-brand-blue";
 
   return (
     <article
-      className={`relative bg-white rounded-xl p-5 md:p-6 shadow-sm hover:shadow-md transition-shadow ${
+      className={`relative bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-visible ${
         isTop1 ? "border-2 border-brand-success" : "border border-border"
       }`}
     >
-      {/* Badge canto superior esquerdo */}
+      {/* Badge rank */}
       {isTop1 ? (
-        <div className="absolute -top-3 left-5 bg-brand-success text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+        <div className="absolute -top-3 left-5 bg-brand-success text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm z-10">
           Melhor empresa
         </div>
       ) : (
-        <div className="absolute -top-3 left-5 bg-muted text-muted-foreground text-xs font-bold px-3 py-1 rounded-full border border-border">
+        <div className="absolute -top-3 left-5 bg-muted text-muted-foreground text-xs font-bold px-3 py-1 rounded-full border border-border z-10">
           {ordinal(company.rank)}
         </div>
       )}
 
-      {/* Linha 1: Logo + Nome + Tags + Nota */}
-      <div className="flex items-start justify-between gap-4 mb-5">
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className="h-12 w-12 shrink-0 rounded-lg bg-brand-blue/10 flex items-center justify-center">
-            <span className="text-xl font-extrabold text-brand-blue">
-              {initial}
-            </span>
+      {/* ── DESKTOP: layout horizontal (logo | métricas | nota) ── */}
+      <div className="hidden md:flex items-center gap-0 pt-6">
+
+        {/* Coluna esquerda: Logo inicial + nome + tags */}
+        <div className="flex flex-col items-center justify-center gap-2 px-5 shrink-0 w-36 self-stretch border-r border-border">
+          <div className="h-16 w-16 rounded-xl bg-brand-blue/10 flex items-center justify-center">
+            <span className="text-2xl font-extrabold text-brand-blue">{initial}</span>
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-lg md:text-xl font-extrabold text-brand-blue leading-tight truncate">
-                {company.name}
-              </h3>
+          <div className="text-center">
+            <p className="text-sm font-extrabold text-brand-blue leading-tight">{company.name}</p>
+            <div className="mt-1 flex flex-col items-center gap-1">
               <SupplierBadge tipo={company.tipoFornecedor} size="sm" compact />
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5 mt-2">
-              {!isBronze && (
-                <Link
-                  to={detailHref}
-                  onClick={handleSaibaMais}
-                  className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
-                >
-                  <FileText className="h-3 w-3" />
-                  Ficha Técnica
-                </Link>
-              )}
               {!isBronze && company.nivelRisco && (() => {
                 const s = RISCO_STYLE[company.nivelRisco] ?? { bg: "bg-brand-blue/10", text: "text-brand-blue" };
                 return (
-                  <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md ${s.bg} ${s.text}`}>
+                  <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md ${s.bg} ${s.text}`}>
                     <ShieldCheck className="h-3 w-3" />
                     Risco {company.nivelRisco}
                   </span>
@@ -138,10 +123,38 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
               })()}
             </div>
           </div>
+          {!isBronze && (
+            <Link
+              to={detailHref}
+              onClick={handleSaibaMais}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
+            >
+              <FileText className="h-3 w-3" />
+              Ficha Técnica
+            </Link>
+          )}
         </div>
 
-        <div className="text-right shrink-0">
-          <div className="text-3xl md:text-4xl font-extrabold text-brand-blue leading-none">
+        {/* Centro: 4 métricas */}
+        <div className="flex-1 grid grid-cols-4 self-stretch">
+          {metrics.map((m, i) => (
+            <div
+              key={m.label}
+              className={`flex flex-col items-center justify-center p-4 text-center ${
+                i < metrics.length - 1 ? "border-r border-border" : ""
+              }`}
+            >
+              <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide leading-tight mb-1">
+                {m.label}
+              </div>
+              <div className="text-lg font-extrabold text-brand-blue">{m.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Coluna direita: Nota Final */}
+        <div className="flex flex-col items-center justify-center px-6 shrink-0 w-32 self-stretch border-l border-border">
+          <div className={`text-4xl font-extrabold leading-none ${scoreColor}`}>
             {company.score.toFixed(2).replace(".", ",")}
           </div>
           <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wide mt-1">
@@ -150,53 +163,126 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
         </div>
       </div>
 
-      {/* Linha 2: Métricas com divisórias */}
-      <div className="grid grid-cols-2 md:grid-cols-4 border border-border rounded-xl overflow-hidden mb-5">
-        {metrics.map((m, i) => (
-          <div
-            key={m.label}
-            className={`p-3 text-center ${
-              i < metrics.length - 1 ? "md:border-r border-border" : ""
-            } ${i % 2 === 0 ? "border-r md:border-r" : ""} ${
-              i < 2 ? "border-b md:border-b-0" : ""
-            }`}
-          >
-            <div className="text-[10px] md:text-[11px] text-muted-foreground font-semibold uppercase tracking-wide leading-tight mb-1">
-              {m.label}
-            </div>
-            <div className="text-base md:text-lg font-extrabold text-brand-blue">
-              {m.value}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Tag cashback (parceiras) */}
+      {/* Tag cashback — desktop */}
       {company.partner && (
-        <div className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold mb-3">
-          ⚡ 10% de cashback na adesão
+        <div className="hidden md:flex px-5 py-2 border-t border-border">
+          <span className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold">
+            ⚡ 10% de cashback na adesão
+          </span>
         </div>
       )}
 
-      {/* Linha 3: CTAs */}
+      {/* CTAs — desktop */}
       {!hideActions && !isBronze && (
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="hidden md:flex gap-2 px-5 py-4 border-t border-border">
           <Button
             onClick={() => setSimOpen(true)}
             variant="outline"
-            className="flex-1 h-12 rounded-xl font-bold border-foreground/20"
+            className="flex-1 h-11 rounded-xl font-bold border-foreground/20"
           >
             <Zap className="h-4 w-4 mr-2" fill="currentColor" />
             Simular economia
           </Button>
           <Button
             onClick={handleAderir}
-            className="flex-1 h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
+            className="flex-1 h-11 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
           >
             Ver plano e Aderir
           </Button>
         </div>
       )}
+
+      {/* ── MOBILE: layout vertical (mantém comportamento atual) ── */}
+      <div className="md:hidden p-5 pt-6">
+
+        {/* Linha 1: Logo + Nome + Nota */}
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex items-start gap-3 min-w-0 flex-1">
+            <div className="h-12 w-12 shrink-0 rounded-lg bg-brand-blue/10 flex items-center justify-center">
+              <span className="text-xl font-extrabold text-brand-blue">{initial}</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-lg font-extrabold text-brand-blue leading-tight">
+                  {company.name}
+                </h3>
+                <SupplierBadge tipo={company.tipoFornecedor} size="sm" compact />
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                {!isBronze && (
+                  <Link
+                    to={detailHref}
+                    onClick={handleSaibaMais}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
+                  >
+                    <FileText className="h-3 w-3" />
+                    Ficha Técnica
+                  </Link>
+                )}
+                {!isBronze && company.nivelRisco && (() => {
+                  const s = RISCO_STYLE[company.nivelRisco] ?? { bg: "bg-brand-blue/10", text: "text-brand-blue" };
+                  return (
+                    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md ${s.bg} ${s.text}`}>
+                      <ShieldCheck className="h-3 w-3" />
+                      Risco {company.nivelRisco}
+                    </span>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+          <div className="text-right shrink-0">
+            <div className={`text-3xl font-extrabold leading-none ${scoreColor}`}>
+              {company.score.toFixed(2).replace(".", ",")}
+            </div>
+            <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wide mt-1">
+              Nota Final
+            </div>
+          </div>
+        </div>
+
+        {/* Linha 2: Métricas */}
+        <div className="grid grid-cols-2 border border-border rounded-xl overflow-hidden mb-4">
+          {metrics.map((m, i) => (
+            <div
+              key={m.label}
+              className={`p-3 text-center ${i % 2 === 0 ? "border-r border-border" : ""} ${i < 2 ? "border-b border-border" : ""}`}
+            >
+              <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide leading-tight mb-1">
+                {m.label}
+              </div>
+              <div className="text-base font-extrabold text-brand-blue">{m.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Tag cashback */}
+        {company.partner && (
+          <div className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold mb-3">
+            ⚡ 10% de cashback na adesão
+          </div>
+        )}
+
+        {/* CTAs */}
+        {!hideActions && !isBronze && (
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={() => setSimOpen(true)}
+              variant="outline"
+              className="w-full h-12 rounded-xl font-bold border-foreground/20"
+            >
+              <Zap className="h-4 w-4 mr-2" fill="currentColor" />
+              Simular economia
+            </Button>
+            <Button
+              onClick={handleAderir}
+              className="w-full h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
+            >
+              Ver plano e Aderir
+            </Button>
+          </div>
+        )}
+      </div>
 
       <EconomySimulator
         open={simOpen}
