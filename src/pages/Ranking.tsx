@@ -105,6 +105,7 @@ const Ranking = () => {
   const [distribuidoras, setDistribuidoras] = useState<Distribuidora[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [bronzeCompanies, setBronzeCompanies] = useState<BronzeEmpresa[]>([]);
+  const [logoMap, setLogoMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
 
@@ -138,6 +139,22 @@ const Ranking = () => {
       .eq("ativa", true)
       .order("nome")
       .then(({ data }) => setBronzeCompanies((data ?? []) as BronzeEmpresa[]));
+  }, []);
+
+  // Carrega mapa de logos (id -> logo_url) uma única vez
+  useEffect(() => {
+    supabase
+      .from("empresas")
+      .select("id, logo_url")
+      .not("logo_url", "is", null)
+      .then(({ data }) => {
+        if (!data) return;
+        const map: Record<string, string> = {};
+        data.forEach((e: { id: string; logo_url: string }) => {
+          if (e.logo_url) map[e.id] = e.logo_url;
+        });
+        setLogoMap(map);
+      });
   }, []);
 
   // Sincroniza estado do formulário com a sigla da URL
@@ -241,6 +258,7 @@ const Ranking = () => {
           empresaId: row.empresa_id,
           distribuidoraId: distribuidoraId,
           tipoFornecedor: row.empresas?.tipo_fornecedor ?? null,
+          logoUrl: logoMap[row.empresa_id] ?? null,
         }));
         setCompanies(mapped);
         setLoading(false);
@@ -249,14 +267,17 @@ const Ranking = () => {
 
 
   const sortedCompanies = useMemo(() => {
-    const arr = [...companies];
+    const arr = [...companies].map((c) => ({
+      ...c,
+      logoUrl: c.empresaId ? (logoMap[c.empresaId] ?? c.logoUrl ?? null) : c.logoUrl ?? null,
+    }));
     arr.sort((a, b) => {
       const va = getSortValue(a, sortKey);
       const vb = getSortValue(b, sortKey);
       return sortDir === "asc" ? va - vb : vb - va;
     });
     return arr;
-  }, [companies, sortKey, sortDir]);
+  }, [companies, sortKey, sortDir, logoMap]);
 
   const handleNotify = (e: React.FormEvent) => {
     e.preventDefault();

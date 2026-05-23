@@ -23,6 +23,7 @@ export interface Company {
   distribuidoraId?: string;
   tipoFornecedor?: TipoFornecedor | null;
   nivelRisco?: string | null;
+  logoUrl?: string | null;
 }
 
 interface Props {
@@ -105,8 +106,11 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
 
         {/* Coluna esquerda: Logo inicial + nome + tags */}
         <div className="flex flex-col items-center justify-center gap-2 px-5 shrink-0 w-36 self-stretch border-r border-border">
-          <div className="h-16 w-16 rounded-xl bg-brand-blue/10 flex items-center justify-center">
-            <span className="text-2xl font-extrabold text-brand-blue">{initial}</span>
+          <div className="h-16 w-16 rounded-xl bg-brand-blue/10 flex items-center justify-center overflow-hidden">
+            {company.logoUrl
+              ? <img src={company.logoUrl} alt={company.name} className="h-full w-full object-contain" />
+              : <span className="text-2xl font-extrabold text-brand-blue">{initial}</span>
+            }
           </div>
           <div className="text-center">
             <p className="text-sm font-extrabold text-brand-blue leading-tight">{company.name}</p>
@@ -198,8 +202,11 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
         {/* Linha 1: Logo + Nome + Nota */}
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-start gap-3 min-w-0 flex-1">
-            <div className="h-12 w-12 shrink-0 rounded-lg bg-brand-blue/10 flex items-center justify-center">
-              <span className="text-xl font-extrabold text-brand-blue">{initial}</span>
+            <div className="h-12 w-12 shrink-0 rounded-lg bg-brand-blue/10 flex items-center justify-center overflow-hidden">
+              {company.logoUrl
+                ? <img src={company.logoUrl} alt={company.name} className="h-full w-full object-contain" />
+                : <span className="text-xl font-extrabold text-brand-blue">{initial}</span>
+              }
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
