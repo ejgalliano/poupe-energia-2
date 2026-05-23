@@ -26,16 +26,16 @@ const col2 = [
 
 const Footer = () => {
   return (
-    <footer className="bg-black text-white">
+    <footer className="bg-brand-blue text-white">
       <div className="container mx-auto px-4 py-14">
         <div className="grid gap-10 md:grid-cols-3 mb-10">
           {/* Brand */}
           <div>
-            <div className="mb-4 inline-block bg-white rounded-lg p-2">
+            <div className="mb-4">
               <img
-                src="https://tvyjosqitdgwqjpzvgib.supabase.co/storage/v1/object/public/assets//logo poupe energia.jpeg"
+                src="/logo-white.png"
                 alt="Poupe Energia"
-                className="h-10 w-auto object-contain"
+                className="h-12 w-auto object-contain"
               />
             </div>
             <p className="text-white/70 text-sm leading-relaxed mb-5 max-w-xs">

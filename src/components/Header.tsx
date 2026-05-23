@@ -1,6 +1,7 @@
 import { Menu, User } from "lucide-react";
 
-const LOGO_URL = "https://tvyjosqitdgwqjpzvgib.supabase.co/storage/v1/object/public/assets//logo poupe energia.jpeg";
+const LOGO_URL = "/logo-dark.png";
+const LOGO_WHITE_URL = "/logo-white.png";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,7 +71,7 @@ const Header = () => {
             <SheetContent side="right" className="w-[280px] bg-brand-blue text-white border-0">
               <SheetHeader>
                 <SheetTitle className="text-brand-yellow text-left flex items-center gap-2">
-                  <img src={LOGO_URL} alt="Poupe Energia" className="h-8 w-auto object-contain bg-white rounded p-1" />
+                  <img src={LOGO_WHITE_URL} alt="Poupe Energia" className="h-8 w-auto object-contain" />
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-1 mt-6">
