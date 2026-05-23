@@ -55,7 +55,7 @@ const CredibilitySection = () => {
           <p className="text-sm md:text-base text-foreground/80 mb-6 leading-relaxed">
             Critérios baseados nas diretrizes da{" "}
             <strong>Agência Nacional de Energia Elétrica</strong>,{" "}
-            <strong>Procon</strong> e <strong>Código Civil Brasileiro</strong>.
+            <strong>Código Civil Brasileiro</strong> e <strong>Procon</strong>.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16">
             {/* ANEEL */}
