@@ -57,25 +57,22 @@ const CredibilitySection = () => {
             <strong>Agência Nacional de Energia Elétrica</strong>,{" "}
             <strong>Procon</strong> e <strong>Código Civil Brasileiro</strong>.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
             {/* ANEEL */}
-            <div className="flex items-center gap-1 font-bold text-[#1E3A5F] text-lg">
-              <span className="text-2xl">E</span>
-              <span className="text-xl">→</span>
-              <span className="tracking-wide">ANEEL</span>
-            </div>
+            <img
+              src="/aneel.jpeg"
+              alt="ANEEL – Agência Nacional de Energia Elétrica"
+              className="h-12 w-auto object-contain"
+            />
+            {/* Brasão oficial do Brasil */}
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Coat_of_arms_of_Brazil.svg/120px-Coat_of_arms_of_Brazil.svg.png"
+              alt="Brasão da República Federativa do Brasil"
+              className="h-14 w-auto object-contain"
+            />
             {/* PROCON */}
             <div className="border-2 border-[#1E3A5F] rounded px-3 py-1.5 font-bold text-[#1E3A5F] text-sm tracking-wider">
               PRO<span className="text-primary">CON</span>
-            </div>
-            {/* Bandeira */}
-            <div className="flex items-center gap-2">
-              <span className="text-3xl" role="img" aria-label="Brasil">
-                🇧🇷
-              </span>
-              <span className="font-semibold text-[#1E3A5F] text-sm">
-                Brasil
-              </span>
             </div>
           </div>
         </div>
