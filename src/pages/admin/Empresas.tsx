@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchAll } from "@/lib/fetchAll";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,8 +14,10 @@ export default function Empresas() {
   const [creating, setCreating] = useState(false);
 
   const load = async () => {
-    const { data } = await supabase.from("empresas").select("*").order("nome");
-    setList(data ?? []);
+    const data = await fetchAll((from, to) =>
+      supabase.from("empresas").select("*").order("nome").range(from, to)
+    );
+    setList(data);
   };
 
   useEffect(() => { load(); }, []);

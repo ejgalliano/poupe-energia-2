@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchAll } from "@/lib/fetchAll";
 import SEO from "@/components/SEO";
 import BackToTop from "@/components/BackToTop";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -102,19 +103,13 @@ const RankingNacional = () => {
         .eq("tipo_fornecedor", "intermediador")
         .order("nome");
 
-      // Buscar todas as notas (paginado — Supabase limita 1000 por request)
-      const PAGE = 1000;
-      let allNotas: any[] = [];
-      for (let from = 0; ; from += PAGE) {
-        const { data: page } = await supabase
+      // Buscar todas as notas (paginado via fetchAll — Supabase limita 1000 por request)
+      const notas = await fetchAll((from, to) =>
+        supabase
           .from("notas_empresas")
           .select("empresa_id, distribuidora_id, nota_final, desconto_percentual, seguranca_juridica, reputacao_reclame_aqui, valor_minimo_fatura, nivel_risco")
-          .range(from, from + PAGE - 1);
-        if (!page || page.length === 0) break;
-        allNotas = allNotas.concat(page);
-        if (page.length < PAGE) break;
-      }
-      const notas = allNotas;
+          .range(from, to)
+      );
 
       const byEmpresa = new Map<string, any[]>();
       (notas ?? []).forEach((n) => {
