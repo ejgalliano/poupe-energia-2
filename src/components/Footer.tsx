@@ -21,7 +21,6 @@ const col2 = [
   { label: "Política de Privacidade", href: "/politica-de-privacidade" },
   { label: "Termos de Uso", href: "/termos-de-uso" },
   { label: "Cashback – Termos e Condições", href: "/termos-cashback" },
-  { label: "Fale Conosco", href: `mailto:${CONTACT_EMAIL}`, external: true },
 ];
 
 const Footer = () => {
@@ -93,11 +92,8 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row gap-3 justify-between items-start md:items-center text-xs text-white/60">
+        <div className="border-t border-white/10 pt-6 text-center text-xs text-white/60">
           <p>CNPJ: 64.498.960/0001-06</p>
-          <a href="mailto:contato.poupeenergia@hotmail.com" className="hover:text-brand-yellow">
-            contato.poupeenergia@hotmail.com
-          </a>
         </div>
       </div>
     </footer>
