@@ -46,13 +46,16 @@ const Header = () => {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex">
-          <button className="flex items-center gap-2 border border-brand-blue rounded-lg px-4 py-2 text-sm font-bold text-brand-blue hover:bg-brand-blue/5 transition">
+          <Link
+            to="/ativar-cashback"
+            className="flex items-center gap-2 border border-brand-blue rounded-lg px-4 py-2 text-sm font-bold text-brand-blue hover:bg-brand-blue/5 transition"
+          >
             <User className="h-4 w-4" />
             <div className="text-left leading-tight">
               <div>Entrar</div>
               <div className="text-[10px] font-normal text-brand-blue/70">Ativar Cashback</div>
             </div>
-          </button>
+          </Link>
         </div>
 
         {/* Mobile actions */}

@@ -22,6 +22,7 @@ import LeadsEmpresariais from "./pages/admin/LeadsEmpresariais";
 import PoliticaDePrivacidade from "./pages/PoliticaDePrivacidade.tsx";
 import TermosDeUso from "./pages/TermosDeUso.tsx";
 import TermosCashback from "./pages/TermosCashback.tsx";
+import AtivarCashback from "./pages/AtivarCashback.tsx";
 import RankingNacional from "./pages/RankingNacional.tsx";
 import PoupeFacilEmpresas from "./pages/PoupeFacilEmpresas.tsx";
 import EnergiaPorAssinatura from "./pages/EnergiaPorAssinatura.tsx";
@@ -57,6 +58,7 @@ const App = () => (
           <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
           <Route path="/termos-de-uso" element={<TermosDeUso />} />
           <Route path="/termos-cashback" element={<TermosCashback />} />
+          <Route path="/ativar-cashback" element={<AtivarCashback />} />
           <Route path="/duvidas-frequentes" element={<DuvidasFrequentes />} />
           <Route path="/poupe-facil-empresas" element={<PoupeFacilEmpresas />} />
           <Route path="/energia-por-assinatura" element={<EnergiaPorAssinatura />} />
