@@ -273,13 +273,7 @@ const RankingNacional = () => {
               {/* Seção Bronze — ordem alfabética */}
               {bronzeCompanies.length > 0 && (
                 <div className="mt-8">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="h-px flex-1 bg-border" />
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest px-2">
-                      Outros representantes no mercado
-                    </span>
-                    <div className="h-px flex-1 bg-border" />
-                  </div>
+                  <div className="h-px w-full bg-border mb-4" />
                   <div className="flex flex-col gap-2">
                     {bronzeCompanies.map((b) => (
                       <div

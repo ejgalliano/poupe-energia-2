@@ -22,12 +22,12 @@ const navLinks = [
 const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
-      <div className="container mx-auto flex items-center justify-between px-4 py-3">
+      <div className="container mx-auto flex items-center justify-between px-4 py-1">
         <Link to="/" className="flex items-center" aria-label="Poupe Energia">
           <img
             src={LOGO_URL}
             alt="Poupe Energia"
-            className="h-10 w-auto object-contain"
+            className="h-24 w-72 object-contain object-left"
           />
         </Link>
 
@@ -74,7 +74,7 @@ const Header = () => {
             <SheetContent side="right" className="w-[280px] bg-brand-blue text-white border-0">
               <SheetHeader>
                 <SheetTitle className="text-brand-yellow text-left flex items-center gap-2">
-                  <img src={LOGO_WHITE_URL} alt="Poupe Energia" className="h-8 w-auto object-contain" />
+                  <img src={LOGO_WHITE_URL} alt="Poupe Energia" className="h-10 w-auto object-contain" />
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-1 mt-6">
