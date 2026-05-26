@@ -39,7 +39,7 @@ const Footer = () => {
               />
             </div>
             <p className="text-white/70 text-sm leading-relaxed mb-5 max-w-xs">
-              Comparou? Economizou. Aderiu? Ganhou 10% de cashback. Isso é
+              Comparou? Economizou. Aderiu? Ganhou Cashback. Isso é
               Poupe Energia.
             </p>
             <div className="flex gap-3">
