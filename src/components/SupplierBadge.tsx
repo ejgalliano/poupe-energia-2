@@ -1,4 +1,4 @@
-import { HelpCircle } from "lucide-react";
+import { Star, HelpCircle } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -17,6 +17,9 @@ export type TipoFornecedor = "fornecedor_direto" | "operador" | "intermediador";
 interface TierInfo {
   label: string;
   shortLabel: string;
+  filled: number;
+  starColor: string;
+  emptyColor: string;
   badgeBg: string;
   badgeText: string;
   tooltip: string;
@@ -28,6 +31,9 @@ export const SUPPLIER_TIERS: Record<TipoFornecedor, TierInfo> = {
   fornecedor_direto: {
     label: "Fornecedor Direto",
     shortLabel: "OURO",
+    filled: 5,
+    starColor: "text-amber-400 fill-amber-400",
+    emptyColor: "text-amber-400/30",
     badgeBg: "bg-gradient-to-r from-amber-400 to-yellow-500",
     badgeText: "text-amber-900",
     tooltip:
@@ -39,6 +45,9 @@ export const SUPPLIER_TIERS: Record<TipoFornecedor, TierInfo> = {
   operador: {
     label: "Operador",
     shortLabel: "PRATA",
+    filled: 4,
+    starColor: "text-slate-400 fill-slate-400",
+    emptyColor: "text-slate-400/30",
     badgeBg: "bg-gradient-to-r from-slate-300 to-slate-400",
     badgeText: "text-slate-800",
     tooltip:
@@ -50,7 +59,10 @@ export const SUPPLIER_TIERS: Record<TipoFornecedor, TierInfo> = {
   intermediador: {
     label: "Intermediador",
     shortLabel: "BRONZE",
-    badgeBg: "bg-gradient-to-r from-orange-500 to-amber-700",
+    filled: 3,
+    starColor: "text-[#CD7F32] fill-[#CD7F32]",
+    emptyColor: "text-[#CD7F32]/30",
+    badgeBg: "bg-gradient-to-r from-[#CD7F32] to-[#8B5E3C]",
     badgeText: "text-white",
     tooltip:
       "Intermediador — Só vende a energia, não produz nem controla. Maior dependência de terceiros.",
@@ -59,6 +71,28 @@ export const SUPPLIER_TIERS: Record<TipoFornecedor, TierInfo> = {
     short: "Só vende a energia",
   },
 };
+
+const StarRow = ({
+  filled,
+  size = 14,
+  starColor,
+  emptyColor,
+}: {
+  filled: number;
+  size?: number;
+  starColor: string;
+  emptyColor: string;
+}) => (
+  <div className="flex items-center gap-0.5">
+    {Array.from({ length: 5 }).map((_, i) => (
+      <Star
+        key={i}
+        style={{ width: size, height: size }}
+        className={i < filled ? starColor : emptyColor}
+      />
+    ))}
+  </div>
+);
 
 interface Props {
   tipo?: TipoFornecedor | null;
@@ -77,9 +111,12 @@ const TiersLegend = () => (
       const t = SUPPLIER_TIERS[k];
       return (
         <div key={k} className="flex items-start gap-2">
-          <span className={cn("font-bold rounded-md tracking-wide px-2 py-0.5 text-[10px]", t.badgeBg, t.badgeText)}>
-            {t.shortLabel}
-          </span>
+          <StarRow
+            filled={t.filled}
+            starColor={t.starColor}
+            emptyColor={t.emptyColor}
+            size={12}
+          />
           <div className="text-xs">
             <span className="font-bold text-brand-blue">{t.label}</span>
             <span className="text-muted-foreground"> → {t.short}</span>
@@ -99,6 +136,7 @@ const SupplierBadge = ({
 }: Props) => {
   const key: TipoFornecedor = (tipo ?? "intermediador") as TipoFornecedor;
   const tier = SUPPLIER_TIERS[key] ?? SUPPLIER_TIERS.intermediador;
+  const starSize = size === "lg" ? 18 : size === "md" ? 16 : 13;
   const badgePadding =
     size === "lg" ? "px-2.5 py-0.5 text-xs" : "px-2 py-0.5 text-[10px]";
 
@@ -108,6 +146,12 @@ const SupplierBadge = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="inline-flex items-center gap-1.5 cursor-help">
+              <StarRow
+                filled={tier.filled}
+                starColor={tier.starColor}
+                emptyColor={tier.emptyColor}
+                size={starSize}
+              />
               {!compact && (
                 <span
                   className={cn(
