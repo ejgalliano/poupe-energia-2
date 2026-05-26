@@ -71,10 +71,11 @@ const CredibilitySection = () => {
               className="h-16 w-auto object-contain"
             />
             {/* PROCON */}
-            <div className="flex flex-col items-center justify-center bg-[#1E3A5F] text-white rounded-sm px-5 py-2 font-extrabold text-2xl leading-tight tracking-widest">
-              <span>PRO</span>
-              <span>CON</span>
-            </div>
+            <img
+              src="/procon.jpeg"
+              alt="Procon"
+              className="h-16 w-auto object-contain"
+            />
           </div>
         </div>
       </div>
