@@ -330,7 +330,6 @@ const Empresa = () => {
                   <div className="text-3xl font-extrabold text-brand-blue">
                     {score.toFixed(2).replace(".", ",")}
                   </div>
-                  <Stars score={score} />
                   <span className="text-sm text-muted-foreground">
                     Nota Geral
                   </span>
@@ -747,9 +746,6 @@ const Empresa = () => {
                 </div>
                 <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mt-1">
                   Nota Geral
-                </div>
-                <div className="flex justify-center mt-2">
-                  <Stars score={score} />
                 </div>
               </div>
             )}
