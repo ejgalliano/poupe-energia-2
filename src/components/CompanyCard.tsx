@@ -106,7 +106,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
 
         {/* Coluna esquerda: Logo inicial + nome + tags */}
         <div className="flex flex-col items-center justify-center gap-2 px-5 shrink-0 w-36 self-stretch border-r border-border">
-          <div className="h-16 w-16 rounded-xl bg-brand-blue/10 flex items-center justify-center overflow-hidden">
+          <div className="h-16 w-16 rounded-xl bg-white border border-border flex items-center justify-center overflow-hidden">
             {company.logoUrl
               ? <img src={company.logoUrl} alt={company.name} className="h-full w-full object-contain" />
               : <span className="text-2xl font-extrabold text-brand-blue">{initial}</span>
@@ -131,7 +131,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
             <Link
               to={detailHref}
               onClick={handleSaibaMais}
-              className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
+              className="inline-flex items-center gap-1 text-[10px] font-bold whitespace-nowrap bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
             >
               <FileText className="h-3 w-3" />
               Ficha Técnica
@@ -202,7 +202,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
         {/* Linha 1: Logo + Nome + Nota */}
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-start gap-3 min-w-0 flex-1">
-            <div className="h-12 w-12 shrink-0 rounded-lg bg-brand-blue/10 flex items-center justify-center overflow-hidden">
+            <div className="h-12 w-12 shrink-0 rounded-lg bg-white border border-border flex items-center justify-center overflow-hidden">
               {company.logoUrl
                 ? <img src={company.logoUrl} alt={company.name} className="h-full w-full object-contain" />
                 : <span className="text-xl font-extrabold text-brand-blue">{initial}</span>
@@ -220,7 +220,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
                   <Link
                     to={detailHref}
                     onClick={handleSaibaMais}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
+                    className="inline-flex items-center gap-1 text-[10px] font-bold whitespace-nowrap bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
                   >
                     <FileText className="h-3 w-3" />
                     Ficha Técnica
