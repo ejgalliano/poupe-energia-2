@@ -14,7 +14,7 @@ const WhatsAppFloat = () => {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Fale conosco no WhatsApp"
-      className="fixed z-[60] bottom-4 right-4 sm:bottom-6 sm:right-6 flex items-center gap-3 bg-white border-2 border-[#25D366] rounded-full pl-4 pr-1 py-1 shadow-lg hover:shadow-xl transition-shadow"
+      className="fixed z-[60] bottom-4 right-4 sm:bottom-6 sm:right-6 flex items-center gap-3 sm:bg-white sm:border-2 sm:border-[#25D366] sm:rounded-full sm:pl-4 sm:pr-1 sm:py-1 shadow-lg hover:shadow-xl transition-shadow"
     >
       <span className="text-sm leading-tight text-brand-blue hidden sm:block">
         <span className="font-bold">Dúvidas?</span>

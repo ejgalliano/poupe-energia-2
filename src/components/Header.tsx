@@ -27,7 +27,7 @@ const Header = () => {
           <img
             src={LOGO_URL}
             alt="Poupe Energia"
-            className="h-24 w-72 object-contain object-left"
+            className="h-10 w-32 md:h-24 md:w-72 object-contain object-left"
           />
         </Link>
 
