@@ -4,7 +4,7 @@ import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { slugify } from "@/lib/slug";
 import EconomySimulator from "@/components/EconomySimulator";
-import LeadCaptureDialog from "@/components/LeadCaptureDialog";
+import AdesaoModal from "@/components/AdesaoModal";
 import SupplierBadge, { TipoFornecedor } from "@/components/SupplierBadge";
 import { registerLead } from "@/lib/leadTracking";
 
@@ -49,7 +49,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [simOpen, setSimOpen] = useState(false);
-  const [captureOpen, setCaptureOpen] = useState(false);
+  const [adesaoOpen, setAdesaoOpen] = useState(false);
   const discountNumber = parseFloat(
     String(company.discount).replace("%", "").replace(",", ".")
   ) || 0;
@@ -59,7 +59,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
 
   const handleAderir = () => {
     if (!company.empresaId) { setSimOpen(true); return; }
-    setCaptureOpen(true);
+    setAdesaoOpen(true);
   };
 
   const handleSaibaMais = (e: React.MouseEvent) => {
@@ -302,13 +302,13 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
       />
 
       {company.empresaId && (
-        <LeadCaptureDialog
-          open={captureOpen}
-          onOpenChange={setCaptureOpen}
+        <AdesaoModal
+          open={adesaoOpen}
+          onOpenChange={setAdesaoOpen}
           empresaId={company.empresaId}
           empresaNome={company.name}
           distribuidoraId={company.distribuidoraId}
-          estadoSigla={company.estado}
+          distribuidoraNome={company.distribuidora}
         />
       )}
     </article>
