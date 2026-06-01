@@ -83,7 +83,6 @@ const RankingNacional = () => {
   const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState<SortKey>("score");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [showBronze, setShowBronze] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -273,62 +272,6 @@ const RankingNacional = () => {
 
               {/* Seção Bronze — oculta por padrão */}
               {bronzeCompanies.length > 0 && (
-                <div className="mt-8">
-                  <div className="h-px w-full bg-border mb-4" />
-                  {!showBronze ? (
-                    <div className="flex justify-center">
-                      <button
-                        onClick={() => setShowBronze(true)}
-                        className="text-sm font-semibold text-brand-blue/70 hover:text-brand-blue underline underline-offset-2 transition-colors"
-                      >
-                        Ver mais resultados ({bronzeCompanies.length} representantes)
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-2">
-                      {bronzeCompanies.map((b) => (
-                        <div
-                          key={b.id}
-                          className="flex items-center justify-between gap-4 bg-white border border-border rounded-xl px-4 py-3 hover:shadow-sm transition-shadow"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="h-9 w-9 shrink-0 rounded-lg bg-brand-blue/10 flex items-center justify-center">
-                              <span className="text-sm font-extrabold text-brand-blue">
-                                {b.nome.trim().charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="min-w-0">
-                              <span className="font-semibold text-brand-blue text-sm truncate block">
-                                {b.nome}
-                              </span>
-                              <span className="text-[11px] text-muted-foreground">
-                                Representante
-                              </span>
-                            </div>
-                          </div>
-                          {b.site_url && (
-                            <a
-                              href={b.site_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="shrink-0 inline-flex items-center gap-1.5 bg-brand-blue text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-brand-blue/90 transition-colors whitespace-nowrap"
-                            >
-                              Ir para o site
-                            </a>
-                          )}
-                        </div>
-                      ))}
-                      <div className="flex justify-center mt-2">
-                        <button
-                          onClick={() => setShowBronze(false)}
-                          className="text-sm font-semibold text-brand-blue/70 hover:text-brand-blue underline underline-offset-2 transition-colors"
-                        >
-                          Ocultar representantes
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
               )}
             </div>
           )}
