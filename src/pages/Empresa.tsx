@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/slug";
-import LeadCaptureDialog from "@/components/LeadCaptureDialog";
+import AdesaoModal from "@/components/AdesaoModal";
 import SupplierBadge, { SUPPLIER_TIERS, TipoFornecedor } from "@/components/SupplierBadge";
 
 const formatBRL = (n: number | null | undefined) =>
@@ -775,13 +775,13 @@ const Empresa = () => {
                 </Button>
 
                 {empresa?.id && (
-                  <LeadCaptureDialog
+                  <AdesaoModal
                     open={captureOpen}
                     onOpenChange={setCaptureOpen}
                     empresaId={empresa.id}
                     empresaNome={empresa.nome}
-                    distribuidoraId={distribuidoraId || null}
-                    estadoSigla={estadoSigla || null}
+                    distribuidoraId={distribuidoraId || undefined}
+                    distribuidoraNome={distribuidoraNome || undefined}
                   />
                 )}
               </>

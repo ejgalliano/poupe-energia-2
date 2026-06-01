@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import LeadCaptureDialog from "@/components/LeadCaptureDialog";
+import AdesaoModal from "@/components/AdesaoModal";
 
 interface Props {
   open: boolean;
@@ -18,6 +18,7 @@ interface Props {
   discountPercent: number;
   empresaId?: string;
   distribuidoraId?: string | null;
+  distribuidoraNome?: string | null;
   estadoSigla?: string | null;
 }
 
@@ -67,14 +68,15 @@ const EconomySimulator = ({
   discountPercent,
   empresaId,
   distribuidoraId,
+  distribuidoraNome,
   estadoSigla,
 }: Props) => {
   const [valor, setValor] = useState(0);
-  const [captureOpen, setCaptureOpen] = useState(false);
+  const [adesaoOpen, setAdesaoOpen] = useState(false);
 
   const handleAderir = () => {
     if (!empresaId) return;
-    setCaptureOpen(true);
+    setAdesaoOpen(true);
   };
 
   const economia = useMemo(() => {
@@ -208,13 +210,13 @@ const EconomySimulator = ({
         </div>
 
         {empresaId && (
-          <LeadCaptureDialog
-            open={captureOpen}
-            onOpenChange={setCaptureOpen}
+          <AdesaoModal
+            open={adesaoOpen}
+            onOpenChange={setAdesaoOpen}
             empresaId={empresaId}
             empresaNome={companyName}
-            distribuidoraId={distribuidoraId}
-            estadoSigla={estadoSigla}
+            distribuidoraId={distribuidoraId ?? undefined}
+            distribuidoraNome={distribuidoraNome ?? undefined}
           />
         )}
       </DialogContent>

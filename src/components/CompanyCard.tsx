@@ -298,6 +298,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
         discountPercent={discountNumber}
         empresaId={company.empresaId}
         distribuidoraId={company.distribuidoraId}
+        distribuidoraNome={company.distribuidora}
         estadoSigla={company.estado}
       />
 
