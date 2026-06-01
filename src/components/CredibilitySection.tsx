@@ -25,7 +25,7 @@ const stats = [
 
 const CredibilitySection = () => {
   return (
-    <section className="bg-[#FFFBEB] py-12">
+    <section className="bg-background py-12">
       <div className="container mx-auto px-4">
         {/* Stats grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -36,7 +36,7 @@ const CredibilitySection = () => {
                 key={stat.label}
                 className="bg-white rounded-2xl p-6 md:p-8 text-center shadow-sm border border-black/5 flex flex-col items-center"
               >
-                <div className="mb-3 h-12 w-12 rounded-full bg-[#FFFBEB] flex items-center justify-center">
+                <div className="mb-3 h-12 w-12 rounded-full bg-brand-blue/10 flex items-center justify-center">
                   <Icon className="h-6 w-6 text-[#1E3A5F]" />
                 </div>
                 <div className="text-2xl md:text-4xl font-extrabold text-[#1E3A5F] leading-tight mb-2">
