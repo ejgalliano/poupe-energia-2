@@ -108,7 +108,7 @@ export default function AtivarCashback() {
     distribuidora_id: "", distribuidora_nome: "",
     empresa_id: "", empresa_nome: "",
     codigo_embaixador: "",
-    aceite_termos: false,
+    aceite_termos: true,
   });
 
   const [docFrente, setDocFrente] = useState<File | null>(null);

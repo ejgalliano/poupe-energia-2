@@ -115,7 +115,7 @@ export default function AdesaoModal({
     empresa_id: empresaId ?? "",
     empresa_nome: empresaNome ?? "",
     codigo_embaixador: "",
-    aceite_termos: false,
+    aceite_termos: true,
   });
 
   const [docFrente, setDocFrente] = useState<File | null>(null);
@@ -150,7 +150,7 @@ export default function AdesaoModal({
       setForm((f) => ({
         ...f,
         nome: "", cpf_cnpj: "", email: "", telefone: "",
-        codigo_embaixador: "", aceite_termos: false,
+        codigo_embaixador: "", aceite_termos: true,
       }));
     }
   }, [open]);
