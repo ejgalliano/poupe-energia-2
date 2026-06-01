@@ -61,6 +61,7 @@ const App = () => (
           <Route path="/termos-cashback" element={<TermosCashback />} />
           <Route path="/ativar-cashback" element={<AtivarCashback />} />
           <Route path="/duvidas-frequentes" element={<DuvidasFrequentes />} />
+          <Route path="/gd-livre-empresas" element={<PoupeFacilEmpresas />} />
           <Route path="/poupe-facil-empresas" element={<PoupeFacilEmpresas />} />
           <Route path="/energia-por-assinatura" element={<EnergiaPorAssinatura />} />
           <Route path="/mercado-livre-de-energia" element={<MercadoLivreDeEnergia />} />

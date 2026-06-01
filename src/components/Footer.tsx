@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 const CONTACT_EMAIL = "contato.poupeenergia@hotmail.com";
 
 const col1 = [
-  { label: "Poupe Fácil - Empresas", href: "/poupe-facil-empresas" },
+  { label: "GD Livre - Empresas", href: "/gd-livre-empresas" },
   { label: "Energia por Assinatura", href: "/energia-por-assinatura" },
   { label: "Mercado Livre de Energia", href: "/mercado-livre-de-energia" },
   { label: "Usinas de Investimento", href: "/usinas-de-investimento" },
