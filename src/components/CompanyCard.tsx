@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, FileText, ShieldCheck } from "lucide-react";
+import { Zap, FileText } from "lucide-react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { slugify } from "@/lib/slug";
@@ -33,14 +33,6 @@ interface Props {
 
 const ordinal = (n: number) => `${n}º`;
 
-const RISCO_STYLE: Record<string, { bg: string; text: string }> = {
-  "Baixo":      { bg: "bg-green-100",  text: "text-green-700" },
-  "Médio":      { bg: "bg-yellow-100", text: "text-yellow-700" },
-  "Medio":      { bg: "bg-yellow-100", text: "text-yellow-700" },
-  "Médio-Alto": { bg: "bg-orange-100", text: "text-orange-700" },
-  "Medio-Alto": { bg: "bg-orange-100", text: "text-orange-700" },
-  "Alto":       { bg: "bg-red-100",    text: "text-red-700" },
-};
 
 const CompanyCard = ({ company, hideActions = false }: Props) => {
   const isBronze = company.tipoFornecedor === "intermediador";
@@ -116,15 +108,6 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
             <p className="text-sm font-extrabold text-brand-blue leading-tight">{company.name}</p>
             <div className="mt-1 flex flex-col items-center gap-1">
               <SupplierBadge tipo={company.tipoFornecedor} size="sm" compact />
-              {!isBronze && company.nivelRisco && (() => {
-                const s = RISCO_STYLE[company.nivelRisco] ?? { bg: "bg-brand-blue/10", text: "text-brand-blue" };
-                return (
-                  <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md ${s.bg} ${s.text}`}>
-                    <ShieldCheck className="h-3 w-3" />
-                    Risco {company.nivelRisco}
-                  </span>
-                );
-              })()}
             </div>
           </div>
           {!isBronze && (
@@ -226,15 +209,6 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
                     Ficha Técnica
                   </Link>
                 )}
-                {!isBronze && company.nivelRisco && (() => {
-                  const s = RISCO_STYLE[company.nivelRisco] ?? { bg: "bg-brand-blue/10", text: "text-brand-blue" };
-                  return (
-                    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md ${s.bg} ${s.text}`}>
-                      <ShieldCheck className="h-3 w-3" />
-                      Risco {company.nivelRisco}
-                    </span>
-                  );
-                })()}
               </div>
             </div>
           </div>
