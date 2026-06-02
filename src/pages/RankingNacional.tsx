@@ -270,9 +270,6 @@ const RankingNacional = () => {
                 </div>
               ))}
 
-              {/* Seção Bronze — oculta por padrão */}
-              {bronzeCompanies.length > 0 && (
-              )}
             </div>
           )}
         </section>

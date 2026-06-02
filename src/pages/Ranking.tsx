@@ -566,9 +566,6 @@ const Ranking = () => {
             {!loading &&
               sortedCompanies.map((c) => <CompanyCard key={c.name} company={c} />)}
 
-            {/* Seção Bronze — oculta por padrão */}
-            {!loading && distribuidoraId && bronzeCompanies.length > 0 && (
-            )}
           </div>
 
           {companies.length > 0 && (
