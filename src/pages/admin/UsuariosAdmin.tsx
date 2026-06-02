@@ -1,104 +1,260 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Copy } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, ShieldCheck } from "lucide-react";
 
-type AdminUser = { id: string; email: string; created_at: string; is_admin: boolean };
+type Request = {
+  id: string;
+  user_id: string;
+  nome: string;
+  email: string;
+  celular: string;
+  status: "pendente" | "aprovado" | "rejeitado";
+  created_at: string;
+};
 
 export default function UsuariosAdmin() {
-  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [acting, setActing] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase.functions.invoke("admin-users", { body: { action: "list" } });
+    const { data, error } = await supabase
+      .from("admin_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
     setLoading(false);
-    if (error) return toast.error(error.message);
-    setUsers(data.users ?? []);
+    if (error) { toast.error(error.message); return; }
+    setRequests((data ?? []) as Request[]);
   };
 
   useEffect(() => { load(); }, []);
 
-  const promote = async (u: AdminUser) => {
-    const { error } = await supabase.functions.invoke("admin-users", { body: { action: "promote", user_id: u.id } });
-    if (error) toast.error(error.message);
-    else { toast.success(`${u.email} promovido a admin`); load(); }
-  };
-  const demote = async (u: AdminUser) => {
-    if (!confirm(`Remover acesso admin de ${u.email}?`)) return;
-    const { error } = await supabase.functions.invoke("admin-users", { body: { action: "demote", user_id: u.id } });
-    if (error) toast.error(error.message);
-    else { toast.success("Acesso removido"); load(); }
+  const approve = async (r: Request) => {
+    setActing(r.id);
+    try {
+      // 1. Concede role admin
+      const { error: roleErr } = await supabase
+        .from("user_roles")
+        .insert({ user_id: r.user_id, role: "admin" });
+      if (roleErr && !roleErr.message.includes("duplicate")) throw roleErr;
+
+      // 2. Atualiza status na solicitação
+      const { error: updErr } = await supabase
+        .from("admin_requests")
+        .update({ status: "aprovado" })
+        .eq("id", r.id);
+      if (updErr) throw updErr;
+
+      toast.success(`✅ ${r.nome} aprovado — já pode fazer login`);
+      load();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setActing(null);
+    }
   };
 
-  const inviteLink = `${window.location.origin}/admin/auth`;
-  const copyLink = () => {
-    navigator.clipboard.writeText(inviteLink);
-    toast.success("Link copiado");
+  const reject = async (r: Request) => {
+    if (!confirm(`Rejeitar acesso de ${r.nome}?`)) return;
+    setActing(r.id);
+    const { error } = await supabase
+      .from("admin_requests")
+      .update({ status: "rejeitado" })
+      .eq("id", r.id);
+    setActing(null);
+    if (error) toast.error(error.message);
+    else { toast.success("Solicitação rejeitada"); load(); }
   };
 
-  const filtered = users.filter((u) => u.email?.toLowerCase().includes(search.toLowerCase()));
+  const revoke = async (r: Request) => {
+    if (!confirm(`Revogar acesso admin de ${r.nome}?`)) return;
+    setActing(r.id);
+    const { error } = await supabase
+      .from("user_roles")
+      .delete()
+      .eq("user_id", r.user_id)
+      .eq("role", "admin");
+    if (error) { toast.error(error.message); setActing(null); return; }
+    await supabase.from("admin_requests").update({ status: "rejeitado" }).eq("id", r.id);
+    setActing(null);
+    toast.success("Acesso revogado");
+    load();
+  };
+
+  const pendentes = requests.filter((r) => r.status === "pendente");
+  const aprovados = requests.filter((r) => r.status === "aprovado");
+  const rejeitados = requests.filter((r) => r.status === "rejeitado");
+
+  const fmt = (d: string) => new Date(d).toLocaleDateString("pt-BR", {
+    day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+  });
 
   return (
-    <div className="space-y-4 max-w-4xl">
+    <div className="space-y-6 max-w-4xl">
       <h1 className="text-2xl font-bold">Usuários Admin</h1>
 
-      <Card>
-        <CardContent className="pt-6 space-y-3">
-          <div className="text-sm text-muted-foreground">
-            Para conceder acesso: envie o link de cadastro abaixo. Após o cadastro, promova o usuário a admin nesta tela.
-          </div>
-          <div className="flex gap-2">
-            <Input value={inviteLink} readOnly className="font-mono text-xs" />
-            <Button variant="outline" onClick={copyLink}><Copy className="h-4 w-4 mr-2" />Copiar</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Input placeholder="Buscar por email..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-sm" />
-
-      <Card>
-        <CardContent className="p-0">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="text-left p-3">Email</th>
-                <th className="text-left p-3">Cadastrado em</th>
-                <th className="text-left p-3">Status</th>
-                <th className="text-right p-3">Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">Carregando...</td></tr>}
-              {!loading && filtered.map((u) => (
-                <tr key={u.id} className="border-t">
-                  <td className="p-3">{u.email}</td>
-                  <td className="p-3">{new Date(u.created_at).toLocaleDateString("pt-BR")}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-0.5 rounded text-xs ${u.is_admin ? "bg-[hsl(38,92%,90%)] text-[hsl(214,50%,24%)]" : "bg-muted text-muted-foreground"}`}>
-                      {u.is_admin ? "Admin" : "Usuário"}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right">
-                    {u.is_admin ? (
-                      <Button size="sm" variant="destructive" onClick={() => demote(u)}>Remover admin</Button>
-                    ) : (
-                      <Button size="sm" onClick={() => promote(u)}>Promover a admin</Button>
-                    )}
-                  </td>
+      {/* ── Pendentes ── */}
+      {pendentes.length > 0 && (
+        <Card className="border-brand-yellow border-2">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Clock className="h-5 w-5 text-brand-yellow" />
+              Solicitações pendentes
+              <Badge className="bg-brand-yellow text-brand-blue ml-1">{pendentes.length}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left p-3">Nome</th>
+                  <th className="text-left p-3">E-mail</th>
+                  <th className="text-left p-3">Celular</th>
+                  <th className="text-left p-3">Solicitado em</th>
+                  <th className="text-right p-3">Ação</th>
                 </tr>
-              ))}
-              {!loading && filtered.length === 0 && (
-                <tr><td colSpan={4} className="p-4 text-center text-muted-foreground">Nenhum usuário encontrado.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
+              </thead>
+              <tbody>
+                {pendentes.map((r) => (
+                  <tr key={r.id} className="border-t">
+                    <td className="p-3 font-semibold">{r.nome}</td>
+                    <td className="p-3">{r.email}</td>
+                    <td className="p-3">{r.celular}</td>
+                    <td className="p-3 text-muted-foreground text-xs">{fmt(r.created_at)}</td>
+                    <td className="p-3 text-right space-x-2">
+                      <Button
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        disabled={acting === r.id}
+                        onClick={() => approve(r)}
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                        Aprovar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={acting === r.id}
+                        onClick={() => reject(r)}
+                      >
+                        <XCircle className="h-3.5 w-3.5 mr-1" />
+                        Rejeitar
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      )}
+
+      {pendentes.length === 0 && !loading && (
+        <div className="text-sm text-muted-foreground bg-muted/30 rounded-xl px-4 py-3">
+          Nenhuma solicitação pendente.
+        </div>
+      )}
+
+      {/* ── Aprovados ── */}
+      {aprovados.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ShieldCheck className="h-5 w-5 text-green-600" />
+              Com acesso liberado
+              <Badge variant="secondary" className="ml-1">{aprovados.length}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left p-3">Nome</th>
+                  <th className="text-left p-3">E-mail</th>
+                  <th className="text-left p-3">Celular</th>
+                  <th className="text-left p-3">Aprovado em</th>
+                  <th className="text-right p-3">Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {aprovados.map((r) => (
+                  <tr key={r.id} className="border-t">
+                    <td className="p-3 font-semibold">{r.nome}</td>
+                    <td className="p-3">{r.email}</td>
+                    <td className="p-3">{r.celular}</td>
+                    <td className="p-3 text-muted-foreground text-xs">{fmt(r.created_at)}</td>
+                    <td className="p-3 text-right">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        disabled={acting === r.id}
+                        onClick={() => revoke(r)}
+                      >
+                        Revogar acesso
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Rejeitados ── */}
+      {rejeitados.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base text-muted-foreground">
+              <XCircle className="h-5 w-5" />
+              Solicitações rejeitadas
+              <Badge variant="secondary" className="ml-1">{rejeitados.length}</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left p-3">Nome</th>
+                  <th className="text-left p-3">E-mail</th>
+                  <th className="text-left p-3">Celular</th>
+                  <th className="text-left p-3">Data</th>
+                  <th className="text-right p-3">Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rejeitados.map((r) => (
+                  <tr key={r.id} className="border-t opacity-60">
+                    <td className="p-3">{r.nome}</td>
+                    <td className="p-3">{r.email}</td>
+                    <td className="p-3">{r.celular}</td>
+                    <td className="p-3 text-xs text-muted-foreground">{fmt(r.created_at)}</td>
+                    <td className="p-3 text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={acting === r.id}
+                        onClick={() => approve(r)}
+                      >
+                        Aprovar mesmo assim
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+      )}
+
+      {loading && (
+        <div className="text-center text-muted-foreground py-8">Carregando...</div>
+      )}
     </div>
   );
 }
