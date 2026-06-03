@@ -17,6 +17,7 @@ export interface Company {
   minValue: string;
   score: number;
   partner?: boolean;
+  cashbackPercentual?: number | null;
   estado?: string;
   distribuidora?: string;
   empresaId?: string;
@@ -154,7 +155,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
       {company.partner && (
         <div className="hidden md:flex px-5 py-2 border-t border-border">
           <span className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold">
-            ⚡ 10% de cashback na adesão
+            ⚡ {company.cashbackPercentual ?? 10}% de cashback na adesão
           </span>
         </div>
       )}
@@ -240,7 +241,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
         {/* Tag cashback */}
         {company.partner && (
           <div className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold mb-3">
-            ⚡ 10% de cashback na adesão
+            ⚡ {company.cashbackPercentual ?? 10}% de cashback na adesão
           </div>
         )}
 

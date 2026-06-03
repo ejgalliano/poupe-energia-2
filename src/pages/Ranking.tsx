@@ -106,6 +106,7 @@ const Ranking = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [bronzeCompanies, setBronzeCompanies] = useState<BronzeEmpresa[]>([]);
   const [logoMap, setLogoMap] = useState<Record<string, string>>({});
+  const [cashbackMap, setCashbackMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
 
@@ -141,19 +142,21 @@ const Ranking = () => {
       .then(({ data }) => setBronzeCompanies((data ?? []) as BronzeEmpresa[]));
   }, []);
 
-  // Carrega mapa de logos (id -> logo_url) uma única vez
+  // Carrega mapa de logos e cashback (id -> logo_url / cashback_percentual)
   useEffect(() => {
     supabase
       .from("empresas")
-      .select("id, logo_url")
-      .not("logo_url", "is", null)
+      .select("id, logo_url, cashback_percentual, parceira")
       .then(({ data }) => {
         if (!data) return;
-        const map: Record<string, string> = {};
-        data.forEach((e: { id: string; logo_url: string }) => {
-          if (e.logo_url) map[e.id] = e.logo_url;
+        const logos: Record<string, string> = {};
+        const cashbacks: Record<string, number> = {};
+        data.forEach((e: { id: string; logo_url: string | null; cashback_percentual: number | null; parceira: boolean | null }) => {
+          if (e.logo_url) logos[e.id] = e.logo_url;
+          if (e.parceira && e.cashback_percentual) cashbacks[e.id] = e.cashback_percentual;
         });
-        setLogoMap(map);
+        setLogoMap(logos);
+        setCashbackMap(cashbacks);
       });
   }, []);
 
@@ -253,6 +256,7 @@ const Ranking = () => {
           minValue: formatBRL(Number(row.valor_minimo_fatura)),
           score: Number(row.nota_final),
           partner: Boolean(row.empresas?.parceira),
+          cashbackPercentual: cashbackMap[row.empresa_id] ?? null,
           estado: estadoSigla,
           distribuidora: distribuidoraAtual?.nome,
           empresaId: row.empresa_id,
