@@ -108,6 +108,7 @@ const Ranking = () => {
   const [showBronze, setShowBronze] = useState(false);
   const [logoMap, setLogoMap] = useState<Record<string, string>>({});
   const [cashbackMap, setCashbackMap] = useState<Record<string, number>>({});
+  const [bandsMap, setBandsMap] = useState<Record<string, { d1: number | null; d2: number | null; d3: number | null; d4: number | null }>>({});
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
 
@@ -147,17 +148,25 @@ const Ranking = () => {
   useEffect(() => {
     supabase
       .from("empresas")
-      .select("id, logo_url, cashback_percentual, parceira")
+      .select("id, logo_url, cashback_percentual, parceira, desconto_ate_1mwh, desconto_1a3mwh, desconto_3a5mwh, desconto_acima_5mwh")
       .then(({ data }) => {
         if (!data) return;
         const logos: Record<string, string> = {};
         const cashbacks: Record<string, number> = {};
-        data.forEach((e: { id: string; logo_url: string | null; cashback_percentual: number | null; parceira: boolean | null }) => {
+        const bands: Record<string, { d1: number | null; d2: number | null; d3: number | null; d4: number | null }> = {};
+        data.forEach((e: any) => {
           if (e.logo_url) logos[e.id] = e.logo_url;
           if (e.parceira && e.cashback_percentual) cashbacks[e.id] = e.cashback_percentual;
+          bands[e.id] = {
+            d1: e.desconto_ate_1mwh ?? null,
+            d2: e.desconto_1a3mwh ?? null,
+            d3: e.desconto_3a5mwh ?? null,
+            d4: e.desconto_acima_5mwh ?? null,
+          };
         });
         setLogoMap(logos);
         setCashbackMap(cashbacks);
+        setBandsMap(bands);
       });
   }, []);
 
@@ -258,6 +267,10 @@ const Ranking = () => {
           score: Number(row.nota_final),
           partner: Boolean(row.empresas?.parceira),
           cashbackPercentual: cashbackMap[row.empresa_id] ?? null,
+          descontoAte1mwh: bandsMap[row.empresa_id]?.d1 ?? null,
+          desconto1a3mwh: bandsMap[row.empresa_id]?.d2 ?? null,
+          desconto3a5mwh: bandsMap[row.empresa_id]?.d3 ?? null,
+          descontoAcima5mwh: bandsMap[row.empresa_id]?.d4 ?? null,
           estado: estadoSigla,
           distribuidora: distribuidoraAtual?.nome,
           empresaId: row.empresa_id,

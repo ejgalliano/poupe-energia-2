@@ -18,6 +18,10 @@ export interface Company {
   score: number;
   partner?: boolean;
   cashbackPercentual?: number | null;
+  descontoAte1mwh?: number | null;
+  desconto1a3mwh?: number | null;
+  desconto3a5mwh?: number | null;
+  descontoAcima5mwh?: number | null;
   estado?: string;
   distribuidora?: string;
   empresaId?: string;
@@ -271,6 +275,10 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
         onOpenChange={setSimOpen}
         companyName={company.name}
         discountPercent={discountNumber}
+        descontoAte1mwh={company.descontoAte1mwh}
+        desconto1a3mwh={company.desconto1a3mwh}
+        desconto3a5mwh={company.desconto3a5mwh}
+        descontoAcima5mwh={company.descontoAcima5mwh}
         empresaId={company.empresaId}
         distribuidoraId={company.distribuidoraId}
         distribuidoraNome={company.distribuidora}

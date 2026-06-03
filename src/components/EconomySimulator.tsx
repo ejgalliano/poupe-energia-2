@@ -14,8 +14,12 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   companyName: string;
-  /** Desconto em % (ex: 15) */
+  /** Desconto fallback quando faixas individuais não estão preenchidas */
   discountPercent: number;
+  descontoAte1mwh?: number | null;
+  desconto1a3mwh?: number | null;
+  desconto3a5mwh?: number | null;
+  descontoAcima5mwh?: number | null;
   empresaId?: string;
   distribuidoraId?: string | null;
   distribuidoraNome?: string | null;
@@ -45,20 +49,19 @@ const formatMoneyInput = (value: number) =>
         minimumFractionDigits: 2,
       }).format(value);
 
-const faixas = [
-  { label: "< 1 MWh", range: "Até 1 MWh", color: "text-foreground" },
-  { label: "1-3 MWh", range: "1 a 3 MWh", color: "text-brand-yellow" },
-  { label: "3-5 MWh", range: "3 a 5 MWh", color: "text-brand-yellow" },
-  { label: "> 5 MWh", range: "Acima de 5 MWh", color: "text-brand-success" },
+const FAIXAS = [
+  { label: "< 1 MWh",  range: "Até 1 MWh",     color: "text-foreground" },
+  { label: "1-3 MWh",  range: "1 a 3 MWh",      color: "text-brand-yellow" },
+  { label: "3-5 MWh",  range: "3 a 5 MWh",      color: "text-brand-yellow" },
+  { label: "> 5 MWh",  range: "Acima de 5 MWh", color: "text-brand-success" },
 ];
 
-const detectFaixa = (valor: number) => {
-  // valor estimado em R$/mês -> usar tarifa média ~1000/MWh para detecção rough
-  // Mas como é genérico, vamos usar faixas por valor conta:
-  if (valor < 1000) return faixas[0];
-  if (valor < 3000) return faixas[1];
-  if (valor < 5000) return faixas[2];
-  return faixas[3];
+/** Índice da faixa com base no valor mensal da conta */
+const detectFaixaIdx = (valor: number): number => {
+  if (valor < 1000) return 0;
+  if (valor < 3000) return 1;
+  if (valor < 5000) return 2;
+  return 3;
 };
 
 const EconomySimulator = ({
@@ -66,6 +69,10 @@ const EconomySimulator = ({
   onOpenChange,
   companyName,
   discountPercent,
+  descontoAte1mwh,
+  desconto1a3mwh,
+  desconto3a5mwh,
+  descontoAcima5mwh,
   empresaId,
   distribuidoraId,
   distribuidoraNome,
@@ -74,21 +81,30 @@ const EconomySimulator = ({
   const [valor, setValor] = useState(0);
   const [adesaoOpen, setAdesaoOpen] = useState(false);
 
-  const handleAderir = () => {
-    if (!empresaId) return;
-    setAdesaoOpen(true);
-  };
+  /** Array com os 4 descontos — fallback para discountPercent se null */
+  const descontosPorFaixa = [
+    descontoAte1mwh   ?? discountPercent,
+    desconto1a3mwh    ?? discountPercent,
+    desconto3a5mwh    ?? discountPercent,
+    descontoAcima5mwh ?? discountPercent,
+  ];
+
+  const faixaIdx = valor > 0 ? detectFaixaIdx(valor) : null;
+  const descontoAtivo = faixaIdx !== null ? descontosPorFaixa[faixaIdx] : discountPercent;
 
   const economia = useMemo(() => {
-    const mensal = valor * (discountPercent / 100);
+    const mensal = valor * (descontoAtivo / 100);
     return {
       mensal,
       anual: mensal * 12,
       novaConta: Math.max(valor - mensal, 0),
     };
-  }, [valor, discountPercent]);
+  }, [valor, descontoAtivo]);
 
-  const faixaDetectada = valor > 0 ? detectFaixa(valor) : null;
+  const handleAderir = () => {
+    if (!empresaId) return;
+    setAdesaoOpen(true);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -115,17 +131,25 @@ const EconomySimulator = ({
               Descontos por faixa de consumo
             </p>
             <div className="grid grid-cols-4 gap-2">
-              {faixas.map((f) => (
-                <div
-                  key={f.label}
-                  className="bg-background rounded-lg px-1 py-2 text-center shadow-sm"
-                >
-                  <div className="text-[10px] sm:text-xs text-muted-foreground">{f.label}</div>
-                  <div className={`text-sm sm:text-base font-bold ${f.color}`}>
-                    {discountPercent}%
+              {FAIXAS.map((f, i) => {
+                const pct = descontosPorFaixa[i];
+                const isAtiva = faixaIdx === i;
+                return (
+                  <div
+                    key={f.label}
+                    className={`rounded-lg px-1 py-2 text-center shadow-sm transition-all ${
+                      isAtiva
+                        ? "bg-brand-success/10 ring-2 ring-brand-success"
+                        : "bg-background"
+                    }`}
+                  >
+                    <div className="text-[10px] sm:text-xs text-muted-foreground">{f.label}</div>
+                    <div className={`text-sm sm:text-base font-bold ${isAtiva ? "text-brand-success" : f.color}`}>
+                      {pct != null ? `${pct}%` : "—"}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -146,13 +170,13 @@ const EconomySimulator = ({
                 className="rounded-xl h-12 pl-12 pr-3 text-lg font-bold text-foreground focus-visible:ring-brand-blue focus-visible:border-brand-blue"
               />
             </div>
-            {faixaDetectada && (
+            {faixaIdx !== null && (
               <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 flex items-center gap-1 flex-wrap">
                 <TrendingDown className="h-3 w-3 text-brand-blue" />
                 Faixa detectada:{" "}
-                <span className="text-brand-blue font-semibold">{faixaDetectada.range}</span>
+                <span className="text-brand-blue font-semibold">{FAIXAS[faixaIdx].range}</span>
                 {" "}— desconto de{" "}
-                <span className="text-brand-success font-semibold">{discountPercent}%</span>
+                <span className="text-brand-success font-semibold">{descontoAtivo}%</span>
               </p>
             )}
           </div>
@@ -162,17 +186,13 @@ const EconomySimulator = ({
             <>
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-muted/40 rounded-xl p-3 text-center">
-                  <div className="text-xs sm:text-sm text-muted-foreground">
-                    Sua conta atual
-                  </div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">Sua conta atual</div>
                   <div className="text-lg sm:text-xl font-extrabold text-foreground mt-0.5">
                     {formatBRL(valor)}
                   </div>
                 </div>
                 <div className="bg-brand-success/10 rounded-xl p-3 text-center">
-                  <div className="text-xs sm:text-sm text-brand-success">
-                    Nova conta estimada
-                  </div>
+                  <div className="text-xs sm:text-sm text-brand-success">Nova conta estimada</div>
                   <div className="text-lg sm:text-xl font-extrabold text-brand-success mt-0.5">
                     {formatBRL(economia.novaConta)}
                   </div>

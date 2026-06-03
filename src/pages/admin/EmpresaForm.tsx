@@ -245,6 +245,36 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
           <Field label="Taxa de adesão R$"><Input type="number" value={f.taxa_adesao ?? ""} onChange={(e) => set("taxa_adesao", +e.target.value || null)} /></Field>
           <Field label="Índice de reajuste"><Input value={f.indice_reajuste ?? ""} onChange={(e) => set("indice_reajuste", e.target.value)} placeholder="ex: Reajuste Tarifário Anual ANEEL" /></Field>
           <Field label="Desconto divulgado"><Input value={f.desconto_divulgado ?? ""} onChange={(e) => set("desconto_divulgado", e.target.value)} placeholder="ex: até 20%" /></Field>
+          {/* Descontos por faixa */}
+          <div className="md:col-span-2">
+            <label className="block text-xs font-semibold text-gray-700 mb-2">Descontos por Faixa de Consumo (%)</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { label: "< 1 MWh",   key: "desconto_ate_1mwh" },
+                { label: "1 a 3 MWh", key: "desconto_1a3mwh" },
+                { label: "3 a 5 MWh", key: "desconto_3a5mwh" },
+                { label: "> 5 MWh",   key: "desconto_acima_5mwh" },
+              ].map(({ label, key }) => (
+                <div key={key} className="text-center">
+                  <div className="text-[10px] text-muted-foreground font-semibold mb-1">{label}</div>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      placeholder="—"
+                      value={f[key] ?? ""}
+                      onChange={(e) => set(key, e.target.value === "" ? null : +e.target.value)}
+                      className="text-center pr-6"
+                    />
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">Deixe em branco a faixa que a empresa não atende.</p>
+          </div>
           <Field label="Tipo de desconto">
             <Select value={f.tipo_desconto ?? ""} onValueChange={(v) => set("tipo_desconto", v)}>
               <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>

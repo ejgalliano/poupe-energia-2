@@ -92,7 +92,7 @@ const RankingNacional = () => {
       // Buscar TODAS as empresas ativas não-bronze (sem filtro de perfil)
       const { data: empresas } = await supabase
         .from("empresas")
-        .select("id, nome, parceira, ativa, tipo_fornecedor, logo_url, cashback_percentual")
+        .select("id, nome, parceira, ativa, tipo_fornecedor, logo_url, cashback_percentual, desconto_ate_1mwh, desconto_1a3mwh, desconto_3a5mwh, desconto_acima_5mwh")
         .eq("ativa", true)
         .neq("tipo_fornecedor", "intermediador");
 
@@ -148,6 +148,10 @@ const RankingNacional = () => {
             score: Number(score.toFixed(2)),
             partner: Boolean(e.parceira),
             cashbackPercentual: e.parceira && (e as any).cashback_percentual ? (e as any).cashback_percentual : null,
+            descontoAte1mwh: (e as any).desconto_ate_1mwh ?? null,
+            desconto1a3mwh: (e as any).desconto_1a3mwh ?? null,
+            desconto3a5mwh: (e as any).desconto_3a5mwh ?? null,
+            descontoAcima5mwh: (e as any).desconto_acima_5mwh ?? null,
             empresaId: e.id,
             estadosCount: new Set(rows.map((r: any) => r.distribuidora_id)).size,
             tipoFornecedor: (e as any).tipo_fornecedor ?? null,
