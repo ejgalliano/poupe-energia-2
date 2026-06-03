@@ -98,7 +98,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
       <div className="hidden md:flex items-center gap-0 pt-6">
 
         {/* Coluna esquerda: Logo inicial + nome + tags */}
-        <div className="flex flex-col items-center justify-center gap-2 px-5 shrink-0 w-36 self-stretch border-r border-border">
+        <div className="flex flex-col items-center justify-center gap-2 px-5 pb-4 shrink-0 w-36 self-stretch border-r border-border">
           <div className="h-16 w-16 rounded-xl bg-white border border-border flex items-center justify-center overflow-hidden">
             {company.logoUrl
               ? <img src={company.logoUrl} alt={company.name} className="h-full w-full object-contain" />
