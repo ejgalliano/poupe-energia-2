@@ -31,11 +31,17 @@ export default function Notas() {
   // sjNota: valor numérico de Segurança Jurídica (0–10, decimal ok)
   // É preenchido com o valor do banco ao carregar, e atualizado pelo scorecard
   const [sjNota, setSjNota] = useState<number>(0);
+  const [maiorDesconto, setMaiorDesconto] = useState<number>(0);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     supabase.from("empresas").select("id,nome,tipo_fornecedor").neq("tipo_fornecedor", "intermediador").order("nome").then(({ data }) => setEmpresas(data ?? []));
     supabase.from("distribuidoras").select("id,nome").order("nome").then(({ data }) => setDistribuidoras(data ?? []));
+    // Buscar maior desconto global (igual à planilha original)
+    supabase.from("notas_empresas").select("desconto_percentual").then(({ data }) => {
+      const max = Math.max(0, ...(data ?? []).map((x: any) => Number(x.desconto_percentual) || 0));
+      setMaiorDesconto(max);
+    });
   }, []);
 
   useEffect(() => {
@@ -79,15 +85,14 @@ export default function Notas() {
     const desc = Number(nota.desconto_percentual) || 0;
     const ra = Number(nota.reputacao_reclame_aqui) || 0;
     const vm = Number(nota.valor_minimo_fatura) || 0;
-    // notaDS = desconto / 2 (max 20% → nota 10). Capped a 10.
-    const ds = Math.min(10, desc / 2);
+    // Nota DS = (desconto_empresa / maior_desconto_global) × 10  — igual à planilha original
+    const ds = maiorDesconto > 0 ? Math.min(10, (desc / maiorDesconto) * 10) : 0;
     // SJ: usa sjNota que pode ser decimal (ex: 9.5) ou inteiro (do scorecard)
     const sj = Math.min(10, Math.max(0, sjNota));
     const nvm = Math.max(0, Math.min(10, ((1000 - vm) / 900) * 10));
     const raw = ds * 0.4 + sj * 0.3 + ra * 0.2 + nvm * 0.1;
-    // SEMPRE cap em 0–10
     return Math.min(10, Math.max(0, raw));
-  }, [nota, sjNota]);
+  }, [nota, sjNota, maiorDesconto]);
 
   const save = async () => {
     if (!nota) return;
@@ -215,14 +220,17 @@ export default function Notas() {
 
           <Card>
             <CardContent className="flex items-center justify-between pt-6">
-              <div>
+              <div className="space-y-1">
                 <div className="text-sm text-muted-foreground">Nota Final calculada</div>
-                <div className={`text-4xl font-bold ${notaFinal > 10 ? "text-red-600" : "text-[hsl(214,50%,24%)]"}`}>
+                <div className="text-4xl font-bold text-[hsl(214,50%,24%)]">
                   {notaFinal.toFixed(2)}
                 </div>
-                {notaFinal >= 9.9 && (
-                  <div className="text-xs text-amber-600 mt-1">Nota máxima atingida (10)</div>
-                )}
+                <div className="text-xs text-muted-foreground">
+                  Maior desconto do ranking: <span className="font-semibold text-foreground">{maiorDesconto}%</span>
+                  {nota && Number(nota.desconto_percentual) === maiorDesconto && (
+                    <span className="ml-1 text-brand-success font-semibold">(esta empresa tem o maior desconto)</span>
+                  )}
+                </div>
               </div>
               <Button onClick={save} disabled={saving}>{saving ? "Salvando..." : "Salvar notas"}</Button>
             </CardContent>

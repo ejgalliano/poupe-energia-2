@@ -53,19 +53,31 @@ Deno.serve(async (req) => {
       (r: any) => r.empresas?.ativa !== false,
     ) as NotaRow[];
 
+    // Buscar o maior desconto global (todas as distribuidoras) para normalizar igual à planilha:
+    // Nota DS = (desconto_empresa / maior_desconto_do_ranking) × 10
+    const { data: todosDescontos } = await supabase
+      .from("notas_empresas")
+      .select("desconto_percentual");
+    const maiorDesconto = Math.max(
+      0,
+      ...(todosDescontos ?? []).map((r: any) => Number(r.desconto_percentual) || 0),
+    );
+
     const computed = rows.map((r) => {
       const desconto = Number(r.desconto_percentual) || 0;
       const sj = Number(r.seguranca_juridica) || 0;
       const ra = Number(r.reputacao_reclame_aqui) || 0;
       const vm = Number(r.valor_minimo_fatura) || 0;
 
-      // notaDS = desconto / 2 (planilha: desconto em %, ex: 20% → nota 10). Cap em 10.
-      const notaDS = Math.min(10, desconto / 2);
+      // Nota DS = (desconto_empresa / maior_desconto_global) × 10  — fiel à planilha original
+      // Se maiorDesconto = 0 (sem dados), nota DS = 0
+      const notaDS = maiorDesconto > 0
+        ? Math.min(10, (desconto / maiorDesconto) * 10)
+        : 0;
       const sjCapped = Math.min(10, Math.max(0, sj));
       const raCapped = Math.min(10, Math.max(0, ra));
       const notaVM = Math.max(0, Math.min(10, ((1000 - vm) / 900) * 10));
-      const raw =
-        notaDS * 0.4 + sjCapped * 0.3 + raCapped * 0.2 + notaVM * 0.1;
+      const raw = notaDS * 0.4 + sjCapped * 0.3 + raCapped * 0.2 + notaVM * 0.1;
       // Garantir escala 0–10
       const notaFinal = Math.min(10, Math.max(0, raw));
       const rounded = Math.round(notaFinal * 100) / 100;
