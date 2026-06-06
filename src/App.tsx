@@ -34,6 +34,7 @@ import Eletropostos from "./pages/Eletropostos.tsx";
 import DuvidasFrequentes from "./pages/DuvidasFrequentes.tsx";
 import Embaixadores from "./pages/admin/Embaixadores";
 import CashbackCadastros from "./pages/admin/CashbackCadastros";
+import FormulaConfig from "./pages/admin/FormulaConfig";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 import EmbCapture from "./components/EmbCapture";
 import ScrollToTop from "./components/ScrollToTop";
@@ -81,6 +82,7 @@ const App = () => (
             <Route path="leads-empresariais" element={<LeadsEmpresariais />} />
             <Route path="embaixadores" element={<Embaixadores />} />
             <Route path="cashback" element={<CashbackCadastros />} />
+            <Route path="formula" element={<FormulaConfig />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

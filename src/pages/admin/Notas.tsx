@@ -32,15 +32,19 @@ export default function Notas() {
   // É preenchido com o valor do banco ao carregar, e atualizado pelo scorecard
   const [sjNota, setSjNota] = useState<number>(0);
   const [maiorDesconto, setMaiorDesconto] = useState<number>(0);
+  const [formulaCfg, setFormulaCfg] = useState({ peso_desconto: 0.4, peso_sj: 0.3, peso_ra: 0.2, peso_vm: 0.1, vm_melhor: 100, vm_pior: 1000 });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     supabase.from("empresas").select("id,nome,tipo_fornecedor").neq("tipo_fornecedor", "intermediador").order("nome").then(({ data }) => setEmpresas(data ?? []));
     supabase.from("distribuidoras").select("id,nome").order("nome").then(({ data }) => setDistribuidoras(data ?? []));
-    // Buscar maior desconto global (igual à planilha original)
+    // Buscar maior desconto global e configuração da fórmula
     supabase.from("notas_empresas").select("desconto_percentual").then(({ data }) => {
       const max = Math.max(0, ...(data ?? []).map((x: any) => Number(x.desconto_percentual) || 0));
       setMaiorDesconto(max);
+    });
+    supabase.from("formula_config").select("*").limit(1).maybeSingle().then(({ data }) => {
+      if (data) setFormulaCfg(data);
     });
   }, []);
 
@@ -89,10 +93,12 @@ export default function Notas() {
     const ds = maiorDesconto > 0 ? Math.min(10, (desc / maiorDesconto) * 10) : 0;
     // SJ: usa sjNota que pode ser decimal (ex: 9.5) ou inteiro (do scorecard)
     const sj = Math.min(10, Math.max(0, sjNota));
-    const nvm = Math.max(0, Math.min(10, ((1000 - vm) / 900) * 10));
-    const raw = ds * 0.4 + sj * 0.3 + ra * 0.2 + nvm * 0.1;
+    // Nota VM usando parâmetros da config
+    const range = formulaCfg.vm_pior - formulaCfg.vm_melhor;
+    const nvm = range > 0 ? Math.max(0, Math.min(10, ((formulaCfg.vm_pior - vm) / range) * 10)) : 0;
+    const raw = ds * formulaCfg.peso_desconto + sj * formulaCfg.peso_sj + ra * formulaCfg.peso_ra + nvm * formulaCfg.peso_vm;
     return Math.min(10, Math.max(0, raw));
-  }, [nota, sjNota, maiorDesconto]);
+  }, [nota, sjNota, maiorDesconto, formulaCfg]);
 
   const save = async () => {
     if (!nota) return;

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Building2, Star, MapPin, Users, LogOut, Handshake, Briefcase, Award, Gift } from "lucide-react";
+import { LayoutDashboard, Building2, Star, MapPin, Users, LogOut, Handshake, Briefcase, Award, Gift, FlaskConical } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Button } from "@/components/ui/button";
 
@@ -8,6 +8,7 @@ const items = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/empresas", label: "Empresas", icon: Building2 },
   { to: "/admin/notas", label: "Notas", icon: Star },
+  { to: "/admin/formula", label: "Fórmula do Ranking", icon: FlaskConical },
   { to: "/admin/distribuidoras", label: "Distribuidoras", icon: MapPin },
   { to: "/admin/parceiros", label: "Parceiros & Leads", icon: Handshake },
   { to: "/admin/leads-empresariais", label: "Leads Empresariais", icon: Briefcase },
