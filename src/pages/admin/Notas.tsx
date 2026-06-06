@@ -28,7 +28,9 @@ export default function Notas() {
   const [distId, setDistId] = useState("");
   const [nota, setNota] = useState<any>(null);
   const [score, setScore] = useState<any>({});
-  const [maiorDesconto, setMaiorDesconto] = useState(0);
+  // sjNota: valor numérico de Segurança Jurídica (0–10, decimal ok)
+  // É preenchido com o valor do banco ao carregar, e atualizado pelo scorecard
+  const [sjNota, setSjNota] = useState<number>(0);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export default function Notas() {
   }, []);
 
   useEffect(() => {
-    if (!empresaId || !distId) { setNota(null); return; }
+    if (!empresaId || !distId) { setNota(null); setSjNota(0); return; }
     (async () => {
       const { data } = await supabase
         .from("notas_empresas")
@@ -49,14 +51,26 @@ export default function Notas() {
         valor_minimo_fatura: 100, nivel_risco: "Baixo",
       };
       setNota(base);
+      // Carrega SJ do banco (pode ser decimal como 9.5 vindo da planilha)
+      setSjNota(Number(base.seguranca_juridica) || 0);
       if (data) {
         const { data: sc } = await supabase.from("scorecard_sj").select("*").eq("nota_empresa_id", data.id).maybeSingle();
-        setScore(sc ?? {});
+        const sc2 = sc ?? {};
+        setScore(sc2);
+        // Sincroniza sjNota com o count do scorecard se scorecard já preenchido
+        const count = SJ_FIELDS.reduce((acc, [k]) => acc + (sc2[k] ? 1 : 0), 0);
+        if (count > 0) setSjNota(count);
       } else setScore({});
-      const { data: all } = await supabase.from("notas_empresas").select("desconto_percentual").eq("distribuidora_id", distId);
-      setMaiorDesconto(Math.max(0, ...(all ?? []).map((x) => Number(x.desconto_percentual) || 0)));
     })();
   }, [empresaId, distId]);
+
+  // Quando checkboxes mudam → atualiza sjNota para reflect o count
+  const handleScoreChange = (key: string, value: boolean) => {
+    const newScore = { ...score, [key]: !!value };
+    setScore(newScore);
+    const count = SJ_FIELDS.reduce((acc, [k]) => acc + (newScore[k] ? 1 : 0), 0);
+    setSjNota(count);
+  };
 
   const sjCount = useMemo(() => SJ_FIELDS.reduce((acc, [k]) => acc + (score[k] ? 1 : 0), 0), [score]);
 
@@ -65,17 +79,22 @@ export default function Notas() {
     const desc = Number(nota.desconto_percentual) || 0;
     const ra = Number(nota.reputacao_reclame_aqui) || 0;
     const vm = Number(nota.valor_minimo_fatura) || 0;
-    // notaDS = desconto / 2  (desconto máximo possível = 20% → nota 10)
-    const ds = desc / 2;
-    const sj = sjCount;
+    // notaDS = desconto / 2 (max 20% → nota 10). Capped a 10.
+    const ds = Math.min(10, desc / 2);
+    // SJ: usa sjNota que pode ser decimal (ex: 9.5) ou inteiro (do scorecard)
+    const sj = Math.min(10, Math.max(0, sjNota));
     const nvm = Math.max(0, Math.min(10, ((1000 - vm) / 900) * 10));
-    return ds * 0.4 + sj * 0.3 + ra * 0.2 + nvm * 0.1;
-  }, [nota, sjCount, maiorDesconto]);
+    const raw = ds * 0.4 + sj * 0.3 + ra * 0.2 + nvm * 0.1;
+    // SEMPRE cap em 0–10
+    return Math.min(10, Math.max(0, raw));
+  }, [nota, sjNota]);
 
   const save = async () => {
     if (!nota) return;
     setSaving(true);
-    const payload = { ...nota, seguranca_juridica: sjCount, nota_final: Number(notaFinal.toFixed(2)) };
+    const sjFinal = Math.min(10, Math.max(0, sjNota));
+    const notaFinalRounded = Number(notaFinal.toFixed(2));
+    const payload = { ...nota, seguranca_juridica: sjFinal, nota_final: notaFinalRounded };
     let notaId = nota.id;
     if (notaId) {
       const { error } = await supabase.from("notas_empresas").update(payload).eq("id", notaId);
@@ -97,6 +116,12 @@ export default function Notas() {
   return (
     <div className="space-y-4 max-w-4xl">
       <h1 className="text-2xl font-bold">Notas por Distribuidora</h1>
+
+      {/* Aviso sobre escala */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+        <strong>Atenção às escalas:</strong> Desconto em % (ex: 15 = 15%), Reputação Reclame Aqui de <strong>0 a 10</strong> (ex: 7.4), Segurança Jurídica de <strong>0 a 10</strong>. Valores fora desta escala vão distorcer a nota final.
+      </div>
+
       <Card>
         <CardContent className="grid md:grid-cols-2 gap-4 pt-6">
           <div>
@@ -121,9 +146,30 @@ export default function Notas() {
           <Card>
             <CardHeader><CardTitle>Métricas</CardTitle></CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-4">
-              <div><Label>Desconto Inicial %</Label><Input type="number" value={nota.desconto_percentual} onChange={(e) => setNota({ ...nota, desconto_percentual: +e.target.value })} /></div>
-              <div><Label>Reputação Reclame Aqui</Label><Input type="number" step="0.1" value={nota.reputacao_reclame_aqui} onChange={(e) => setNota({ ...nota, reputacao_reclame_aqui: +e.target.value })} /></div>
-              <div><Label>Valor mínimo R$</Label><Input type="number" value={nota.valor_minimo_fatura} onChange={(e) => setNota({ ...nota, valor_minimo_fatura: +e.target.value })} /></div>
+              <div>
+                <Label>Desconto Inicial % <span className="text-muted-foreground font-normal">(0–100)</span></Label>
+                <Input
+                  type="number" min="0" max="100" step="0.1"
+                  value={nota.desconto_percentual}
+                  onChange={(e) => setNota({ ...nota, desconto_percentual: +e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Reputação Reclame Aqui <span className="text-muted-foreground font-normal">(0–10)</span></Label>
+                <Input
+                  type="number" min="0" max="10" step="0.1"
+                  value={nota.reputacao_reclame_aqui}
+                  onChange={(e) => setNota({ ...nota, reputacao_reclame_aqui: +e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Valor mínimo R$</Label>
+                <Input
+                  type="number" min="0"
+                  value={nota.valor_minimo_fatura}
+                  onChange={(e) => setNota({ ...nota, valor_minimo_fatura: +e.target.value })}
+                />
+              </div>
               <div>
                 <Label>Nível de risco jurídico</Label>
                 <Select value={nota.nivel_risco ?? "Baixo"} onValueChange={(v) => setNota({ ...nota, nivel_risco: v })}>
@@ -137,13 +183,33 @@ export default function Notas() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Segurança Jurídica — Scorecard ({sjCount}/10)</CardTitle></CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-2">
-              {SJ_FIELDS.map(([k, label]) => (
-                <label key={k} className="flex items-center gap-2 text-sm">
-                  <Checkbox checked={!!score[k]} onCheckedChange={(v) => setScore({ ...score, [k]: !!v })} />{label}
-                </label>
-              ))}
+            <CardHeader>
+              <CardTitle>Segurança Jurídica — Scorecard ({sjCount}/10)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-2">
+                {SJ_FIELDS.map(([k, label]) => (
+                  <label key={k} className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={!!score[k]}
+                      onCheckedChange={(v) => handleScoreChange(k, !!v)}
+                    />{label}
+                  </label>
+                ))}
+              </div>
+
+              {/* Campo manual para SJ decimal (ex: 9.5 vindo da planilha) */}
+              <div className="border-t pt-3 mt-2">
+                <Label>
+                  Nota SJ <span className="text-muted-foreground font-normal">(0–10, decimal ok — atualiza automaticamente com o scorecard)</span>
+                </Label>
+                <Input
+                  type="number" min="0" max="10" step="0.1"
+                  value={sjNota}
+                  onChange={(e) => setSjNota(Math.min(10, Math.max(0, +e.target.value)))}
+                  className="max-w-[160px] mt-1"
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -151,7 +217,12 @@ export default function Notas() {
             <CardContent className="flex items-center justify-between pt-6">
               <div>
                 <div className="text-sm text-muted-foreground">Nota Final calculada</div>
-                <div className="text-4xl font-bold text-[hsl(214,50%,24%)]">{notaFinal.toFixed(2)}</div>
+                <div className={`text-4xl font-bold ${notaFinal > 10 ? "text-red-600" : "text-[hsl(214,50%,24%)]"}`}>
+                  {notaFinal.toFixed(2)}
+                </div>
+                {notaFinal >= 9.9 && (
+                  <div className="text-xs text-amber-600 mt-1">Nota máxima atingida (10)</div>
+                )}
               </div>
               <Button onClick={save} disabled={saving}>{saving ? "Salvando..." : "Salvar notas"}</Button>
             </CardContent>

@@ -59,11 +59,15 @@ Deno.serve(async (req) => {
       const ra = Number(r.reputacao_reclame_aqui) || 0;
       const vm = Number(r.valor_minimo_fatura) || 0;
 
-      // notaDS = desconto / 2 (planilha: desconto em %, ex: 20% → nota 10)
-      const notaDS = desconto / 2;
+      // notaDS = desconto / 2 (planilha: desconto em %, ex: 20% → nota 10). Cap em 10.
+      const notaDS = Math.min(10, desconto / 2);
+      const sjCapped = Math.min(10, Math.max(0, sj));
+      const raCapped = Math.min(10, Math.max(0, ra));
       const notaVM = Math.max(0, Math.min(10, ((1000 - vm) / 900) * 10));
-      const notaFinal =
-        notaDS * 0.4 + sj * 0.3 + ra * 0.2 + notaVM * 0.1;
+      const raw =
+        notaDS * 0.4 + sjCapped * 0.3 + raCapped * 0.2 + notaVM * 0.1;
+      // Garantir escala 0–10
+      const notaFinal = Math.min(10, Math.max(0, raw));
       const rounded = Math.round(notaFinal * 100) / 100;
 
       return { ...r, nota_final: rounded };
