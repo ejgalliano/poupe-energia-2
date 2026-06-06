@@ -27,28 +27,28 @@ interface FormulaConfig {
   vm_pior: number;
 }
 
-/** Calcula nota_final de uma linha com base na config e no maior desconto global */
-function calcNota(r: NotaRow, cfg: FormulaConfig, maiorDesconto: number): number {
+/** Calcula nota_final de uma linha com base na config e no maior desconto da distribuidora */
+function calcNota(r: NotaRow, cfg: FormulaConfig, maiorDescontoDist: number): number {
   const desconto = Number(r.desconto_percentual) || 0;
   const sj       = Math.min(10, Math.max(0, Number(r.seguranca_juridica) || 0));
   const ra       = Math.min(10, Math.max(0, Number(r.reputacao_reclame_aqui) || 0));
   const vm       = Number(r.valor_minimo_fatura) || 0;
 
-  // Nota DS = (desconto_empresa / maior_desconto_global) × 10  — fiel à planilha original
-  const notaDS = maiorDesconto > 0
-    ? Math.min(10, (desconto / maiorDesconto) * 10)
+  // Nota DS = (desconto_empresa / maior_desconto_da_distribuidora) × 10
+  // A empresa com maior desconto dentro da distribuidora recebe nota 10
+  const notaDS = maiorDescontoDist > 0
+    ? Math.min(10, (desconto / maiorDescontoDist) * 10)
     : 0;
 
-  // Nota VM = MAX(0, MIN(10, ((vm_melhor - vm) / (vm_melhor - vm_pior)) × 10))
-  // Inverte a escala: vm_melhor → 10, vm_pior → 0
+  // Nota VM: escala invertida — menor valor mínimo = melhor nota
   const range = cfg.vm_pior - cfg.vm_melhor;
   const notaVM = range > 0
     ? Math.max(0, Math.min(10, ((cfg.vm_pior - vm) / range) * 10))
     : 0;
 
   const raw = notaDS * cfg.peso_desconto
-    + sj  * cfg.peso_sj
-    + ra  * cfg.peso_ra
+    + sj     * cfg.peso_sj
+    + ra     * cfg.peso_ra
     + notaVM * cfg.peso_vm;
 
   return Math.round(Math.min(10, Math.max(0, raw)) * 100) / 100;
@@ -84,26 +84,16 @@ Deno.serve(async (req) => {
 
     if (cfgError) throw cfgError;
 
-    // Fallback para valores padrão se a tabela ainda não existir
     const cfg: FormulaConfig = cfgData ?? {
       peso_desconto: 0.4,
       peso_sj: 0.3,
       peso_ra: 0.2,
       peso_vm: 0.1,
-      vm_melhor: 100,
+      vm_melhor: 0,
       vm_pior: 1000,
     };
 
-    // 2. Buscar maior desconto global (todas as distribuidoras)
-    const { data: todosDescontos } = await supabase
-      .from("notas_empresas")
-      .select("desconto_percentual");
-    const maiorDesconto = Math.max(
-      0,
-      ...(todosDescontos ?? []).map((r: any) => Number(r.desconto_percentual) || 0),
-    );
-
-    // 3. Buscar notas — por distribuidora específica ou TODAS
+    // 2. Buscar notas — por distribuidora específica ou TODAS
     const query = supabase
       .from("notas_empresas")
       .select(
@@ -120,10 +110,18 @@ Deno.serve(async (req) => {
       (r: any) => r.empresas?.ativa !== false,
     ) as NotaRow[];
 
-    // 4. Recalcular
+    // 3. Calcular maior desconto POR DISTRIBUIDORA
+    const maiorDescontoPorDist = new Map<string, number>();
+    for (const r of rows) {
+      const desc = Number(r.desconto_percentual) || 0;
+      const atual = maiorDescontoPorDist.get(r.distribuidora_id) ?? 0;
+      maiorDescontoPorDist.set(r.distribuidora_id, Math.max(atual, desc));
+    }
+
+    // 4. Recalcular cada nota usando o maior desconto da sua distribuidora
     const computed = rows.map((r) => ({
       ...r,
-      nota_final: calcNota(r, cfg, maiorDesconto),
+      nota_final: calcNota(r, cfg, maiorDescontoPorDist.get(r.distribuidora_id) ?? 0),
     }));
 
     // 5. Persistir apenas registros que mudaram
@@ -147,7 +145,7 @@ Deno.serve(async (req) => {
         rows: computed,
         atualizados: updates.length,
         total: computed.length,
-        maiorDesconto,
+        maiorDescontoPorDist: Object.fromEntries(maiorDescontoPorDist),
         formula: cfg,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 },

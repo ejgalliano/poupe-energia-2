@@ -118,18 +118,19 @@ const RankingNacional = () => {
         byEmpresa.get(n.empresa_id)!.push(n);
       });
 
-      const avg = (arr: number[]) =>
-        arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
-
       const list: CompanyNacional[] = (empresas ?? [])
         .map((e) => {
           const rows = byEmpresa.get(e.id) ?? [];
           if (rows.length === 0) return null;
-          const score   = avg(rows.map((r) => Number(r.nota_final) || 0));
-          const discount = avg(rows.map((r) => Number(r.desconto_percentual) || 0));
-          const legal   = avg(rows.map((r) => Number(r.seguranca_juridica) || 0));
-          const rep     = avg(rows.map((r) => Number(r.reputacao_reclame_aqui) || 0));
-          const minVal  = avg(rows.map((r) => Number(r.valor_minimo_fatura) || 0));
+          // Usa a melhor nota_final entre todas as distribuidoras da empresa
+          const bestRow = rows.reduce((best: any, r: any) =>
+            (Number(r.nota_final) || 0) > (Number(best.nota_final) || 0) ? r : best
+          , rows[0]);
+          const score    = Number(bestRow.nota_final) || 0;
+          const discount = Number(bestRow.desconto_percentual) || 0;
+          const legal    = Number(bestRow.seguranca_juridica) || 0;
+          const rep      = Number(bestRow.reputacao_reclame_aqui) || 0;
+          const minVal   = Number(bestRow.valor_minimo_fatura) || 0;
           // Nível de risco mais frequente
           const riscos = rows.map((r) => r.nivel_risco).filter(Boolean);
           const nivelRisco = riscos.length
