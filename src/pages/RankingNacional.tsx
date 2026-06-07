@@ -122,15 +122,17 @@ const RankingNacional = () => {
         .map((e) => {
           const rows = byEmpresa.get(e.id) ?? [];
           if (rows.length === 0) return null;
-          // Usa a melhor nota_final entre todas as distribuidoras da empresa
-          const bestRow = rows.reduce((best: any, r: any) =>
-            (Number(r.nota_final) || 0) > (Number(best.nota_final) || 0) ? r : best
-          , rows[0]);
-          const score    = Number(bestRow.nota_final) || 0;
-          const discount = Number(bestRow.desconto_percentual) || 0;
-          const legal    = Number(bestRow.seguranca_juridica) || 0;
-          const rep      = Number(bestRow.reputacao_reclame_aqui) || 0;
-          const minVal   = Number(bestRow.valor_minimo_fatura) || 0;
+          // Usa a média da nota_final entre todas as distribuidoras da empresa
+          const validRows = rows.filter((r: any) => Number(r.nota_final) > 0);
+          const avgNota = validRows.length > 0
+            ? validRows.reduce((sum: number, r: any) => sum + (Number(r.nota_final) || 0), 0) / validRows.length
+            : 0;
+          const refRow   = rows[0];
+          const score    = Math.round(avgNota * 100) / 100;
+          const discount = Number(refRow.desconto_percentual) || 0;
+          const legal    = Number(refRow.seguranca_juridica) || 0;
+          const rep      = Number(refRow.reputacao_reclame_aqui) || 0;
+          const minVal   = Number(refRow.valor_minimo_fatura) || 0;
           // Nível de risco mais frequente
           const riscos = rows.map((r) => r.nivel_risco).filter(Boolean);
           const nivelRisco = riscos.length
@@ -216,9 +218,9 @@ const RankingNacional = () => {
             <div className="flex gap-3 bg-blue-50 border border-blue-200 text-brand-blue rounded-xl p-4 text-sm">
               <Info className="h-5 w-5 shrink-0 mt-0.5" />
               <p>
-                As notas exibidas representam a média de desempenho de cada
-                comercializadora em todas as regiões onde atua. Para ver o
-                ranking específico da sua distribuidora,{" "}
+                A nota exibida é a média das notas obtidas pela comercializadora
+                em todas as distribuidoras onde atua. Para ver o ranking
+                específico da sua distribuidora,{" "}
                 <a href="/" className="font-semibold underline">
                   acesse a página inicial
                 </a>
