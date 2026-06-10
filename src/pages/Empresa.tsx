@@ -489,38 +489,6 @@ const Empresa = () => {
               </Block>
             )}
 
-            {scorecard && (
-              <Block title="Scorecard de Segurança Jurídica">
-                <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-4xl font-extrabold text-brand-blue">
-                    {sjCount}
-                  </span>
-                  <span className="text-muted-foreground font-semibold">
-                    /10
-                  </span>
-                </div>
-                <ul className="space-y-2">
-                  {SJ_ITEMS.map((item) => {
-                    const ok = !!scorecard[item.key];
-                    return (
-                      <li
-                        key={item.key}
-                        className="flex items-center gap-2 text-sm"
-                      >
-                        {ok ? (
-                          <CheckCircle2 className="h-5 w-5 text-brand-success shrink-0" />
-                        ) : (
-                          <XCircle className="h-5 w-5 text-destructive shrink-0" />
-                        )}
-                        <span className={ok ? "text-foreground" : "text-muted-foreground"}>
-                          {item.label}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </Block>
-            )}
 
             {hasAnalise && (
               <Block title="Análise Crítica">
