@@ -789,7 +789,7 @@ const Empresa = () => {
 
             {empresa.parceira && (
               <div className="mt-3 inline-flex w-full items-center justify-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-2 rounded-full text-xs font-bold">
-                ⚡ 10% de cashback na adesão
+                ⚡ {empresa.cashback_percentual ?? 10}% de cashback na adesão
               </div>
             )}
 

@@ -127,7 +127,10 @@ const RankingNacional = () => {
           const avgNota = validRows.length > 0
             ? validRows.reduce((sum: number, r: any) => sum + (Number(r.nota_final) || 0), 0) / validRows.length
             : 0;
-          const refRow   = rows[0];
+          // Usa a linha com maior nota_final como referência dos campos individuais
+          const refRow = validRows.length > 0
+            ? validRows.reduce((best: any, r: any) => Number(r.nota_final) > Number(best.nota_final) ? r : best)
+            : rows[0];
           const score    = Math.round(avgNota * 100) / 100;
           const discount = Number(refRow.desconto_percentual) || 0;
           const legal    = Number(refRow.seguranca_juridica) || 0;
