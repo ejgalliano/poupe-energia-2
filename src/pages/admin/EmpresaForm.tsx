@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ExternalLink, Upload, X } from "lucide-react";
 import { slugify } from "@/lib/slug";
@@ -109,6 +110,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
     }
   );
   const [saving, setSaving] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
 
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
   const isBronze = f.tipo_fornecedor === "intermediador";
@@ -136,11 +138,22 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
     else { delete payload.id; res = await supabase.from("empresas").insert(payload); }
     setSaving(false);
     if (res.error) toast.error(res.error.message);
-    else { toast.success("Salvo com sucesso!"); onClose(); }
+    else setSavedOk(true);
   };
 
   return (
     <div className="space-y-4 max-w-4xl">
+      <Dialog open={savedOk} onOpenChange={setSavedOk}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Salvo com sucesso!</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">As informações da empresa foram atualizadas.</p>
+          <DialogFooter>
+            <Button onClick={() => setSavedOk(false)}>OK</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Cabeçalho */}
       <div className="flex flex-wrap justify-between items-center gap-3">
         <div>
@@ -158,7 +171,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
           )}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <Button variant="outline" onClick={onClose}>Sair</Button>
           <Button onClick={save} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
         </div>
       </div>
