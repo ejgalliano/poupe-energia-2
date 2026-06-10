@@ -17,6 +17,7 @@ import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Copy, Download, Pencil, Plus, Save, X } from "lucide-react";
 
 type Embaixador = {
@@ -76,6 +77,7 @@ export default function Embaixadores() {
 
   const [editing, setEditing] = useState<Embaixador | null>(null);
   const [openForm, setOpenForm] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
 
   // filtros leads
   const today = new Date().toISOString().slice(0, 10);
@@ -136,9 +138,7 @@ export default function Embaixadores() {
       .from("embaixadores")
       .upsert(payload as any, { onConflict: "id" });
     if (error) { toast.error(error.message); return; }
-    toast.success("Embaixador salvo!");
-    setOpenForm(false);
-    setEditing(null);
+    setSavedOk(true);
     load();
   };
 
@@ -500,9 +500,16 @@ export default function Embaixadores() {
                   Link: <span className="font-mono break-all">{PUBLIC_BASE}/?emb={editing.codigo}</span>
                 </div>
               )}
+              <Dialog open={savedOk} onOpenChange={setSavedOk}>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader><DialogTitle>Salvo com sucesso!</DialogTitle></DialogHeader>
+                  <p className="text-sm text-muted-foreground">As informações do embaixador foram atualizadas.</p>
+                  <DialogFooter><Button onClick={() => setSavedOk(false)}>OK</Button></DialogFooter>
+                </DialogContent>
+              </Dialog>
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="ghost" onClick={() => { setOpenForm(false); setEditing(null); }}>
-                  <X className="h-4 w-4 mr-1" /> Cancelar
+                  <X className="h-4 w-4 mr-1" /> Sair
                 </Button>
                 <Button onClick={saveEmb}><Save className="h-4 w-4 mr-1" /> Salvar</Button>
               </div>

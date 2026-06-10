@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const SJ_FIELDS = [
   ["conformidade_lei_14300", "Conformidade Lei 14.300/22"],
@@ -34,6 +35,7 @@ export default function Notas() {
   const [maiorDesconto, setMaiorDesconto] = useState<number>(0);
   const [formulaCfg, setFormulaCfg] = useState({ peso_desconto: 0.4, peso_sj: 0.3, peso_ra: 0.2, peso_vm: 0.1, vm_melhor: 100, vm_pior: 1000 });
   const [saving, setSaving] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
 
   useEffect(() => {
     supabase.from("empresas").select("id,nome,tipo_fornecedor").neq("tipo_fornecedor", "intermediador").order("nome").then(({ data }) => setEmpresas(data ?? []));
@@ -120,12 +122,19 @@ export default function Notas() {
     else await supabase.from("scorecard_sj").insert(scPayload);
 
     await supabase.functions.invoke("recalc-ranking", { body: { distribuidora_id: distId } });
-    toast.success("Notas salvas e ranking recalculado");
     setSaving(false);
+    setSavedOk(true);
   };
 
   return (
     <div className="space-y-4 max-w-4xl">
+      <Dialog open={savedOk} onOpenChange={setSavedOk}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Notas salvas com sucesso!</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">As notas foram atualizadas e o ranking foi recalculado.</p>
+          <DialogFooter><Button onClick={() => setSavedOk(false)}>OK</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
       <h1 className="text-2xl font-bold">Notas por Distribuidora</h1>
 
       {/* Aviso sobre escala */}

@@ -370,7 +370,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
       )}
 
       <div className="flex justify-end gap-2 pb-4">
-        <Button variant="outline" onClick={onClose}>Cancelar</Button>
+        <Button variant="outline" onClick={onClose}>Sair</Button>
         <Button onClick={save} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button>
       </div>
     </div>
