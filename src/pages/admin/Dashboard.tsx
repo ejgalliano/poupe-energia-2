@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle } from "lucide-react";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -14,6 +16,7 @@ export default function Dashboard() {
     leadsEmpPendentes: 0,
     leadsEmbHoje: 0,
     comissoesPendentes: 0,
+    contestacoesPendentes: 0,
   });
   const [recent, setRecent] = useState<any[]>([]);
 
@@ -25,7 +28,7 @@ export default function Dashboard() {
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
 
-      const [e, d, s, r, lh, lm, lc, leh, lep, leb, com] = await Promise.all([
+      const [e, d, s, r, lh, lm, lc, leh, lep, leb, com, cont] = await Promise.all([
         supabase.from("empresas").select("id", { count: "exact", head: true }),
         supabase.from("distribuidoras").select("id", { count: "exact", head: true }),
         supabase.from("estados").select("id", { count: "exact", head: true }),
@@ -62,6 +65,10 @@ export default function Dashboard() {
           .from("leads_embaixadores")
           .select("valor_comissao")
           .in("status_comissao", ["pendente", "validado"]),
+        supabase
+          .from("contestacoes")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "pendente"),
       ]);
       const comissoesPendentes = (com.data ?? []).reduce(
         (acc: number, r: any) => acc + (Number(r.valor_comissao) || 0),
@@ -78,6 +85,7 @@ export default function Dashboard() {
         leadsEmpPendentes: lep.count ?? 0,
         leadsEmbHoje: leb.count ?? 0,
         comissoesPendentes,
+        contestacoesPendentes: cont.count ?? 0,
       });
       setRecent(r.data ?? []);
     })();
@@ -86,6 +94,19 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Dashboard</h1>
+
+      {stats.contestacoesPendentes > 0 && (
+        <Link to="/admin/contestacoes">
+          <div className="flex items-center gap-3 bg-orange-50 border border-orange-300 rounded-xl px-5 py-3 hover:bg-orange-100 transition cursor-pointer">
+            <AlertTriangle className="h-5 w-5 text-orange-500 shrink-0" />
+            <p className="text-sm font-semibold text-orange-700">
+              {stats.contestacoesPendentes} contestaç{stats.contestacoesPendentes > 1 ? "ões pendentes" : "ão pendente"} aguardando análise
+            </p>
+            <span className="ml-auto text-xs text-orange-500 font-medium">Ver todas →</span>
+          </div>
+        </Link>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {[
           { label: "Empresas", value: stats.empresas },

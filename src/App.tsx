@@ -32,9 +32,11 @@ import Cogeracao from "./pages/Cogeracao.tsx";
 import Bess from "./pages/Bess.tsx";
 import Eletropostos from "./pages/Eletropostos.tsx";
 import DuvidasFrequentes from "./pages/DuvidasFrequentes.tsx";
+import Contestacao from "./pages/Contestacao.tsx";
 import Embaixadores from "./pages/admin/Embaixadores";
 import CashbackCadastros from "./pages/admin/CashbackCadastros";
 import FormulaConfig from "./pages/admin/FormulaConfig";
+import Contestacoes from "./pages/admin/Contestacoes";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 import EmbCapture from "./components/EmbCapture";
 import ScrollToTop from "./components/ScrollToTop";
@@ -62,6 +64,7 @@ const App = () => (
           <Route path="/termos-cashback" element={<TermosCashback />} />
           <Route path="/ativar-cashback" element={<AtivarCashback />} />
           <Route path="/duvidas-frequentes" element={<DuvidasFrequentes />} />
+          <Route path="/contestacao" element={<Contestacao />} />
           <Route path="/gd-livre-empresas" element={<PoupeFacilEmpresas />} />
           <Route path="/poupe-facil-empresas" element={<PoupeFacilEmpresas />} />
           <Route path="/energia-por-assinatura" element={<EnergiaPorAssinatura />} />
@@ -83,6 +86,7 @@ const App = () => (
             <Route path="embaixadores" element={<Embaixadores />} />
             <Route path="cashback" element={<CashbackCadastros />} />
             <Route path="formula" element={<FormulaConfig />} />
+            <Route path="contestacoes" element={<Contestacoes />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
