@@ -177,6 +177,12 @@ const RankingNacional = () => {
         c.estadosCount = estados.size;
       });
 
+      // Aplicar bônus de cobertura: min(10, nota_média + (estados/27) × 2)
+      list.forEach((c) => {
+        const bonus = (c.estadosCount / 27) * 2;
+        c.score = Math.min(10, Math.round((c.score + bonus) * 100) / 100);
+      });
+
       setCompanies(list);
       setBronzeCompanies((bronze ?? []) as BronzeEmpresa[]);
       setLoading(false);
