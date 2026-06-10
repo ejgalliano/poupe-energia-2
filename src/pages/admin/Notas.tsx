@@ -108,15 +108,12 @@ export default function Notas() {
     const sjFinal = Math.min(10, Math.max(0, sjNota));
     const notaFinalRounded = Number(notaFinal.toFixed(2));
     const payload = { ...nota, seguranca_juridica: sjFinal, nota_final: notaFinalRounded };
-    let notaId = nota.id;
-    if (notaId) {
-      const { error } = await supabase.from("notas_empresas").update(payload).eq("id", notaId);
-      if (error) { toast.error(error.message); setSaving(false); return; }
-    } else {
-      const { data, error } = await supabase.from("notas_empresas").insert(payload).select().single();
-      if (error) { toast.error(error.message); setSaving(false); return; }
-      notaId = data.id;
-    }
+    const { data: upserted, error } = await supabase
+      .from("notas_empresas")
+      .upsert(payload, { onConflict: "empresa_id,distribuidora_id" })
+      .select().single();
+    if (error) { toast.error(error.message); setSaving(false); return; }
+    let notaId = upserted?.id ?? nota.id;
     const scPayload = { nota_empresa_id: notaId, ...Object.fromEntries(SJ_FIELDS.map(([k]) => [k, !!score[k]])) };
     if (score.id) await supabase.from("scorecard_sj").update(scPayload).eq("id", score.id);
     else await supabase.from("scorecard_sj").insert(scPayload);
@@ -247,7 +244,10 @@ export default function Notas() {
                   )}
                 </div>
               </div>
-              <Button onClick={save} disabled={saving}>{saving ? "Salvando..." : "Salvar notas"}</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => { setEmpresaId(""); setDistId(""); setNota(null); setScore({}); setSjNota(0); }}>Limpar</Button>
+                <Button onClick={save} disabled={saving}>{saving ? "Salvando..." : "Salvar notas"}</Button>
+              </div>
             </CardContent>
           </Card>
         </>
