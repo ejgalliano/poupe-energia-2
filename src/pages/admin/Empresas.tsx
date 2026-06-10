@@ -4,8 +4,9 @@ import { fetchAll } from "@/lib/fetchAll";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Trash2 } from "lucide-react";
 import EmpresaForm from "./EmpresaForm";
 import { slugify } from "@/lib/slug";
 
@@ -14,6 +15,8 @@ export default function Empresas() {
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<any | null>(null);
   const [creating, setCreating] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     const data = await fetchAll((from, to) =>
@@ -30,6 +33,16 @@ export default function Empresas() {
     else { toast.success("Atualizado"); load(); }
   };
 
+  const deleteEmpresa = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    await supabase.from("notas_empresas").delete().eq("empresa_id", confirmDelete.id);
+    const { error } = await supabase.from("empresas").delete().eq("id", confirmDelete.id);
+    setDeleting(false);
+    if (error) toast.error(error.message);
+    else { toast.success(`${confirmDelete.nome} excluída com sucesso`); setConfirmDelete(null); load(); }
+  };
+
   if (creating || editing) {
     return (
       <EmpresaForm
@@ -43,6 +56,21 @@ export default function Empresas() {
 
   return (
     <div className="space-y-4">
+      <Dialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Excluir empresa?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Tem certeza que deseja excluir <strong>{confirmDelete?.nome}</strong>? Esta ação é <strong>irreversível</strong> — todos os dados e notas serão apagados permanentemente.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={deleteEmpresa} disabled={deleting}>
+              {deleting ? "Excluindo..." : "Excluir definitivamente"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Empresas</h1>
         <Button onClick={() => setCreating(true)}>Nova empresa</Button>
@@ -95,6 +123,9 @@ export default function Empresas() {
                       <Button size="sm" variant="outline" onClick={() => setEditing(e)}>Editar</Button>
                       <Button size="sm" variant="ghost" onClick={() => toggleActive(e)}>
                         {e.ativa ? "Desativar" : "Ativar"}
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => setConfirmDelete(e)}>
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </td>
