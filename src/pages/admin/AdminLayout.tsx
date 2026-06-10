@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Building2, Star, MapPin, Users, LogOut, Handshake, Briefcase, Award, Gift, FlaskConical, MessageSquareWarning } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
 const items = [
@@ -14,13 +15,27 @@ const items = [
   { to: "/admin/leads-empresariais", label: "Leads Empresariais", icon: Briefcase },
   { to: "/admin/embaixadores", label: "Embaixadores", icon: Award },
   { to: "/admin/cashback", label: "Cashback", icon: Gift },
-  { to: "/admin/contestacoes", label: "Contestações", icon: MessageSquareWarning },
+  { to: "/admin/contestacoes", label: "Contestações", icon: MessageSquareWarning, badge: true },
   { to: "/admin/usuarios", label: "Usuários Admin", icon: Users },
 ];
 
 export default function AdminLayout() {
   const { isAdmin, loading, signOut, user } = useAdminAuth();
   const navigate = useNavigate();
+  const [contestacoesPendentes, setContestacoesPendentes] = useState(0);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { count } = await supabase
+        .from("contestacoes")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pendente");
+      setContestacoesPendentes(count ?? 0);
+    };
+    fetch();
+    const interval = setInterval(fetch, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -54,8 +69,13 @@ export default function AdminLayout() {
                 }`
               }
             >
-              <it.icon className="h-4 w-4" />
-              {it.label}
+              <it.icon className="h-4 w-4 shrink-0" />
+              <span className="flex-1">{it.label}</span>
+              {it.badge && contestacoesPendentes > 0 && (
+                <span className="bg-orange-400 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center leading-none">
+                  {contestacoesPendentes}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
