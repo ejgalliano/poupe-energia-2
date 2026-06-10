@@ -21,6 +21,7 @@ const col2 = [
   { label: "Política de Privacidade", href: "/politica-de-privacidade" },
   { label: "Termos de Uso", href: "/termos-de-uso" },
   { label: "Cashback – Termos e Condições", href: "/termos-cashback" },
+  { label: "Contestação e Revisão Técnica", href: "/contestacao" },
 ];
 
 const Footer = () => {
