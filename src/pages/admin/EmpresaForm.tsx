@@ -252,10 +252,10 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Meses de fidelidade"><Input type="number" value={f.meses_fidelidade ?? ""} onChange={(e) => set("meses_fidelidade", +e.target.value || null)} /></Field>
-          <Field label="Multa de cancelamento %"><Input type="number" value={f.multa_cancelamento ?? ""} onChange={(e) => set("multa_cancelamento", +e.target.value || null)} /></Field>
+          <Field label="Meses de fidelidade"><Input type="number" value={f.meses_fidelidade ?? ""} onChange={(e) => set("meses_fidelidade", e.target.value === "" ? null : +e.target.value)} /></Field>
+          <Field label="Multa de cancelamento %"><Input type="number" value={f.multa_cancelamento ?? ""} onChange={(e) => set("multa_cancelamento", e.target.value === "" ? null : +e.target.value)} /></Field>
           <Field label="Aviso prévio (dias)"><Input type="number" value={f.aviso_previo_dias ?? 90} onChange={(e) => set("aviso_previo_dias", +e.target.value)} /></Field>
-          <Field label="Taxa de adesão R$"><Input type="number" value={f.taxa_adesao ?? ""} onChange={(e) => set("taxa_adesao", +e.target.value || null)} /></Field>
+          <Field label="Taxa de adesão R$"><Input type="number" value={f.taxa_adesao ?? ""} onChange={(e) => set("taxa_adesao", e.target.value === "" ? null : +e.target.value)} /></Field>
           <Field label="Índice de reajuste"><Input value={f.indice_reajuste ?? ""} onChange={(e) => set("indice_reajuste", e.target.value)} placeholder="ex: Reajuste Tarifário Anual ANEEL" /></Field>
           <Field label="Desconto divulgado"><Input value={f.desconto_divulgado ?? ""} onChange={(e) => set("desconto_divulgado", e.target.value)} placeholder="ex: até 20%" /></Field>
           {/* Descontos por faixa */}
