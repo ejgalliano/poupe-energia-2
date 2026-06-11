@@ -338,7 +338,7 @@ const RankingNacional = () => {
                         onClick={() => setShowBronze(false)}
                         className="text-sm font-semibold text-brand-blue/70 hover:text-brand-blue underline underline-offset-2 transition-colors"
                       >
-                        Ocultar representantes
+                        Ocultar intermediadoras
                       </button>
                     </div>
                   </div>
