@@ -67,7 +67,7 @@ export default function Notas() {
       const base = data ?? {
         empresa_id: empresaId, distribuidora_id: distId,
         desconto_percentual: 0, seguranca_juridica: 0, reputacao_reclame_aqui: 0,
-        valor_minimo_fatura: 100, nivel_risco: "Baixo",
+        valor_minimo_fatura: 0, nivel_risco: "Baixo",
       };
       setNota(base);
       // Carrega SJ do banco (pode ser decimal como 9.5 vindo da planilha)
@@ -106,7 +106,7 @@ export default function Notas() {
     const sj = Math.min(10, Math.max(0, sjNota));
     // Nota VM usando parâmetros da config
     const range = formulaCfg.vm_pior - formulaCfg.vm_melhor;
-    const nvm = range > 0 ? Math.max(0, Math.min(10, ((formulaCfg.vm_pior - vm) / range) * 10)) : 0;
+    const nvm = (vm > 0 && range > 0) ? Math.max(0, Math.min(10, ((formulaCfg.vm_pior - vm) / range) * 10)) : 0;
     const raw = ds * formulaCfg.peso_desconto + sj * formulaCfg.peso_sj + ra * formulaCfg.peso_ra + nvm * formulaCfg.peso_vm;
     return Math.min(10, Math.max(0, raw));
   }, [nota, sjNota, maiorDesconto, formulaCfg]);
