@@ -15,6 +15,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import Empresas from "./pages/admin/Empresas";
 import Notas from "./pages/admin/Notas";
 import Distribuidoras from "./pages/admin/Distribuidoras";
+import Intermediadoras from "./pages/admin/Intermediadoras";
 
 import UsuariosAdmin from "./pages/admin/UsuariosAdmin";
 import Parceiros from "./pages/admin/Parceiros";
@@ -79,6 +80,7 @@ const App = () => (
             <Route path="empresas" element={<Empresas />} />
             <Route path="notas" element={<Notas />} />
             <Route path="distribuidoras" element={<Distribuidoras />} />
+            <Route path="intermediadoras" element={<Intermediadoras />} />
             
             <Route path="usuarios" element={<UsuariosAdmin />} />
             <Route path="parceiros" element={<Parceiros />} />
