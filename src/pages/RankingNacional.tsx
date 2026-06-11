@@ -241,7 +241,7 @@ const RankingNacional = () => {
           {/* Total + Sort */}
           <div className="max-w-4xl mx-auto w-full flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
             <p className="text-sm font-semibold text-brand-blue">
-              {sortedCompanies.length + bronzeCompanies.length} comercializadoras avaliadas
+              {sortedCompanies.length + bronzeCompanies.length} empresas avaliadas
             </p>
             <div className="flex items-center gap-3">
               <label htmlFor="sort-select" className="text-sm font-semibold text-brand-blue whitespace-nowrap">
