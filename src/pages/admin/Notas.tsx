@@ -40,15 +40,22 @@ export default function Notas() {
   useEffect(() => {
     supabase.from("empresas").select("id,nome,tipo_fornecedor").neq("tipo_fornecedor", "intermediador").order("nome").then(({ data }) => setEmpresas(data ?? []));
     supabase.from("distribuidoras").select("id,nome").order("nome").then(({ data }) => setDistribuidoras(data ?? []));
-    // Buscar maior desconto global e configuração da fórmula
-    supabase.from("notas_empresas").select("desconto_percentual").then(({ data }) => {
-      const max = Math.max(0, ...(data ?? []).map((x: any) => Number(x.desconto_percentual) || 0));
-      setMaiorDesconto(max);
-    });
     supabase.from("formula_config").select("*").limit(1).maybeSingle().then(({ data }) => {
       if (data) setFormulaCfg(data);
     });
   }, []);
+
+  useEffect(() => {
+    if (!distId) { setMaiorDesconto(0); return; }
+    supabase
+      .from("notas_empresas")
+      .select("desconto_percentual")
+      .eq("distribuidora_id", distId)
+      .then(({ data }) => {
+        const max = Math.max(0, ...(data ?? []).map((x: any) => Number(x.desconto_percentual) || 0));
+        setMaiorDesconto(max);
+      });
+  }, [distId]);
 
   useEffect(() => {
     if (!empresaId || !distId) { setNota(null); setSjNota(0); return; }
@@ -91,7 +98,7 @@ export default function Notas() {
     const desc = Number(nota.desconto_percentual) || 0;
     const ra = Number(nota.reputacao_reclame_aqui) || 0;
     const vm = Number(nota.valor_minimo_fatura) || 0;
-    // Nota DS = (desconto_empresa / maior_desconto_global) × 10  — igual à planilha original
+    // Nota DS = (desconto_empresa / maior_desconto_da_distribuidora) × 10
     const ds = maiorDesconto > 0 ? Math.min(10, (desc / maiorDesconto) * 10) : 0;
     // SJ: usa sjNota que pode ser decimal (ex: 9.5) ou inteiro (do scorecard)
     const sj = Math.min(10, Math.max(0, sjNota));
