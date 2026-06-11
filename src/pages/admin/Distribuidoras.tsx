@@ -15,6 +15,7 @@ export default function Distribuidoras() {
   const [form, setForm] = useState({ nome: "", estado_id: "" });
   const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [savedOk, setSavedOk] = useState(false);
 
   const load = async () => {
     const { data } = await supabase.from("distribuidoras").select("*, estados(sigla,nome)").order("nome");
@@ -33,7 +34,7 @@ export default function Distribuidoras() {
       ? await supabase.from("distribuidoras").update(payload).eq("id", editing.id)
       : await supabase.from("distribuidoras").insert(payload);
     if (res.error) toast.error(res.error.message);
-    else { toast.success("Salvo"); setEditing(null); setForm({ nome: "", estado_id: "" }); load(); }
+    else { setEditing(null); setForm({ nome: "", estado_id: "" }); load(); setSavedOk(true); }
   };
 
   const handleDelete = async () => {
@@ -99,6 +100,16 @@ export default function Distribuidoras() {
           </table>
         </CardContent>
       </Card>
+
+      <Dialog open={savedOk} onOpenChange={setSavedOk}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Salvo com sucesso!</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">As informações da distribuidora foram atualizadas.</p>
+          <DialogFooter>
+            <Button onClick={() => setSavedOk(false)}>OK</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
         <DialogContent className="max-w-sm">
