@@ -247,7 +247,7 @@ export default function Notas() {
                 <div className="text-xs text-muted-foreground">
                   {distId ? (
                     <>
-                      Maior desconto nesta distribuidora:{" "}
+                      Maior desconto da {distribuidoras.find((d) => d.id === distId)?.nome ?? "distribuidora"}:{" "}
                       <span className="font-semibold text-foreground">{maiorDesconto}%</span>
                       {nota && Number(nota.desconto_percentual) >= maiorDesconto && maiorDesconto > 0 && (
                         <span className="ml-1 text-brand-success font-semibold">← esta empresa tem o maior desconto</span>
