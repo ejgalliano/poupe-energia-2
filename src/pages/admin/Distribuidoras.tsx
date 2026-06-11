@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export default function Distribuidoras() {
@@ -12,6 +13,8 @@ export default function Distribuidoras() {
   const [estados, setEstados] = useState<any[]>([]);
   const [editing, setEditing] = useState<any | null>(null);
   const [form, setForm] = useState({ nome: "", estado_id: "" });
+  const [confirmDelete, setConfirmDelete] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     const { data } = await supabase.from("distribuidoras").select("*, estados(sigla,nome)").order("nome");
@@ -33,9 +36,21 @@ export default function Distribuidoras() {
     else { toast.success("Salvo"); setEditing(null); setForm({ nome: "", estado_id: "" }); load(); }
   };
 
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    await supabase.from("scorecard_sj").delete().eq("distribuidora_id", confirmDelete.id);
+    await supabase.from("notas_empresas").delete().eq("distribuidora_id", confirmDelete.id);
+    const { error } = await supabase.from("distribuidoras").delete().eq("id", confirmDelete.id);
+    setDeleting(false);
+    if (error) toast.error(error.message);
+    else { toast.success("Distribuidora excluída"); setConfirmDelete(null); load(); }
+  };
+
   return (
     <div className="space-y-4 max-w-3xl">
       <h1 className="text-2xl font-bold">Distribuidoras</h1>
+
       <Card>
         <CardContent className="grid md:grid-cols-3 gap-3 pt-6">
           <div><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></div>
@@ -52,17 +67,31 @@ export default function Distribuidoras() {
           </div>
         </CardContent>
       </Card>
+
       <Card>
         <CardContent className="p-0">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50"><tr><th className="text-left p-3">Nome</th><th className="text-left p-3">Estado</th><th className="text-right p-3">Ação</th></tr></thead>
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="text-left p-3">Nome</th>
+                <th className="text-left p-3">Estado</th>
+                <th className="text-right p-3">Ações</th>
+              </tr>
+            </thead>
             <tbody>
               {list.map((d) => (
                 <tr key={d.id} className="border-t">
                   <td className="p-3">{d.nome}</td>
                   <td className="p-3">{(d.estados as any)?.sigla}</td>
                   <td className="p-3 text-right">
-                    <Button size="sm" variant="outline" onClick={() => { setEditing(d); setForm({ nome: d.nome, estado_id: String(d.estado_id) }); }}>Editar</Button>
+                    <div className="flex justify-end gap-2">
+                      <Button size="sm" variant="outline" onClick={() => { setEditing(d); setForm({ nome: d.nome, estado_id: String(d.estado_id) }); }}>
+                        Editar
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => setConfirmDelete(d)}>
+                        Excluir
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -70,6 +99,21 @@ export default function Distribuidoras() {
           </table>
         </CardContent>
       </Card>
+
+      <Dialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader><DialogTitle>Excluir distribuidora?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Tem certeza que deseja excluir <strong>{confirmDelete?.nome}</strong>? Esta ação é <strong>irreversível</strong> — todas as notas vinculadas a esta distribuidora serão apagadas permanentemente.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+              {deleting ? "Excluindo..." : "Excluir definitivamente"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
