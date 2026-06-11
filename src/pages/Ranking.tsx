@@ -615,7 +615,7 @@ const Ranking = () => {
                       </div>
                       <div className="min-w-0">
                         <span className="font-semibold text-brand-blue text-sm truncate block">{b.nome}</span>
-                        <span className="text-[11px] text-muted-foreground">Representante</span>
+                        <span className="text-[11px] text-muted-foreground">Intermediadora</span>
                       </div>
                     </div>
                     {b.site_url && (
