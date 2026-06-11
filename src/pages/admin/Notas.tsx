@@ -98,6 +98,8 @@ export default function Notas() {
     const desc = Number(nota.desconto_percentual) || 0;
     const ra = Number(nota.reputacao_reclame_aqui) || 0;
     const vm = Number(nota.valor_minimo_fatura) || 0;
+    // Se os três critérios principais forem zero, nota final é zero
+    if (desc === 0 && sjNota === 0 && ra === 0) return 0;
     // Nota DS = (desconto_empresa / maior_desconto_da_distribuidora) × 10
     const ds = maiorDesconto > 0 ? Math.min(10, (desc / maiorDesconto) * 10) : 0;
     // SJ: usa sjNota que pode ser decimal (ex: 9.5) ou inteiro (do scorecard)
