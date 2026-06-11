@@ -245,9 +245,16 @@ export default function Notas() {
                   {notaFinal.toFixed(2)}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Maior desconto do ranking: <span className="font-semibold text-foreground">{maiorDesconto}%</span>
-                  {nota && Number(nota.desconto_percentual) === maiorDesconto && (
-                    <span className="ml-1 text-brand-success font-semibold">(esta empresa tem o maior desconto)</span>
+                  {distId ? (
+                    <>
+                      Maior desconto nesta distribuidora:{" "}
+                      <span className="font-semibold text-foreground">{maiorDesconto}%</span>
+                      {nota && Number(nota.desconto_percentual) >= maiorDesconto && maiorDesconto > 0 && (
+                        <span className="ml-1 text-brand-success font-semibold">← esta empresa tem o maior desconto</span>
+                      )}
+                    </>
+                  ) : (
+                    <span>Selecione uma distribuidora para ver o maior desconto</span>
                   )}
                 </div>
               </div>
