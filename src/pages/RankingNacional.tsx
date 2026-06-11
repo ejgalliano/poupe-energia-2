@@ -281,7 +281,7 @@ const RankingNacional = () => {
             <div className="max-w-4xl mx-auto space-y-5">
               {sortedCompanies.map((c) => (
                 <div key={c.empresaId} className="space-y-1">
-                  <CompanyCard company={c} hideActions />
+                  <CompanyCard company={c} hideActions hideMetrics />
                   <p className="text-xs text-muted-foreground pl-2">
                     Atua em {c.estadosCount} {c.estadosCount === 1 ? "estado" : "estados"}
                   </p>

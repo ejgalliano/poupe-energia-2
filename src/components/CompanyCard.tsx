@@ -34,12 +34,13 @@ export interface Company {
 interface Props {
   company: Company;
   hideActions?: boolean;
+  hideMetrics?: boolean;
 }
 
 const ordinal = (n: number) => `${n}º`;
 
 
-const CompanyCard = ({ company, hideActions = false }: Props) => {
+const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Props) => {
   const isBronze = company.tipoFornecedor === "intermediador";
   const isTop1 = company.rank === 1;
   const initial = company.name.trim().charAt(0).toUpperCase();
@@ -128,21 +129,26 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
         </div>
 
         {/* Centro: 4 métricas */}
-        <div className="flex-1 grid grid-cols-4 self-stretch">
-          {metrics.map((m, i) => (
-            <div
-              key={m.label}
-              className={`flex flex-col items-center justify-center p-4 text-center ${
-                i < metrics.length - 1 ? "border-r border-border" : ""
-              }`}
-            >
-              <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide leading-tight mb-1">
-                {m.label}
-              </div>
-              <div className="text-lg font-extrabold text-brand-blue">{m.value}</div>
+        {hideMetrics
+          ? <div className="flex-1" />
+          : (
+            <div className="flex-1 grid grid-cols-4 self-stretch">
+              {metrics.map((m, i) => (
+                <div
+                  key={m.label}
+                  className={`flex flex-col items-center justify-center p-4 text-center ${
+                    i < metrics.length - 1 ? "border-r border-border" : ""
+                  }`}
+                >
+                  <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide leading-tight mb-1">
+                    {m.label}
+                  </div>
+                  <div className="text-lg font-extrabold text-brand-blue">{m.value}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )
+        }
 
         {/* Coluna direita: Nota Final */}
         <div className="flex flex-col items-center justify-center px-6 shrink-0 w-32 self-stretch border-l border-border">
@@ -156,7 +162,7 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
       </div>
 
       {/* Tag cashback — desktop */}
-      {company.partner && (
+      {company.partner && !hideMetrics && (
         <div className="hidden md:flex px-5 py-2 border-t border-border">
           <span className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold">
             ⚡ {company.cashbackPercentual ?? 10}% de cashback na adesão
@@ -228,22 +234,24 @@ const CompanyCard = ({ company, hideActions = false }: Props) => {
         </div>
 
         {/* Linha 2: Métricas */}
-        <div className="grid grid-cols-2 border border-border rounded-xl overflow-hidden mb-4">
-          {metrics.map((m, i) => (
-            <div
-              key={m.label}
-              className={`p-3 text-center ${i % 2 === 0 ? "border-r border-border" : ""} ${i < 2 ? "border-b border-border" : ""}`}
-            >
-              <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide leading-tight mb-1">
-                {m.label}
+        {!hideMetrics && (
+          <div className="grid grid-cols-2 border border-border rounded-xl overflow-hidden mb-4">
+            {metrics.map((m, i) => (
+              <div
+                key={m.label}
+                className={`p-3 text-center ${i % 2 === 0 ? "border-r border-border" : ""} ${i < 2 ? "border-b border-border" : ""}`}
+              >
+                <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide leading-tight mb-1">
+                  {m.label}
+                </div>
+                <div className="text-base font-extrabold text-brand-blue">{m.value}</div>
               </div>
-              <div className="text-base font-extrabold text-brand-blue">{m.value}</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Tag cashback */}
-        {company.partner && (
+        {company.partner && !hideMetrics && (
           <div className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold mb-3">
             ⚡ {company.cashbackPercentual ?? 10}% de cashback na adesão
           </div>
