@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { slugify } from "@/lib/slug";
 import EconomySimulator from "@/components/EconomySimulator";
 import AdesaoModal from "@/components/AdesaoModal";
-import SupplierBadge, { TipoFornecedor } from "@/components/SupplierBadge";
+import SupplierBadge, { TipoFornecedor, SUPPLIER_TIERS } from "@/components/SupplierBadge";
 import { registerLead } from "@/lib/leadTracking";
 
 export interface Company {
@@ -81,7 +81,8 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
   ];
 
   const scoreColor = isTop1 ? "text-brand-yellow" : "text-brand-blue";
-  const filledStars = Math.round(company.score / 2);
+  const tierKey = (company.tipoFornecedor ?? "intermediador") as TipoFornecedor;
+  const tierInfo = SUPPLIER_TIERS[tierKey] ?? SUPPLIER_TIERS.intermediador;
 
   const LogoBox = ({ size }: { size: "sm" | "lg" }) => (
     <div className={`shrink-0 rounded-xl bg-white border border-border flex items-center justify-center overflow-hidden ${size === "lg" ? "h-16 w-16" : "h-12 w-12"}`}>
@@ -97,11 +98,11 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
       {Array.from({ length: 5 }, (_, i) => (
         <Star
           key={i}
-          className={`h-3.5 w-3.5 ${i < filledStars ? "fill-brand-yellow text-brand-yellow" : "fill-muted text-muted-foreground/30"}`}
+          className={`h-3.5 w-3.5 ${i < tierInfo.filled ? tierInfo.starColor : tierInfo.emptyColor}`}
         />
       ))}
       <span
-        title="A nota é calculada com base em desconto, segurança jurídica, reputação no Reclame Aqui e cobertura de estados."
+        title={tierInfo.tooltip}
         className="ml-1 h-4 w-4 rounded-full bg-muted text-muted-foreground text-[9px] font-bold flex items-center justify-center cursor-help select-none"
       >?</span>
     </div>
@@ -148,11 +149,11 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
                   {Array.from({ length: 5 }, (_, i) => (
                     <Star
                       key={i}
-                      className={`h-3.5 w-3.5 ${i < filledStars ? "fill-brand-yellow text-brand-yellow" : "fill-muted text-muted-foreground/30"}`}
+                      className={`h-3.5 w-3.5 ${i < tierInfo.filled ? tierInfo.starColor : tierInfo.emptyColor}`}
                     />
                   ))}
                   <span
-                    title="A nota é calculada com base em desconto, segurança jurídica, reputação no Reclame Aqui e cobertura de estados."
+                    title={tierInfo.tooltip}
                     className="ml-1 h-4 w-4 rounded-full bg-muted text-muted-foreground text-[9px] font-bold flex items-center justify-center cursor-help select-none"
                   >?</span>
                 </div>

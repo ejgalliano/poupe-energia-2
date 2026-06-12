@@ -89,12 +89,12 @@ const RankingNacional = () => {
     const load = async () => {
       setLoading(true);
 
-      // Buscar TODAS as empresas ativas não-bronze (sem filtro de perfil)
+      // Buscar apenas empresas Ouro (fornecedor_direto) e Prata (operador)
       const { data: empresas } = await supabase
         .from("empresas")
         .select("id, nome, parceira, ativa, tipo_fornecedor, logo_url, cashback_percentual, desconto_ate_1mwh, desconto_1a3mwh, desconto_3a5mwh, desconto_acima_5mwh")
         .eq("ativa", true)
-        .neq("tipo_fornecedor", "intermediador");
+        .in("tipo_fornecedor", ["fornecedor_direto", "operador"]);
 
       // Buscar empresas bronze (intermediadoras) em ordem alfabética
       const { data: bronze } = await supabase
