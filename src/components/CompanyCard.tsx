@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, FileText } from "lucide-react";
+import { Zap, FileText, Star } from "lucide-react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { slugify } from "@/lib/slug";
@@ -81,6 +81,42 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
   ];
 
   const scoreColor = isTop1 ? "text-brand-yellow" : "text-brand-blue";
+  const filledStars = Math.round(company.score / 2);
+
+  const LogoBox = ({ size }: { size: "sm" | "lg" }) => (
+    <div className={`shrink-0 rounded-xl bg-white border border-border flex items-center justify-center overflow-hidden ${size === "lg" ? "h-16 w-16" : "h-12 w-12"}`}>
+      {company.logoUrl
+        ? <img src={company.logoUrl} alt={company.name} className="h-full w-full object-contain" />
+        : <span className={`font-extrabold text-brand-blue ${size === "lg" ? "text-2xl" : "text-xl"}`}>{initial}</span>
+      }
+    </div>
+  );
+
+  const StarRating = () => (
+    <div className="flex items-center gap-0.5 mt-1">
+      {Array.from({ length: 5 }, (_, i) => (
+        <Star
+          key={i}
+          className={`h-3.5 w-3.5 ${i < filledStars ? "fill-brand-yellow text-brand-yellow" : "fill-muted text-muted-foreground/30"}`}
+        />
+      ))}
+      <span
+        title="A nota é calculada com base em desconto, segurança jurídica, reputação no Reclame Aqui e cobertura de estados."
+        className="ml-1 h-4 w-4 rounded-full bg-muted text-muted-foreground text-[9px] font-bold flex items-center justify-center cursor-help select-none"
+      >?</span>
+    </div>
+  );
+
+  const ScoreColumn = () => (
+    <div className="flex flex-col items-center justify-center px-6 shrink-0 w-32 self-stretch border-l border-border">
+      <div className={`text-4xl font-extrabold leading-none ${scoreColor}`}>
+        {company.score.toFixed(2).replace(".", ",")}
+      </div>
+      <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wide mt-1">
+        Nota Final
+      </div>
+    </div>
+  );
 
   return (
     <article
@@ -99,67 +135,74 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
         </div>
       )}
 
-      {/* ── DESKTOP: layout horizontal (logo | métricas | nota) ── */}
-      <div className="hidden md:flex items-center gap-0 pt-6">
-
-        {/* Coluna esquerda: Logo inicial + nome + tags */}
-        <div className="flex flex-col items-center justify-center gap-2 px-5 pb-4 shrink-0 w-36 self-stretch border-r border-border">
-          <div className="h-16 w-16 rounded-xl bg-white border border-border flex items-center justify-center overflow-hidden">
-            {company.logoUrl
-              ? <img src={company.logoUrl} alt={company.name} className="h-full w-full object-contain" />
-              : <span className="text-2xl font-extrabold text-brand-blue">{initial}</span>
-            }
-          </div>
-          <div className="text-center">
-            <p className="text-sm font-extrabold text-brand-blue leading-tight">{company.name}</p>
-            <div className="mt-1 flex flex-col items-center gap-1">
-              <SupplierBadge tipo={company.tipoFornecedor} size="sm" compact />
-            </div>
-          </div>
-          {!isBronze && (
-            <Link
-              to={detailHref}
-              onClick={handleSaibaMais}
-              className="inline-flex items-center gap-1 text-[10px] font-bold whitespace-nowrap bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
-            >
-              <FileText className="h-3 w-3" />
-              Ficha Técnica
-            </Link>
-          )}
-        </div>
-
-        {/* Centro: 4 métricas */}
-        {hideMetrics
-          ? <div className="flex-1" />
-          : (
-            <div className="flex-1 grid grid-cols-4 self-stretch">
-              {metrics.map((m, i) => (
-                <div
-                  key={m.label}
-                  className={`flex flex-col items-center justify-center p-4 text-center ${
-                    i < metrics.length - 1 ? "border-r border-border" : ""
-                  }`}
+      {/* ── DESKTOP hideMetrics: layout compacto (logo+nome+estrelas+ficha | nota) ── */}
+      {hideMetrics && (
+        <div className="hidden md:flex items-stretch pt-6 pb-4">
+          <div className="flex items-center gap-4 flex-1 px-5">
+            <LogoBox size="sm" />
+            <div className="min-w-0">
+              <p className="text-base font-extrabold text-brand-blue leading-tight">{company.name}</p>
+              <StarRating />
+              {!isBronze && (
+                <Link
+                  to={detailHref}
+                  onClick={handleSaibaMais}
+                  className="inline-flex items-center gap-1 text-[10px] font-bold whitespace-nowrap bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors mt-1.5"
                 >
-                  <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide leading-tight mb-1">
-                    {m.label}
-                  </div>
-                  <div className="text-lg font-extrabold text-brand-blue">{m.value}</div>
-                </div>
-              ))}
+                  <FileText className="h-3 w-3" />
+                  Ficha Técnica
+                </Link>
+              )}
             </div>
-          )
-        }
-
-        {/* Coluna direita: Nota Final */}
-        <div className="flex flex-col items-center justify-center px-6 shrink-0 w-32 self-stretch border-l border-border">
-          <div className={`text-4xl font-extrabold leading-none ${scoreColor}`}>
-            {company.score.toFixed(2).replace(".", ",")}
           </div>
-          <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wide mt-1">
-            Nota Final
-          </div>
+          <ScoreColumn />
         </div>
-      </div>
+      )}
+
+      {/* ── DESKTOP com métricas: layout horizontal (logo | métricas | nota) ── */}
+      {!hideMetrics && (
+        <div className="hidden md:flex items-center gap-0 pt-6">
+          {/* Coluna esquerda: Logo + nome + tags */}
+          <div className="flex flex-col items-center justify-center gap-2 px-5 pb-4 shrink-0 w-36 self-stretch border-r border-border">
+            <LogoBox size="lg" />
+            <div className="text-center">
+              <p className="text-sm font-extrabold text-brand-blue leading-tight">{company.name}</p>
+              <div className="mt-1 flex flex-col items-center gap-1">
+                <SupplierBadge tipo={company.tipoFornecedor} size="sm" compact />
+              </div>
+            </div>
+            {!isBronze && (
+              <Link
+                to={detailHref}
+                onClick={handleSaibaMais}
+                className="inline-flex items-center gap-1 text-[10px] font-bold whitespace-nowrap bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors"
+              >
+                <FileText className="h-3 w-3" />
+                Ficha Técnica
+              </Link>
+            )}
+          </div>
+
+          {/* Centro: 4 métricas */}
+          <div className="flex-1 grid grid-cols-4 self-stretch">
+            {metrics.map((m, i) => (
+              <div
+                key={m.label}
+                className={`flex flex-col items-center justify-center p-4 text-center ${
+                  i < metrics.length - 1 ? "border-r border-border" : ""
+                }`}
+              >
+                <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide leading-tight mb-1">
+                  {m.label}
+                </div>
+                <div className="text-lg font-extrabold text-brand-blue">{m.value}</div>
+              </div>
+            ))}
+          </div>
+
+          <ScoreColumn />
+        </div>
+      )}
 
       {/* Tag cashback — desktop */}
       {company.partner && !hideMetrics && (
@@ -190,25 +233,21 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
         </div>
       )}
 
-      {/* ── MOBILE: layout vertical (mantém comportamento atual) ── */}
+      {/* ── MOBILE: layout vertical ── */}
       <div className="md:hidden p-5 pt-6">
 
         {/* Linha 1: Logo + Nome + Nota */}
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-start gap-3 min-w-0 flex-1">
-            <div className="h-12 w-12 shrink-0 rounded-lg bg-white border border-border flex items-center justify-center overflow-hidden">
-              {company.logoUrl
-                ? <img src={company.logoUrl} alt={company.name} className="h-full w-full object-contain" />
-                : <span className="text-xl font-extrabold text-brand-blue">{initial}</span>
-              }
-            </div>
+            <LogoBox size="sm" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-lg font-extrabold text-brand-blue leading-tight">
                   {company.name}
                 </h3>
-                <SupplierBadge tipo={company.tipoFornecedor} size="sm" compact />
+                {!hideMetrics && <SupplierBadge tipo={company.tipoFornecedor} size="sm" compact />}
               </div>
+              {hideMetrics && <StarRating />}
               <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                 {!isBronze && (
                   <Link
