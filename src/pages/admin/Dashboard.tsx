@@ -2,9 +2,21 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, RefreshCw, CheckCircle2 } from "lucide-react";
 
 export default function Dashboard() {
+  const [recalcState, setRecalcState] = useState<"idle" | "loading" | "done" | "error">("idle");
+
+  const handleRecalc = async () => {
+    setRecalcState("loading");
+    const { error } = await supabase.functions.invoke("recalc-ranking", {
+      body: { distribuidora_id: "ALL" },
+    });
+    setRecalcState(error ? "error" : "done");
+    setTimeout(() => setRecalcState("idle"), 4000);
+  };
+
   const [stats, setStats] = useState({
     empresas: 0,
     distribuidoras: 0,
@@ -93,7 +105,21 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <Button
+          onClick={handleRecalc}
+          disabled={recalcState === "loading"}
+          variant={recalcState === "done" ? "outline" : recalcState === "error" ? "destructive" : "default"}
+          className="gap-2"
+        >
+          {recalcState === "loading" && <RefreshCw className="h-4 w-4 animate-spin" />}
+          {recalcState === "done" && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+          {recalcState === "error" && <AlertTriangle className="h-4 w-4" />}
+          {recalcState === "idle" && <RefreshCw className="h-4 w-4" />}
+          {recalcState === "loading" ? "Recalculando..." : recalcState === "done" ? "Recalculado!" : recalcState === "error" ? "Erro ao recalcular" : "Recalcular Ranking"}
+        </Button>
+      </div>
 
       {stats.contestacoesPendentes > 0 && (
         <Link to="/admin/contestacoes">
