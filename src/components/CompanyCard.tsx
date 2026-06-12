@@ -112,7 +112,7 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
       <div className={`text-4xl font-extrabold leading-none ${scoreColor}`}>
         {company.score.toFixed(2).replace(".", ",")}
       </div>
-      <div className="text-[11px] text-muted-foreground font-semibold uppercase tracking-wide mt-1">
+      <div className="text-[11px] text-muted-foreground font-semibold tracking-wide mt-1">
         Nota Final
       </div>
     </div>
@@ -135,19 +135,34 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
         </div>
       )}
 
-      {/* ── DESKTOP hideMetrics: layout compacto (logo+nome+estrelas+ficha | nota) ── */}
+      {/* ── DESKTOP hideMetrics: layout compacto (logo | nome+estrelas+ficha | nota) ── */}
       {hideMetrics && (
-        <div className="hidden md:flex items-stretch pt-6 pb-4">
+        <div className="hidden md:flex items-stretch py-5">
           <div className="flex items-center gap-4 flex-1 px-5">
-            <LogoBox size="sm" />
+            <LogoBox size="lg" />
             <div className="min-w-0">
-              <p className="text-base font-extrabold text-brand-blue leading-tight">{company.name}</p>
-              <StarRating />
+              {/* Nome + estrelas na mesma linha */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-base font-extrabold text-brand-blue leading-tight">{company.name}</p>
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-3.5 w-3.5 ${i < filledStars ? "fill-brand-yellow text-brand-yellow" : "fill-muted text-muted-foreground/30"}`}
+                    />
+                  ))}
+                  <span
+                    title="A nota é calculada com base em desconto, segurança jurídica, reputação no Reclame Aqui e cobertura de estados."
+                    className="ml-1 h-4 w-4 rounded-full bg-muted text-muted-foreground text-[9px] font-bold flex items-center justify-center cursor-help select-none"
+                  >?</span>
+                </div>
+              </div>
+              {/* Ficha Técnica abaixo */}
               {!isBronze && (
                 <Link
                   to={detailHref}
                   onClick={handleSaibaMais}
-                  className="inline-flex items-center gap-1 text-[10px] font-bold whitespace-nowrap bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors mt-1.5"
+                  className="inline-flex items-center gap-1 text-[10px] font-bold whitespace-nowrap bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:bg-brand-blue/10 hover:text-brand-blue transition-colors mt-2"
                 >
                   <FileText className="h-3 w-3" />
                   Ficha Técnica
