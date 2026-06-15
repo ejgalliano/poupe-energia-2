@@ -198,7 +198,9 @@ const RankingNacional = () => {
     arr.sort((a, b) => {
       const va = getSortValue(a, sortKey);
       const vb = getSortValue(b, sortKey);
-      return sortDir === "asc" ? va - vb : vb - va;
+      const primary = sortDir === "asc" ? va - vb : vb - va;
+      if (primary !== 0) return primary;
+      return b.score - a.score;
     });
     return arr.map((c, idx) => ({ ...c, rank: idx + 1 }));
   }, [companies, sortKey, sortDir]);
