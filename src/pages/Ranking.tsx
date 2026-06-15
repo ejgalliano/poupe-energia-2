@@ -292,7 +292,9 @@ const Ranking = () => {
     arr.sort((a, b) => {
       const va = getSortValue(a, sortKey);
       const vb = getSortValue(b, sortKey);
-      return sortDir === "asc" ? va - vb : vb - va;
+      const primary = sortDir === "asc" ? va - vb : vb - va;
+      if (primary !== 0) return primary;
+      return b.score - a.score;
     });
     return arr;
   }, [companies, sortKey, sortDir, logoMap]);
