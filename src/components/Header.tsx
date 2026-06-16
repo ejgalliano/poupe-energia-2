@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/sheet";
 
 const navLinks = [
-  { label: "Como Calculamos", href: "/como-calculamos" },
-  { label: "Sobre", href: "/sobre" },
+  { label: "Como calculamos", href: "/como-calculamos" },
+  { label: "Sobre nós", href: "/sobre" },
 ];
 
 const Header = () => {
@@ -47,12 +47,12 @@ const Header = () => {
         <div className="hidden md:flex">
           <Link
             to="/ativar-cashback"
-            className="flex items-center gap-2 border border-brand-blue rounded-lg px-4 py-2 text-sm font-bold text-brand-blue hover:bg-brand-blue/5 transition"
+            className="flex items-center gap-2 bg-brand-blue rounded-xl px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90 transition"
           >
             <User className="h-4 w-4" />
             <div className="text-left leading-tight">
-              <div>Entrar</div>
-              <div className="text-[10px] font-normal text-brand-blue/70">Ativar Cashback</div>
+              <div className="font-bold">Entrar</div>
+              <div className="text-[10px] font-normal text-white/80">Ativar Cashback</div>
             </div>
           </Link>
         </div>
