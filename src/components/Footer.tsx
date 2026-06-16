@@ -93,8 +93,10 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-white/10 pt-6 text-center text-xs text-white/60">
-          <p>CNPJ: 64.498.960/0001-06</p>
+        <div className="border-t border-white/10 pt-6 text-center text-xs text-white/60 space-y-1">
+          <p>Poupe Energia Intermediação e Plataforma Ltda.</p>
+          <p>CNPJ 64.498.960/0001-06</p>
+          <p>© 2026 Poupe Energia. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>
