@@ -122,15 +122,12 @@ const RankingNacional = () => {
         .map((e) => {
           const rows = byEmpresa.get(e.id) ?? [];
           if (rows.length === 0) return null;
-          // Usa a média da nota_final entre todas as distribuidoras da empresa
-          const validRows = rows.filter((r: any) => Number(r.nota_final) > 0);
-          const avgNota = validRows.length > 0
-            ? validRows.reduce((sum: number, r: any) => sum + (Number(r.nota_final) || 0), 0) / validRows.length
-            : 0;
+          // Considera válidas apenas entradas com desconto preenchido (desconto=0 indica entrada zerada/inválida)
+          const validRows = rows.filter((r: any) => Number(r.nota_final) > 0 && Number(r.desconto_percentual) > 0);
+          if (validRows.length === 0) return null;
+          const avgNota = validRows.reduce((sum: number, r: any) => sum + (Number(r.nota_final) || 0), 0) / validRows.length;
           // Usa a linha com maior nota_final como referência dos campos individuais
-          const refRow = validRows.length > 0
-            ? validRows.reduce((best: any, r: any) => Number(r.nota_final) > Number(best.nota_final) ? r : best)
-            : rows[0];
+          const refRow = validRows.reduce((best: any, r: any) => Number(r.nota_final) > Number(best.nota_final) ? r : best);
           const score    = Math.round(avgNota * 100) / 100;
           const discount = Number(refRow.desconto_percentual) || 0;
           const legal    = Number(refRow.seguranca_juridica) || 0;
