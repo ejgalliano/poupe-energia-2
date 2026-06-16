@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Zap, ArrowRight, TrendingDown, ExternalLink } from "lucide-react";
+import { Zap, ArrowRight, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -52,19 +52,11 @@ const formatMoneyInput = (value: number) =>
       }).format(value);
 
 const FAIXAS = [
-  { label: "< 1 MWh",  range: "Até 1 MWh",     color: "text-foreground" },
-  { label: "1-3 MWh",  range: "1 a 3 MWh",      color: "text-brand-yellow" },
-  { label: "3-5 MWh",  range: "3 a 5 MWh",      color: "text-brand-yellow" },
-  { label: "> 5 MWh",  range: "Acima de 5 MWh", color: "text-brand-success" },
+  { label: "< 1 MWh",  range: "Até 1 MWh" },
+  { label: "1-3 MWh",  range: "1 a 3 MWh" },
+  { label: "3-5 MWh",  range: "3 a 5 MWh" },
+  { label: "> 5 MWh",  range: "Acima de 5 MWh" },
 ];
-
-/** Índice da faixa com base no valor mensal da conta */
-const detectFaixaIdx = (valor: number): number => {
-  if (valor < 1000) return 0;
-  if (valor < 3000) return 1;
-  if (valor < 5000) return 2;
-  return 3;
-};
 
 const EconomySimulator = ({
   open,
@@ -83,9 +75,9 @@ const EconomySimulator = ({
   siteUrl,
 }: Props) => {
   const [valor, setValor] = useState(0);
+  const [selectedFaixaIdx, setSelectedFaixaIdx] = useState(0);
   const [adesaoOpen, setAdesaoOpen] = useState(false);
 
-  /** Array com os 4 descontos — fallback para discountPercent se null */
   const descontosPorFaixa = [
     descontoAte1mwh   ?? discountPercent,
     desconto1a3mwh    ?? discountPercent,
@@ -93,8 +85,7 @@ const EconomySimulator = ({
     descontoAcima5mwh ?? discountPercent,
   ];
 
-  const faixaIdx = valor > 0 ? detectFaixaIdx(valor) : null;
-  const descontoAtivo = faixaIdx !== null ? descontosPorFaixa[faixaIdx] : discountPercent;
+  const descontoAtivo = descontosPorFaixa[selectedFaixaIdx];
 
   const economia = useMemo(() => {
     const mensal = valor * (descontoAtivo / 100);
@@ -129,38 +120,43 @@ const EconomySimulator = ({
         </DialogHeader>
 
         <div className="space-y-4 pt-1">
-          {/* Faixas de desconto */}
+          {/* Faixas de desconto — selecionáveis */}
           <div className="rounded-xl bg-muted/40 p-3">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Descontos por faixa de consumo
+              1. Selecione sua faixa de consumo mensal
             </p>
             <div className="grid grid-cols-4 gap-2">
               {FAIXAS.map((f, i) => {
                 const pct = descontosPorFaixa[i];
-                const isAtiva = faixaIdx === i;
+                const isSelected = selectedFaixaIdx === i;
                 return (
-                  <div
+                  <button
                     key={f.label}
-                    className={`rounded-lg px-1 py-2 text-center shadow-sm transition-all ${
-                      isAtiva
-                        ? "bg-brand-success/10 ring-2 ring-brand-success"
-                        : "bg-background"
+                    type="button"
+                    onClick={() => setSelectedFaixaIdx(i)}
+                    className={`rounded-lg px-1 py-2 text-center shadow-sm transition-all cursor-pointer border-2 ${
+                      isSelected
+                        ? "bg-brand-success/10 border-brand-success"
+                        : "bg-background border-transparent hover:border-brand-success/40"
                     }`}
                   >
                     <div className="text-[10px] sm:text-xs text-muted-foreground">{f.label}</div>
-                    <div className={`text-sm sm:text-base font-bold ${isAtiva ? "text-brand-success" : f.color}`}>
+                    <div className={`text-sm sm:text-base font-bold ${isSelected ? "text-brand-success" : "text-foreground"}`}>
                       {pct != null ? `${pct}%` : "—"}
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Faixa selecionada: <span className="font-semibold text-brand-blue">{FAIXAS[selectedFaixaIdx].range}</span> — desconto de <span className="font-semibold text-brand-success">{descontoAtivo}%</span>
+            </p>
           </div>
 
           {/* Input valor */}
           <div>
             <label className="block text-sm sm:text-base font-bold text-foreground mb-1.5">
-              💡 Qual é o valor da sua conta de luz?
+              2. Qual é o valor da sua conta de luz?
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base sm:text-lg font-semibold text-muted-foreground">
@@ -174,15 +170,6 @@ const EconomySimulator = ({
                 className="rounded-xl h-12 pl-12 pr-3 text-lg font-bold text-foreground focus-visible:ring-brand-blue focus-visible:border-brand-blue"
               />
             </div>
-            {faixaIdx !== null && (
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 flex items-center gap-1 flex-wrap">
-                <TrendingDown className="h-3 w-3 text-brand-blue" />
-                Faixa detectada:{" "}
-                <span className="text-brand-blue font-semibold">{FAIXAS[faixaIdx].range}</span>
-                {" "}— desconto de{" "}
-                <span className="text-brand-success font-semibold">{descontoAtivo}%</span>
-              </p>
-            )}
           </div>
 
           {/* Resultados */}
