@@ -109,6 +109,7 @@ const Ranking = () => {
   const [logoMap, setLogoMap] = useState<Record<string, string>>({});
   const [cashbackMap, setCashbackMap] = useState<Record<string, number>>({});
   const [bandsMap, setBandsMap] = useState<Record<string, { d1: number | null; d2: number | null; d3: number | null; d4: number | null }>>({});
+  const [siteUrlMap, setSiteUrlMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
 
@@ -148,14 +149,16 @@ const Ranking = () => {
   useEffect(() => {
     supabase
       .from("empresas")
-      .select("id, logo_url, cashback_percentual, parceira, desconto_ate_1mwh, desconto_1a3mwh, desconto_3a5mwh, desconto_acima_5mwh")
+      .select("id, logo_url, site_url, cashback_percentual, parceira, desconto_ate_1mwh, desconto_1a3mwh, desconto_3a5mwh, desconto_acima_5mwh")
       .then(({ data }) => {
         if (!data) return;
         const logos: Record<string, string> = {};
         const cashbacks: Record<string, number> = {};
         const bands: Record<string, { d1: number | null; d2: number | null; d3: number | null; d4: number | null }> = {};
+        const siteUrls: Record<string, string> = {};
         data.forEach((e: any) => {
           if (e.logo_url) logos[e.id] = e.logo_url;
+          if (e.site_url) siteUrls[e.id] = e.site_url;
           if (e.parceira && e.cashback_percentual) cashbacks[e.id] = e.cashback_percentual;
           bands[e.id] = {
             d1: e.desconto_ate_1mwh ?? null,
@@ -167,6 +170,7 @@ const Ranking = () => {
         setLogoMap(logos);
         setCashbackMap(cashbacks);
         setBandsMap(bands);
+        setSiteUrlMap(siteUrls);
       });
   }, []);
 
@@ -278,6 +282,7 @@ const Ranking = () => {
           distribuidoraId: distribuidoraId,
           tipoFornecedor: row.empresas?.tipo_fornecedor ?? null,
           logoUrl: logoMap[row.empresa_id] ?? null,
+          siteUrl: siteUrlMap[row.empresa_id] ?? null,
         }));
         setCompanies(mapped);
         setLoading(false);
@@ -289,6 +294,7 @@ const Ranking = () => {
     const arr = [...companies].map((c) => ({
       ...c,
       logoUrl: c.empresaId ? (logoMap[c.empresaId] ?? c.logoUrl ?? null) : c.logoUrl ?? null,
+      siteUrl: c.empresaId ? (siteUrlMap[c.empresaId] ?? c.siteUrl ?? null) : c.siteUrl ?? null,
     }));
     arr.sort((a, b) => {
       const va = getSortValue(a, sortKey);
@@ -298,7 +304,7 @@ const Ranking = () => {
       return b.score - a.score;
     });
     return arr;
-  }, [companies, sortKey, sortDir, logoMap]);
+  }, [companies, sortKey, sortDir, logoMap, siteUrlMap]);
 
   const handleNotify = (e: React.FormEvent) => {
     e.preventDefault();

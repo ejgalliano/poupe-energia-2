@@ -29,6 +29,7 @@ export interface Company {
   tipoFornecedor?: TipoFornecedor | null;
   nivelRisco?: string | null;
   logoUrl?: string | null;
+  siteUrl?: string | null;
 }
 
 interface Props {
@@ -232,20 +233,43 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
       {/* CTAs — desktop */}
       {!hideActions && !isBronze && (
         <div className="hidden md:flex gap-2 px-5 py-4 border-t border-border">
-          <Button
-            onClick={() => setSimOpen(true)}
-            variant="outline"
-            className="flex-1 h-11 rounded-xl font-bold border-foreground/20"
-          >
-            <Zap className="h-4 w-4 mr-2" fill="currentColor" />
-            Simular economia
-          </Button>
-          <Button
-            onClick={handleAderir}
-            className="flex-1 h-11 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
-          >
-            Ver plano e Aderir
-          </Button>
+          {company.partner ? (
+            <>
+              <Button
+                onClick={() => setSimOpen(true)}
+                variant="outline"
+                className="flex-1 h-11 rounded-xl font-bold border-foreground/20"
+              >
+                <Zap className="h-4 w-4 mr-2" fill="currentColor" />
+                Simular economia
+              </Button>
+              <Button
+                onClick={handleAderir}
+                className="flex-1 h-11 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
+              >
+                Ver plano e Aderir
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={() => setSimOpen(true)}
+                className="flex-1 h-11 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
+              >
+                Ver plano e Aderir
+              </Button>
+              {company.siteUrl && (
+                <a href={company.siteUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 rounded-xl font-bold border-brand-blue text-brand-blue hover:bg-brand-blue/10"
+                  >
+                    Ir para o site
+                  </Button>
+                </a>
+              )}
+            </>
+          )}
         </div>
       )}
 
@@ -315,20 +339,43 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
         {/* CTAs */}
         {!hideActions && !isBronze && (
           <div className="flex flex-col gap-2">
-            <Button
-              onClick={() => setSimOpen(true)}
-              variant="outline"
-              className="w-full h-12 rounded-xl font-bold border-foreground/20"
-            >
-              <Zap className="h-4 w-4 mr-2" fill="currentColor" />
-              Simular economia
-            </Button>
-            <Button
-              onClick={handleAderir}
-              className="w-full h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
-            >
-              Ver plano e Aderir
-            </Button>
+            {company.partner ? (
+              <>
+                <Button
+                  onClick={() => setSimOpen(true)}
+                  variant="outline"
+                  className="w-full h-12 rounded-xl font-bold border-foreground/20"
+                >
+                  <Zap className="h-4 w-4 mr-2" fill="currentColor" />
+                  Simular economia
+                </Button>
+                <Button
+                  onClick={handleAderir}
+                  className="w-full h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
+                >
+                  Ver plano e Aderir
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={() => setSimOpen(true)}
+                  className="w-full h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
+                >
+                  Ver plano e Aderir
+                </Button>
+                {company.siteUrl && (
+                  <a href={company.siteUrl} target="_blank" rel="noopener noreferrer">
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 rounded-xl font-bold border-brand-blue text-brand-blue hover:bg-brand-blue/10"
+                    >
+                      Ir para o site
+                    </Button>
+                  </a>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>
@@ -346,6 +393,8 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
         distribuidoraId={company.distribuidoraId}
         distribuidoraNome={company.distribuidora}
         estadoSigla={company.estado}
+        isPartner={Boolean(company.partner)}
+        siteUrl={company.siteUrl}
       />
 
       {company.empresaId && (

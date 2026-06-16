@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Zap, ArrowRight, TrendingDown } from "lucide-react";
+import { Zap, ArrowRight, TrendingDown, ExternalLink } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,8 @@ interface Props {
   distribuidoraId?: string | null;
   distribuidoraNome?: string | null;
   estadoSigla?: string | null;
+  isPartner?: boolean;
+  siteUrl?: string | null;
 }
 
 const formatBRL = (n: number) =>
@@ -77,6 +79,8 @@ const EconomySimulator = ({
   distribuidoraId,
   distribuidoraNome,
   estadoSigla,
+  isPartner = false,
+  siteUrl,
 }: Props) => {
   const [valor, setValor] = useState(0);
   const [adesaoOpen, setAdesaoOpen] = useState(false);
@@ -219,14 +223,23 @@ const EconomySimulator = ({
           </p>
 
           {/* CTA */}
-          <Button
-            onClick={handleAderir}
-            className="w-full py-3 h-auto rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
-            disabled={valor === 0 || !empresaId}
-          >
-            Ver plano e Aderir
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          {isPartner ? (
+            <Button
+              onClick={handleAderir}
+              className="w-full py-3 h-auto rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
+              disabled={valor === 0 || !empresaId}
+            >
+              Ver plano e Aderir
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : siteUrl ? (
+            <a href={siteUrl} target="_blank" rel="noopener noreferrer" className="block w-full">
+              <Button className="w-full py-3 h-auto rounded-xl font-bold bg-brand-blue text-white hover:bg-brand-blue/90">
+                Ir para o site
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
+            </a>
+          ) : null}
         </div>
 
         {empresaId && (

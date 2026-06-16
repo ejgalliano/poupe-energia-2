@@ -92,7 +92,7 @@ const RankingNacional = () => {
       // Buscar apenas empresas Ouro (fornecedor_direto) e Prata (operador)
       const { data: empresas } = await supabase
         .from("empresas")
-        .select("id, nome, parceira, ativa, tipo_fornecedor, logo_url, cashback_percentual, desconto_ate_1mwh, desconto_1a3mwh, desconto_3a5mwh, desconto_acima_5mwh")
+        .select("id, nome, parceira, ativa, tipo_fornecedor, logo_url, site_url, cashback_percentual, desconto_ate_1mwh, desconto_1a3mwh, desconto_3a5mwh, desconto_acima_5mwh")
         .eq("ativa", true)
         .in("tipo_fornecedor", ["fornecedor_direto", "operador"]);
 
@@ -159,6 +159,7 @@ const RankingNacional = () => {
             estadosCount: new Set(rows.map((r: any) => r.distribuidora_id)).size,
             tipoFornecedor: (e as any).tipo_fornecedor ?? null,
             logoUrl: (e as any).logo_url ?? null,
+            siteUrl: (e as any).site_url ?? null,
             nivelRisco,
           } as CompanyNacional;
         })
