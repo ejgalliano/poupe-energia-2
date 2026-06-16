@@ -250,7 +250,7 @@ const Ranking = () => {
         const rows = allRows.filter((row) => {
           const e = row.empresas;
           if (!e) return false;
-          if (Number(row.desconto_percentual) === 0) return false;
+          if (Number(row.desconto_percentual) === 0 && Number(row.seguranca_juridica) === 0 && Number(row.reputacao_reclame_aqui) === 0) return false;
           if (perfilUrl === "home") return e.atende_residencial !== false;
           return e.atende_empresarial !== false;
         });

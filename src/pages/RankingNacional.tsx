@@ -123,7 +123,7 @@ const RankingNacional = () => {
           const rows = byEmpresa.get(e.id) ?? [];
           if (rows.length === 0) return null;
           // Considera válidas apenas entradas com desconto preenchido (desconto=0 indica entrada zerada/inválida)
-          const validRows = rows.filter((r: any) => Number(r.nota_final) > 0 && Number(r.desconto_percentual) > 0);
+          const validRows = rows.filter((r: any) => Number(r.nota_final) > 0 && !(Number(r.desconto_percentual) === 0 && Number(r.seguranca_juridica) === 0 && Number(r.reputacao_reclame_aqui) === 0));
           if (validRows.length === 0) return null;
           const avgNota = validRows.reduce((sum: number, r: any) => sum + (Number(r.nota_final) || 0), 0) / validRows.length;
           // Usa a linha com maior nota_final como referência dos campos individuais
