@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/sheet";
 
 const navLinks = [
-  { label: "Ranking Pe", href: "/ranking" },
   { label: "Como Calculamos", href: "/como-calculamos" },
   { label: "Sobre", href: "/sobre" },
 ];
