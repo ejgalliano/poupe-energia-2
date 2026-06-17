@@ -174,7 +174,8 @@ const RankingNacional = () => {
 
       list.forEach((c) => {
         const rows = byEmpresa.get(c.empresaId!) ?? [];
-        const estados = new Set(rows.map((r: any) => distMap.get(r.distribuidora_id)).filter(Boolean));
+        const validForCount = rows.filter((r: any) => !(Number(r.desconto_percentual) === 0 && Number(r.seguranca_juridica) === 0 && Number(r.reputacao_reclame_aqui) === 0));
+        const estados = new Set(validForCount.map((r: any) => distMap.get(r.distribuidora_id)).filter(Boolean));
         c.estadosCount = estados.size;
       });
 
