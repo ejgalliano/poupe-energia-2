@@ -30,9 +30,9 @@ const Header = () => {
           />
         </Link>
 
-        {/* Desktop nav + CTA — centered relative to full container */}
-        <nav className="hidden md:flex items-center gap-6 absolute left-0 right-0 justify-center pointer-events-none">
-          <div className="flex items-center gap-6 pointer-events-auto">
+        {/* Desktop nav + CTA — right aligned */}
+        <nav className="hidden md:flex items-center gap-6 ml-auto">
+          <div className="flex items-center gap-6">
             {navLinks.map((l) => (
               <Link
                 key={l.href}
