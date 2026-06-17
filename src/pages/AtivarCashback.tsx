@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Coins, User, CreditCard, Phone, Mail, Zap, Building2, Key, CheckCircle2, Loader2 } from "lucide-react";
+import { User, Home, CreditCard, Shield, Phone, Mail, Zap, Building2, CheckCircle2, Loader2, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Header from "@/components/Header";
@@ -10,27 +10,31 @@ import SEO from "@/components/SEO";
 interface Distribuidora { id: string; nome: string; }
 
 const INPUT =
-  "w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white";
+  "w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white placeholder:text-gray-400";
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+const SELECT =
+  "w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white appearance-none";
+
+function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-        {required && <span className="text-brand-blue mr-0.5">*</span>}
-        {label}
+      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       {children}
+      {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
     </div>
   );
 }
 
-function SectionTitle({ number, label }: { number: number; label: string }) {
+function SectionHeader({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <div className="flex items-center gap-2 mb-4">
-      <div className="h-6 w-6 rounded-full bg-brand-blue flex items-center justify-center shrink-0">
-        <span className="text-white text-xs font-bold">{number}</span>
+    <div className="flex items-center gap-3 mb-5">
+      <div className="h-10 w-10 rounded-full bg-brand-blue flex items-center justify-center shrink-0 text-white">
+        {icon}
       </div>
-      <p className="text-sm font-bold text-gray-700 uppercase tracking-wide">{label}</p>
+      <h3 className="text-base font-extrabold text-brand-blue">{label}</h3>
+      <div className="flex-1 h-px bg-gray-200" />
     </div>
   );
 }
@@ -39,7 +43,7 @@ function Checkbox({
   checked, onChange, children,
 }: { checked: boolean; onChange: (v: boolean) => void; children: React.ReactNode }) {
   return (
-    <label className="flex items-start gap-3 cursor-pointer">
+    <label className="flex items-start gap-3 cursor-pointer select-none">
       <div
         onClick={() => onChange(!checked)}
         className={`mt-0.5 h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition cursor-pointer ${
@@ -52,10 +56,17 @@ function Checkbox({
           </svg>
         )}
       </div>
-      <span className="text-sm text-gray-600 leading-snug">{children}</span>
+      <span className="text-sm text-gray-600 leading-snug pt-0.5">{children}</span>
     </label>
   );
 }
+
+/* Pix SVG icon */
+const PixIcon = () => (
+  <svg viewBox="0 0 24 24" className="h-4 w-4 text-gray-400" fill="currentColor">
+    <path d="M12.003 2.003c-5.52 0-10 4.48-10 10s4.48 10 10 10 10-4.48 10-10-4.48-10-10-10zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-2.25-6.5L12 16.25l2.25-2.75H16l-2.75 3.5H10.75L8 13.5h1.75zm0-3L8 7h2.25L12 9.75 13.75 7H16l-2.25 3.5H9.75z"/>
+  </svg>
+);
 
 export default function AtivarCashback() {
   const [distribuidoras, setDistribuidoras] = useState<Distribuidora[]>([]);
@@ -159,49 +170,63 @@ export default function AtivarCashback() {
       />
       <Header />
 
-      <main className="flex-1 flex items-start justify-center px-3 sm:px-4 py-6 sm:py-10">
-        <div className="w-full max-w-xl">
+      <main className="flex-1 flex items-start justify-center px-3 sm:px-4 py-8 sm:py-12">
+        <div className="w-full max-w-2xl">
           <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
 
-            {/* Header do formulário */}
-            <div className="px-6 sm:px-8 pt-7 pb-6 border-b border-gray-100 text-center">
-              <div className="flex justify-center mb-3">
-                <div className="h-14 w-14 rounded-full bg-brand-yellow/20 flex items-center justify-center">
-                  <Coins className="h-7 w-7 text-brand-blue" />
-                </div>
+            {/* ── Hero do formulário ── */}
+            <div className="px-6 sm:px-10 pt-8 pb-7 text-center border-b border-gray-100">
+              {/* Coin illustration */}
+              <div className="flex justify-center mb-4">
+                <svg viewBox="0 0 120 100" className="w-24 h-20" xmlns="http://www.w3.org/2000/svg">
+                  {/* rotating arrows */}
+                  <path d="M20 50 A40 40 0 0 1 60 10" stroke="#1E3A5F" strokeWidth="5" fill="none" strokeLinecap="round"/>
+                  <polygon points="60,4 68,14 52,14" fill="#1E3A5F"/>
+                  <path d="M100 50 A40 40 0 0 1 60 90" stroke="#1E3A5F" strokeWidth="5" fill="none" strokeLinecap="round"/>
+                  <polygon points="60,96 52,86 68,86" fill="#1E3A5F"/>
+                  {/* coin */}
+                  <circle cx="60" cy="50" r="28" fill="#FACC15" stroke="#CA8A04" strokeWidth="2"/>
+                  <circle cx="60" cy="50" r="22" fill="#FDE68A" stroke="#CA8A04" strokeWidth="1"/>
+                  <text x="60" y="57" textAnchor="middle" fontSize="22" fontWeight="bold" fill="#92400E">$</text>
+                </svg>
               </div>
-              <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900">
-                Ative seu <span className="text-brand-blue">CASHBACK</span>
+
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-blue leading-tight">
+                Ative seu
               </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Preencha os dados abaixo para receber seu cashback
+              <h1 className="text-4xl sm:text-5xl font-extrabold text-brand-blue leading-tight mb-3">
+                CASHBACK
+              </h1>
+              <p className="text-sm sm:text-base text-gray-500 max-w-sm mx-auto leading-relaxed">
+                Preencha seus dados abaixo para participar do programa de Cashback da{" "}
+                <span className="font-bold text-brand-blue">Poupe Energia</span>.
               </p>
             </div>
 
-            <div className="px-5 sm:px-8 py-6 space-y-6">
+            <div className="px-5 sm:px-8 py-7 space-y-8">
 
               {/* Seção 1: Dados do Titular */}
-              <div className="border border-gray-100 rounded-xl p-4 sm:p-5 space-y-4">
-                <SectionTitle number={1} label="Dados do Titular" />
-                <Field label="Nome completo" required>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Digite seu nome completo"
-                      value={form.nome}
-                      onChange={(e) => set("nome")(e.target.value)}
-                      className={INPUT}
-                    />
-                  </div>
-                </Field>
+              <div>
+                <SectionHeader icon={<User className="h-5 w-5" />} label="Dados do Titular" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Field label="Nome completo" required>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Digite seu nome completo"
+                        value={form.nome}
+                        onChange={(e) => set("nome")(e.target.value)}
+                        className={INPUT}
+                      />
+                    </div>
+                  </Field>
                   <Field label="CPF ou CNPJ" required>
                     <div className="relative">
                       <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="000.000.000-00"
+                        placeholder="Digite seu CPF ou CNPJ"
                         value={form.cpf_cnpj}
                         onChange={(e) => set("cpf_cnpj")(e.target.value)}
                         className={INPUT}
@@ -220,65 +245,75 @@ export default function AtivarCashback() {
                       />
                     </div>
                   </Field>
+                  <Field label="E-mail" required>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={form.email}
+                        onChange={(e) => set("email")(e.target.value)}
+                        className={INPUT}
+                      />
+                    </div>
+                  </Field>
                 </div>
-                <Field label="E-mail" required>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={form.email}
-                      onChange={(e) => set("email")(e.target.value)}
-                      className={INPUT}
-                    />
-                  </div>
-                </Field>
               </div>
 
               {/* Seção 2: Dados da Conta de Energia */}
-              <div className="border border-gray-100 rounded-xl p-4 sm:p-5 space-y-4">
-                <SectionTitle number={2} label="Dados da Conta de Energia" />
-                <Field label="Número da UC" required>
-                  <div className="relative">
-                    <Zap className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Número da unidade consumidora"
-                      value={form.numero_uc}
-                      onChange={(e) => set("numero_uc")(e.target.value)}
-                      className={INPUT}
-                    />
-                  </div>
-                </Field>
-                <Field label="Distribuidora de energia" required>
-                  <div className="relative">
-                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
-                    <select
-                      value={form.distribuidora_id}
-                      onChange={(e) => handleDistrib(e.target.value)}
-                      className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white appearance-none"
-                    >
-                      <option value="">Selecione a distribuidora</option>
-                      {distribuidoras.map((d) => (
-                        <option key={d.id} value={d.id}>{d.nome}</option>
-                      ))}
-                    </select>
-                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </Field>
+              <div>
+                <SectionHeader icon={<Home className="h-5 w-5" />} label="Dados da Conta de Energia" />
+                <div className="space-y-4">
+                  <Field label="Número da Unidade Consumidora (UC)" required>
+                    <div className="relative">
+                      <Zap className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Digite o número da UC"
+                        value={form.numero_uc}
+                        onChange={(e) => set("numero_uc")(e.target.value)}
+                        className={INPUT}
+                      />
+                    </div>
+                  </Field>
+                  <Field label="Distribuidora de energia" required>
+                    <div className="relative">
+                      <select
+                        value={form.distribuidora_id}
+                        onChange={(e) => handleDistrib(e.target.value)}
+                        className={SELECT}
+                      >
+                        <option value="">Selecione sua distribuidora</option>
+                        {distribuidoras.map((d) => (
+                          <option key={d.id} value={d.id}>{d.nome}</option>
+                        ))}
+                      </select>
+                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </Field>
+                </div>
               </div>
 
               {/* Seção 3: Dados para Recebimento */}
-              <div className="border border-gray-100 rounded-xl p-4 sm:p-5">
-                <SectionTitle number={3} label="Dados para Recebimento" />
-                <Field label="Chave Pix" required>
+              <div>
+                <SectionHeader icon={<CreditCard className="h-5 w-5" />} label="Dados para Recebimento" />
+                <Field
+                  label="Chave Pix"
+                  required
+                  hint="Utilizaremos sua chave Pix para realizar o pagamento do seu cashback."
+                >
                   <div className="relative">
-                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <PixIcon />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4 text-gray-400" fill="currentColor">
+                        <path d="M6.36 10.56L2.4 14.52a5.7 5.7 0 000 8.07l.01.01a5.7 5.7 0 008.07 0l3.95-3.95-2.83-2.83-3.95 3.95a1.8 1.8 0 01-2.54 0l-.01-.01a1.8 1.8 0 010-2.54l3.95-3.95-2.69-2.71zm11.27-7.13a5.7 5.7 0 00-8.07 0L5.61 7.38l2.83 2.83 3.95-3.95a1.8 1.8 0 012.54 0l.01.01a1.8 1.8 0 010 2.54l-3.95 3.95 2.69 2.7 3.95-3.95a5.7 5.7 0 000-8.07l-.01-.01zM8.1 14.03l5.93-5.93 1.87 1.87-5.93 5.93-1.87-1.87z"/>
+                      </svg>
+                    </span>
                     <input
                       type="text"
-                      placeholder="CPF, e-mail, celular ou chave aleatória"
+                      placeholder="Digite sua chave Pix"
                       value={form.chave_pix}
                       onChange={(e) => set("chave_pix")(e.target.value)}
                       className={INPUT}
@@ -288,30 +323,32 @@ export default function AtivarCashback() {
               </div>
 
               {/* Seção 4: Confirmações */}
-              <div className="border border-gray-100 rounded-xl p-4 sm:p-5 space-y-3">
-                <SectionTitle number={4} label="Confirmações" />
-                <Checkbox checked={form.aceite_termos} onChange={(v) => set("aceite_termos")(v)}>
-                  Li e aceito os{" "}
-                  <Link to="/termos-cashback" className="text-brand-blue font-semibold underline" target="_blank">
-                    Termos e Condições
-                  </Link>{" "}
-                  da Poupe Energia
-                </Checkbox>
-                <Checkbox checked={form.ciente_parcela_unica} onChange={(v) => set("ciente_parcela_unica")(v)}>
-                  Estou ciente de que o cashback é promocional e não recorrente, sendo pago em parcela única
-                </Checkbox>
-                <Checkbox checked={form.autoriza_validacao} onChange={(v) => set("autoriza_validacao")(v)}>
-                  Autorizo a validação dos meus dados junto à comercializadora parceira e à Poupe Energia
-                </Checkbox>
+              <div>
+                <SectionHeader icon={<Shield className="h-5 w-5" />} label="Confirmações" />
+                <div className="space-y-3.5">
+                  <Checkbox checked={form.aceite_termos} onChange={(v) => set("aceite_termos")(v)}>
+                    Declaro que li e aceito os{" "}
+                    <Link to="/termos-cashback" className="text-brand-blue font-semibold underline" target="_blank">
+                      Termos e Condições
+                    </Link>{" "}
+                    do Cashback.
+                  </Checkbox>
+                  <Checkbox checked={form.ciente_parcela_unica} onChange={(v) => set("ciente_parcela_unica")(v)}>
+                    Estou ciente de que o cashback é promocional, pago em parcela única e não recorrente.
+                  </Checkbox>
+                  <Checkbox checked={form.autoriza_validacao} onChange={(v) => set("autoriza_validacao")(v)}>
+                    Autorizo a validação dos meus dados junto à comercializadora parceira.
+                  </Checkbox>
+                </div>
               </div>
 
-              {/* Botão de envio */}
+              {/* Botão */}
               <button
                 onClick={handleSubmit}
                 disabled={!canSubmit || submitting}
-                className={`w-full py-4 rounded-xl font-extrabold text-white text-sm tracking-widest flex items-center justify-center gap-2 transition ${
+                className={`w-full py-4 rounded-xl font-extrabold text-white text-sm tracking-widest uppercase flex items-center justify-center gap-2 transition ${
                   canSubmit && !submitting
-                    ? "bg-gray-900 hover:bg-gray-800 shadow-md"
+                    ? "bg-[#1E3A5F] hover:bg-[#162d4a] shadow-md"
                     : "bg-gray-300 cursor-not-allowed"
                 }`}
               >
@@ -321,16 +358,22 @@ export default function AtivarCashback() {
                     Enviando...
                   </>
                 ) : (
-                  "ATIVAR MEU CASHBACK 🔒"
+                  <>ATIVAR MEU CASHBACK 🔒</>
                 )}
               </button>
 
               {/* Nota informativa */}
-              <p className="text-center text-xs text-gray-400 leading-relaxed">
-                O cashback será liberado após a ativação da conta de energia, compensação dos créditos
-                (quando aplicável) e pagamento da primeira fatura validada pela comercializadora
-                parceira e pela Poupe Energia.
-              </p>
+              <div className="flex items-start gap-2 pt-1">
+                <div className="h-5 w-5 rounded-full border-2 border-brand-blue/40 flex items-center justify-center shrink-0 mt-0.5">
+                  <Info className="h-3 w-3 text-brand-blue/60" />
+                </div>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  O cashback será liberado após a ativação da conta de energia,
+                  compensação dos créditos (quando aplicável) e pagamento da primeira
+                  fatura validada pela comercializadora parceira e pela{" "}
+                  <span className="font-bold text-brand-blue">Poupe Energia</span>.
+                </p>
+              </div>
 
             </div>
           </div>
