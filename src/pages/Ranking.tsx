@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ArrowRight, Home, Building2, MapPin } from "lucide-react";
+import { ArrowRight, Home, Building2, MapPin, Star } from "lucide-react";
 import {
   Drawer,
   DrawerContent,
@@ -624,7 +624,11 @@ const Ranking = () => {
                       </div>
                       <div className="min-w-0">
                         <span className="font-semibold text-brand-blue text-sm truncate block">{b.nome}</span>
-                        <span className="text-[11px] text-muted-foreground">Intermediadora</span>
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                          {Array.from({ length: 5 }, (_, i) => (
+                            <Star key={i} className={`h-3 w-3 ${i < 3 ? "text-[#CD7F32] fill-[#CD7F32]" : "text-[#CD7F32]/30"}`} />
+                          ))}
+                        </div>
                       </div>
                     </div>
                     {b.site_url && (

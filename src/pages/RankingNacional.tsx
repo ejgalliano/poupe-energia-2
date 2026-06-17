@@ -14,7 +14,7 @@ import { fetchAll } from "@/lib/fetchAll";
 import SEO from "@/components/SEO";
 import BackToTop from "@/components/BackToTop";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { Info, ArrowRight } from "lucide-react";
+import { Info, ArrowRight, Star } from "lucide-react";
 
 type SortKey = "score" | "discount" | "legalSecurity" | "reputation" | "minValue";
 type SortDir = "asc" | "desc";
@@ -318,7 +318,11 @@ const RankingNacional = () => {
                           </div>
                           <div className="min-w-0">
                             <span className="font-semibold text-brand-blue text-sm truncate block">{b.nome}</span>
-                            <span className="text-[11px] text-muted-foreground">Intermediadora</span>
+                            <div className="flex items-center gap-0.5 mt-0.5">
+                              {Array.from({ length: 5 }, (_, i) => (
+                                <Star key={i} className={`h-3 w-3 ${i < 3 ? "text-[#CD7F32] fill-[#CD7F32]" : "text-[#CD7F32]/30"}`} />
+                              ))}
+                            </div>
                           </div>
                         </div>
                         {b.site_url && (
