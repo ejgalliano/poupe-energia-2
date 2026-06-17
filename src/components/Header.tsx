@@ -85,6 +85,19 @@ const Header = () => {
                     </Link>
                   </SheetClose>
                 ))}
+                <div className="h-px bg-white/10 my-2" />
+                <SheetClose asChild>
+                  <Link
+                    to="/ativar-cashback"
+                    className="flex items-center gap-3 px-3 py-3 rounded-lg font-semibold hover:bg-white/10 transition"
+                  >
+                    <User className="h-4 w-4 shrink-0" />
+                    <div className="leading-tight">
+                      <div className="font-bold">Entrar</div>
+                      <div className="text-[11px] font-normal text-white/70">Ativar Cashback</div>
+                    </div>
+                  </Link>
+                </SheetClose>
               </nav>
             </SheetContent>
           </Sheet>
