@@ -21,8 +21,8 @@ const navLinks = [
 const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
-      <div className="container mx-auto flex items-center justify-between px-4 py-1">
-        <Link to="/" className="flex items-center" aria-label="Poupe Energia">
+      <div className="container mx-auto relative flex items-center px-4 py-1">
+        <Link to="/" className="flex items-center shrink-0" aria-label="Poupe Energia">
           <img
             src={LOGO_URL}
             alt="Poupe Energia"
@@ -30,35 +30,33 @@ const Header = () => {
           />
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-6">
-          {navLinks.map((l) => (
+        {/* Desktop nav + CTA — centered relative to full container */}
+        <nav className="hidden md:flex items-center gap-6 absolute left-0 right-0 justify-center pointer-events-none">
+          <div className="flex items-center gap-6 pointer-events-auto">
+            {navLinks.map((l) => (
+              <Link
+                key={l.href}
+                to={l.href}
+                className="text-sm font-bold text-brand-blue hover:opacity-70 transition"
+              >
+                {l.label}
+              </Link>
+            ))}
             <Link
-              key={l.href}
-              to={l.href}
-              className="text-sm font-bold text-brand-blue hover:opacity-70 transition"
+              to="/ativar-cashback"
+              className="flex items-center gap-2 bg-brand-blue rounded-xl px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90 transition"
             >
-              {l.label}
+              <User className="h-4 w-4" />
+              <div className="text-left leading-tight">
+                <div className="font-bold">Entrar</div>
+                <div className="text-[10px] font-normal text-white/80">Ativar Cashback</div>
+              </div>
             </Link>
-          ))}
+          </div>
         </nav>
 
-        {/* Desktop CTA */}
-        <div className="hidden md:flex">
-          <Link
-            to="/ativar-cashback"
-            className="flex items-center gap-2 bg-brand-blue rounded-xl px-4 py-2 text-sm font-bold text-white hover:bg-brand-blue/90 transition"
-          >
-            <User className="h-4 w-4" />
-            <div className="text-left leading-tight">
-              <div className="font-bold">Entrar</div>
-              <div className="text-[10px] font-normal text-white/80">Ativar Cashback</div>
-            </div>
-          </Link>
-        </div>
-
         {/* Mobile actions */}
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 md:hidden ml-auto">
           <Sheet>
             <SheetTrigger asChild>
               <Button
