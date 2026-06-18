@@ -16,7 +16,6 @@ const col1 = [
 const col2 = [
   { label: "Sobre a Poupe Energia", href: "/sobre" },
   { label: "Como Calculamos os Rankings", href: "/como-calculamos" },
-  { label: "Ranking Nacional", href: "/ranking-nacional" },
   { label: "Dúvidas Frequentes", href: "/duvidas-frequentes" },
   { label: "Política de Privacidade", href: "/politica-de-privacidade" },
   { label: "Termos de Uso", href: "/termos-de-uso" },
