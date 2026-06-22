@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 
 interface Distribuidora { id: string; nome: string; }
+interface EmpresaParceira { id: string; nome: string; cashback_percentual: number; }
 
 const INPUT =
   "w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white placeholder:text-gray-400";
@@ -61,19 +62,30 @@ function Checkbox({
   );
 }
 
-/* Pix SVG icon */
 const PixIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-4 w-4 text-gray-400" fill="currentColor">
-    <path d="M12.003 2.003c-5.52 0-10 4.48-10 10s4.48 10 10 10 10-4.48 10-10-4.48-10-10-10zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-2.25-6.5L12 16.25l2.25-2.75H16l-2.75 3.5H10.75L8 13.5h1.75zm0-3L8 7h2.25L12 9.75 13.75 7H16l-2.25 3.5H9.75z"/>
+  <span className="absolute left-3 top-1/2 -translate-y-1/2">
+    <svg viewBox="0 0 24 24" className="h-4 w-4 text-gray-400" fill="currentColor">
+      <path d="M6.36 10.56L2.4 14.52a5.7 5.7 0 000 8.07l.01.01a5.7 5.7 0 008.07 0l3.95-3.95-2.83-2.83-3.95 3.95a1.8 1.8 0 01-2.54 0l-.01-.01a1.8 1.8 0 010-2.54l3.95-3.95-2.69-2.71zm11.27-7.13a5.7 5.7 0 00-8.07 0L5.61 7.38l2.83 2.83 3.95-3.95a1.8 1.8 0 012.54 0l.01.01a1.8 1.8 0 010 2.54l-3.95 3.95 2.69 2.7 3.95-3.95a5.7 5.7 0 000-8.07l-.01-.01zM8.1 14.03l5.93-5.93 1.87 1.87-5.93 5.93-1.87-1.87z"/>
+    </svg>
+  </span>
+);
+
+const ChevronDown = () => (
+  <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
   </svg>
 );
 
 export default function AtivarCashback() {
   const [distribuidoras, setDistribuidoras] = useState<Distribuidora[]>([]);
+  const [empresasParceiras, setEmpresasParceiras] = useState<EmpresaParceira[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
   const [form, setForm] = useState({
+    empresa_id: "",
+    empresa_nome: "",
+    cashback_percentual: null as number | null,
     nome: "",
     cpf_cnpj: "",
     whatsapp: "",
@@ -90,10 +102,28 @@ export default function AtivarCashback() {
   useEffect(() => {
     supabase.from("distribuidoras").select("id, nome").order("nome")
       .then(({ data }) => setDistribuidoras(data ?? []));
+
+    supabase
+      .from("empresas")
+      .select("id, nome, cashback_percentual")
+      .eq("parceira", true)
+      .not("cashback_percentual", "is", null)
+      .order("nome")
+      .then(({ data }) => setEmpresasParceiras((data ?? []) as EmpresaParceira[]));
   }, []);
 
-  const set = (field: string) => (value: string | boolean) =>
+  const set = (field: string) => (value: string | boolean | number | null) =>
     setForm((f) => ({ ...f, [field]: value }));
+
+  const handleEmpresa = (id: string) => {
+    const e = empresasParceiras.find((x) => x.id === id);
+    setForm((f) => ({
+      ...f,
+      empresa_id: id,
+      empresa_nome: e?.nome ?? "",
+      cashback_percentual: e?.cashback_percentual ?? null,
+    }));
+  };
 
   const handleDistrib = (id: string) => {
     const d = distribuidoras.find((x) => x.id === id);
@@ -101,6 +131,7 @@ export default function AtivarCashback() {
   };
 
   const canSubmit =
+    form.empresa_id &&
     form.nome && form.cpf_cnpj && form.whatsapp && form.email &&
     form.numero_uc && form.distribuidora_id && form.chave_pix &&
     form.aceite_termos && form.ciente_parcela_unica && form.autoriza_validacao;
@@ -110,6 +141,9 @@ export default function AtivarCashback() {
     setSubmitting(true);
     try {
       const { error } = await supabase.from("cashback_cadastros").insert({
+        empresa_id: form.empresa_id || null,
+        empresa_nome: form.empresa_nome || null,
+        cashback_percentual: form.cashback_percentual,
         nome: form.nome,
         cpf_cnpj: form.cpf_cnpj,
         email: form.email,
@@ -144,10 +178,15 @@ export default function AtivarCashback() {
             <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
-            <h1 className="text-2xl font-extrabold text-brand-blue mb-3">Cadastro Enviado!</h1>
+            <h1 className="text-2xl font-extrabold text-brand-blue mb-3">Cashback Ativado!</h1>
+            {form.cashback_percentual != null && (
+              <div className="inline-flex items-center gap-2 bg-brand-yellow/20 text-brand-blue px-4 py-2 rounded-full text-sm font-bold mb-4">
+                ⚡ {form.cashback_percentual}% de cashback com {form.empresa_nome}
+              </div>
+            )}
             <p className="text-gray-600 text-sm leading-relaxed mb-6">
               Seus dados foram recebidos. Após a validação da sua conta de energia e pagamento
-              da primeira fatura, seu cashback será liberado.
+              da primeira fatura, seu cashback será liberado em até 60 dias.
             </p>
             <Link
               to="/"
@@ -174,23 +213,19 @@ export default function AtivarCashback() {
         <div className="w-full max-w-2xl">
           <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
 
-            {/* ── Hero do formulário ── */}
+            {/* ── Hero ── */}
             <div className="px-6 sm:px-10 pt-8 pb-7 text-center border-b border-gray-100">
-              {/* Coin illustration */}
               <div className="flex justify-center mb-4">
                 <svg viewBox="0 0 120 100" className="w-24 h-20" xmlns="http://www.w3.org/2000/svg">
-                  {/* rotating arrows */}
                   <path d="M20 50 A40 40 0 0 1 60 10" stroke="#1E3A5F" strokeWidth="5" fill="none" strokeLinecap="round"/>
                   <polygon points="60,4 68,14 52,14" fill="#1E3A5F"/>
                   <path d="M100 50 A40 40 0 0 1 60 90" stroke="#1E3A5F" strokeWidth="5" fill="none" strokeLinecap="round"/>
                   <polygon points="60,96 52,86 68,86" fill="#1E3A5F"/>
-                  {/* coin */}
                   <circle cx="60" cy="50" r="28" fill="#FACC15" stroke="#CA8A04" strokeWidth="2"/>
                   <circle cx="60" cy="50" r="22" fill="#FDE68A" stroke="#CA8A04" strokeWidth="1"/>
                   <text x="60" y="57" textAnchor="middle" fontSize="22" fontWeight="bold" fill="#92400E">$</text>
                 </svg>
               </div>
-
               <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-blue leading-tight">
                 Ative seu
               </h1>
@@ -201,11 +236,44 @@ export default function AtivarCashback() {
                 Preencha seus dados abaixo para participar do programa de Cashback da{" "}
                 <span className="font-bold text-brand-blue">Poupe Energia</span>.
               </p>
+              <p className="text-xs text-gray-400 mt-2">
+                Importante: realize este cadastro <span className="font-semibold text-gray-500">antes</span> de assinar com a comercializadora. Ativações após a adesão não serão válidas.
+              </p>
             </div>
 
             <div className="px-5 sm:px-8 py-7 space-y-8">
 
-              {/* Seção 1: Dados do Titular */}
+              {/* Seção 1: Empresa Parceira */}
+              <div>
+                <SectionHeader icon={<Building2 className="h-5 w-5" />} label="Empresa Parceira" />
+                <Field
+                  label="Comercializadora escolhida"
+                  required
+                  hint="Selecione a empresa com a qual você vai aderir ao plano de energia."
+                >
+                  <div className="relative">
+                    <select
+                      value={form.empresa_id}
+                      onChange={(e) => handleEmpresa(e.target.value)}
+                      className={SELECT}
+                    >
+                      <option value="">Selecione a empresa</option>
+                      {empresasParceiras.map((e) => (
+                        <option key={e.id} value={e.id}>{e.nome}</option>
+                      ))}
+                    </select>
+                    <ChevronDown />
+                  </div>
+                </Field>
+
+                {form.empresa_id && form.cashback_percentual != null && (
+                  <div className="mt-3 inline-flex items-center gap-2 bg-brand-yellow/20 text-brand-blue px-4 py-2 rounded-full text-sm font-bold">
+                    ⚡ Você receberá <span className="text-lg mx-1">{form.cashback_percentual}%</span> de cashback com {form.empresa_nome}
+                  </div>
+                )}
+              </div>
+
+              {/* Seção 2: Dados do Titular */}
               <div>
                 <SectionHeader icon={<User className="h-5 w-5" />} label="Dados do Titular" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -260,7 +328,7 @@ export default function AtivarCashback() {
                 </div>
               </div>
 
-              {/* Seção 2: Dados da Conta de Energia */}
+              {/* Seção 3: Dados da Conta de Energia */}
               <div>
                 <SectionHeader icon={<Home className="h-5 w-5" />} label="Dados da Conta de Energia" />
                 <div className="space-y-4">
@@ -288,32 +356,25 @@ export default function AtivarCashback() {
                           <option key={d.id} value={d.id}>{d.nome}</option>
                         ))}
                       </select>
-                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <ChevronDown />
                     </div>
                   </Field>
                 </div>
               </div>
 
-              {/* Seção 3: Dados para Recebimento */}
+              {/* Seção 4: Dados para Recebimento */}
               <div>
                 <SectionHeader icon={<CreditCard className="h-5 w-5" />} label="Dados para Recebimento" />
                 <Field
                   label="Chave Pix"
                   required
-                  hint="Utilizaremos sua chave Pix para realizar o pagamento do seu cashback."
+                  hint="A conta deve ser de sua titularidade. Utilizaremos sua chave Pix para realizar o pagamento do cashback."
                 >
                   <div className="relative">
                     <PixIcon />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2">
-                      <svg viewBox="0 0 24 24" className="h-4 w-4 text-gray-400" fill="currentColor">
-                        <path d="M6.36 10.56L2.4 14.52a5.7 5.7 0 000 8.07l.01.01a5.7 5.7 0 008.07 0l3.95-3.95-2.83-2.83-3.95 3.95a1.8 1.8 0 01-2.54 0l-.01-.01a1.8 1.8 0 010-2.54l3.95-3.95-2.69-2.71zm11.27-7.13a5.7 5.7 0 00-8.07 0L5.61 7.38l2.83 2.83 3.95-3.95a1.8 1.8 0 012.54 0l.01.01a1.8 1.8 0 010 2.54l-3.95 3.95 2.69 2.7 3.95-3.95a5.7 5.7 0 000-8.07l-.01-.01zM8.1 14.03l5.93-5.93 1.87 1.87-5.93 5.93-1.87-1.87z"/>
-                      </svg>
-                    </span>
                     <input
                       type="text"
-                      placeholder="Digite sua chave Pix"
+                      placeholder="CPF, e-mail, celular ou chave aleatória"
                       value={form.chave_pix}
                       onChange={(e) => set("chave_pix")(e.target.value)}
                       className={INPUT}
@@ -322,7 +383,7 @@ export default function AtivarCashback() {
                 </Field>
               </div>
 
-              {/* Seção 4: Confirmações */}
+              {/* Seção 5: Confirmações */}
               <div>
                 <SectionHeader icon={<Shield className="h-5 w-5" />} label="Confirmações" />
                 <div className="space-y-3.5">
@@ -372,6 +433,7 @@ export default function AtivarCashback() {
                   compensação dos créditos (quando aplicável) e pagamento da primeira
                   fatura validada pela comercializadora parceira e pela{" "}
                   <span className="font-bold text-brand-blue">Poupe Energia</span>.
+                  O prazo de pagamento é de até 60 dias após a conclusão das etapas.
                 </p>
               </div>
 
