@@ -222,10 +222,10 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
       )}
 
       {/* Tag cashback — desktop */}
-      {company.partner && !hideMetrics && (
+      {company.cashbackPercentual != null && company.cashbackPercentual > 0 && !hideMetrics && (
         <div className="hidden md:flex px-5 py-2 border-t border-border">
           <span className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold">
-            ⚡ {company.cashbackPercentual ?? 10}% de cashback na adesão
+            ⚡ {company.cashbackPercentual}% de cashback na adesão
           </span>
         </div>
       )}
@@ -318,9 +318,9 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
         )}
 
         {/* Tag cashback */}
-        {company.partner && !hideMetrics && (
+        {company.cashbackPercentual != null && company.cashbackPercentual > 0 && !hideMetrics && (
           <div className="inline-flex items-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-1 rounded-full text-xs font-bold mb-3">
-            ⚡ {company.cashbackPercentual ?? 10}% de cashback na adesão
+            ⚡ {company.cashbackPercentual}% de cashback na adesão
           </div>
         )}
 
@@ -381,7 +381,7 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
           empresaNome={company.name}
           distribuidoraId={company.distribuidoraId}
           distribuidoraNome={company.distribuidora}
-          cashbackPercentual={company.cashbackPercentual ?? 10}
+          cashbackPercentual={company.cashbackPercentual}
         />
       )}
     </article>
