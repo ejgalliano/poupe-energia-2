@@ -303,6 +303,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
               <SelectContent>
                 <SelectItem value="TE">TE</SelectItem>
                 <SelectItem value="TUSD">TUSD</SelectItem>
+                <SelectItem value="TE + TUSD">TE + TUSD</SelectItem>
                 <SelectItem value="Total da fatura">Total da fatura</SelectItem>
               </SelectContent>
             </Select>
