@@ -19,6 +19,7 @@ interface Props {
   empresaNome?: string;
   distribuidoraId?: string;
   distribuidoraNome?: string;
+  cashbackPercentual?: number | null;
 }
 
 const WA_PATH =
@@ -102,7 +103,7 @@ const _now = new Date();
 const TODAY_STR = `${_now.getDate()} de ${MONTHS[_now.getMonth()]} de ${_now.getFullYear()}`;
 
 export default function AdesaoModal({
-  open, onOpenChange, empresaId, empresaNome, distribuidoraId, distribuidoraNome,
+  open, onOpenChange, empresaId, empresaNome, distribuidoraId, distribuidoraNome, cashbackPercentual,
 }: Props) {
   const [distribuidoras, setDistribuidoras] = useState<Distribuidora[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -197,6 +198,7 @@ export default function AdesaoModal({
         distribuidora_nome: form.distribuidora_nome || null,
         empresa_id: form.empresa_id || null,
         empresa_nome: form.empresa_nome || null,
+        cashback_percentual: cashbackPercentual ?? null,
         codigo_embaixador: form.codigo_embaixador || null,
         doc_frente_url: frente, doc_verso_url: verso, fatura_url: fat,
         aceite_termos: form.aceite_termos,
