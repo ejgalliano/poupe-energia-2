@@ -41,6 +41,7 @@ type Cadastro = {
   ciente_parcela_unica: boolean;
   autoriza_validacao: boolean;
   status: string;
+  cashback_percentual: number | null;
   valor_cashback: number | null;
   observacoes: string | null;
   data_pagamento: string | null;
@@ -271,7 +272,12 @@ export default function CashbackCadastros() {
                     <div className="text-xs text-muted-foreground truncate max-w-[130px]">{c.email}</div>
                   </TableCell>
                   <TableCell className="text-xs max-w-[110px] truncate">{c.distribuidora_nome ?? "—"}</TableCell>
-                  <TableCell className="text-xs max-w-[110px] truncate">{c.empresa_nome ?? "—"}</TableCell>
+                  <TableCell className="text-xs max-w-[120px]">
+                    <div className="truncate">{c.empresa_nome ?? "—"}</div>
+                    {c.cashback_percentual != null && c.cashback_percentual > 0 && (
+                      <div className="text-[10px] text-brand-blue font-semibold">⚡ {c.cashback_percentual}% cashback</div>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
                       {c.doc_frente_url && <span className="h-2 w-2 rounded-full bg-green-500" title="Doc frente" />}
@@ -363,8 +369,19 @@ export default function CashbackCadastros() {
                 </p>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                   <InfoRow label="Distribuidora" value={sel.distribuidora_nome} />
-                  <InfoRow label="Comercializadora" value={sel.empresa_nome} />
+                  <InfoRow label="Comercializadora" value={
+                    sel.empresa_nome
+                      ? <span>{sel.empresa_nome}{sel.cashback_percentual != null && sel.cashback_percentual > 0 && <span className="ml-1.5 text-brand-blue font-bold">⚡ {sel.cashback_percentual}%</span>}</span>
+                      : "—"
+                  } />
                   {sel.numero_uc && <InfoRow label="Número UC" value={<span className="font-mono">{sel.numero_uc}</span>} />}
+                  {sel.chave_pix && (
+                    <div className="col-span-2">
+                      <InfoRow label="Chave Pix (para pagamento)" value={
+                        <span className="font-mono bg-green-50 text-green-800 px-2 py-0.5 rounded text-xs">{sel.chave_pix}</span>
+                      } />
+                    </div>
+                  )}
                 </div>
               </div>
 
