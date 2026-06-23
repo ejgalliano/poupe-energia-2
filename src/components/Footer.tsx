@@ -20,6 +20,7 @@ const col2 = [
   { label: "Termos de Uso", href: "/termos-de-uso" },
   { label: "Cashback – Termos e Condições", href: "/termos-cashback" },
   { label: "Contestação e Revisão Técnica", href: "/contestacao" },
+  { label: "Diretrizes Metodológicas", href: "/diretrizes-metodologicas" },
 ];
 
 const Footer = () => {

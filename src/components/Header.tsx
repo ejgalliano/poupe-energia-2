@@ -15,6 +15,7 @@ import {
 
 const navLinks = [
   { label: "Como calculamos", href: "/como-calculamos" },
+  { label: "Diretrizes Metodológicas", href: "/diretrizes-metodologicas" },
   { label: "Sobre nós", href: "/sobre" },
 ];
 

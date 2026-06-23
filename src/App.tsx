@@ -34,6 +34,7 @@ import Bess from "./pages/Bess.tsx";
 import Eletropostos from "./pages/Eletropostos.tsx";
 import DuvidasFrequentes from "./pages/DuvidasFrequentes.tsx";
 import Contestacao from "./pages/Contestacao.tsx";
+import DiretrizesMetodologicas from "./pages/DiretrizesMetodologicas.tsx";
 import Embaixadores from "./pages/admin/Embaixadores";
 import CashbackCadastros from "./pages/admin/CashbackCadastros";
 import FormulaConfig from "./pages/admin/FormulaConfig";
@@ -66,6 +67,7 @@ const App = () => (
           <Route path="/ativar-cashback" element={<AtivarCashback />} />
           <Route path="/duvidas-frequentes" element={<DuvidasFrequentes />} />
           <Route path="/contestacao" element={<Contestacao />} />
+          <Route path="/diretrizes-metodologicas" element={<DiretrizesMetodologicas />} />
           <Route path="/gd-livre-empresas" element={<PoupeFacilEmpresas />} />
           <Route path="/poupe-facil-empresas" element={<PoupeFacilEmpresas />} />
           <Route path="/energia-por-assinatura" element={<EnergiaPorAssinatura />} />
