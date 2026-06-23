@@ -1,7 +1,6 @@
-import { Facebook, Instagram, Linkedin, Youtube, Lightbulb } from "lucide-react";
+import { useEffect } from "react";
+import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const CONTACT_EMAIL = "contato.poupeenergia@hotmail.com";
 
 const col1 = [
   { label: "GD Livre - Empresas", href: "/gd-livre-empresas" },
@@ -24,6 +23,19 @@ const col2 = [
 ];
 
 const Footer = () => {
+  useEffect(() => {
+    const container = document.getElementById("ra-verified-seal");
+    if (!container || container.querySelector("script")) return;
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.id = "ra-embed-verified-seal";
+    script.src = "https://s3.amazonaws.com/raichu-beta/ra-verified/bundle.js";
+    script.dataset.id = "TTE0V3ZHTXNHOTZxS3FRZTpwb3VwZS1lbmVyZ2lh";
+    script.dataset.target = "ra-verified-seal";
+    script.dataset.model = "compact_1";
+    container.appendChild(script);
+  }, []);
+
   return (
     <footer className="bg-brand-blue text-white">
       <div className="container mx-auto px-4 py-14">
@@ -41,7 +53,7 @@ const Footer = () => {
               Comparou? Economizou. Aderiu? Ganhou Cashback. Isso é
               Poupe Energia.
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-3 mb-5">
               {[Facebook, Instagram, Linkedin, Youtube].map((Icon, i) => (
                 <a
                   key={i}
@@ -53,6 +65,8 @@ const Footer = () => {
                 </a>
               ))}
             </div>
+            {/* Selo Reclame Aqui */}
+            <div id="ra-verified-seal" />
           </div>
 
           {/* Col 1 */}
