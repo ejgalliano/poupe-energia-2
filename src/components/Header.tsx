@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/sheet";
 
 const navLinks = [
+  { label: "Como funciona", href: "/como-funciona" },
   { label: "Como calculamos", href: "/como-calculamos" },
-  { label: "Diretrizes Metodológicas", href: "/diretrizes-metodologicas" },
   { label: "Sobre nós", href: "/sobre" },
 ];
 
