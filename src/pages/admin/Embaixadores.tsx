@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Copy, Download, Pencil, Plus, Save, X } from "lucide-react";
+import { Copy, Download, Pencil, Plus, Save, X, CheckCircle2, XCircle } from "lucide-react";
 
 type Embaixador = {
   id?: string;
@@ -31,6 +31,22 @@ type Embaixador = {
   comissao_percentual: number;
   chave_pix: string | null;
   ativo: boolean;
+};
+
+type Candidato = {
+  id: string;
+  created_at: string;
+  nome: string;
+  email: string;
+  telefone: string;
+  cidade: string;
+  uf: string;
+  is_mei: boolean;
+  tem_equipe: boolean;
+  status: "pendente" | "aprovado" | "rejeitado";
+  observacoes: string | null;
+  aprovado_em: string | null;
+  embaixador_id: string | null;
 };
 
 type LeadEmb = {
@@ -74,6 +90,7 @@ export default function Embaixadores() {
   const [embaixadores, setEmbaixadores] = useState<Embaixador[]>([]);
   const [leads, setLeads] = useState<LeadEmb[]>([]);
   const [empresas, setEmpresas] = useState<{ id: string; nome: string }[]>([]);
+  const [candidatos, setCandidatos] = useState<Candidato[]>([]);
 
   const [editing, setEditing] = useState<Embaixador | null>(null);
   const [openForm, setOpenForm] = useState(false);
@@ -91,7 +108,7 @@ export default function Embaixadores() {
   const [selLead, setSelLead] = useState<LeadEmb | null>(null);
 
   const load = async () => {
-    const [e, l, emp] = await Promise.all([
+    const [e, l, emp, cand] = await Promise.all([
       supabase.from("embaixadores").select("*").order("codigo"),
       supabase
         .from("leads_embaixadores")
@@ -99,10 +116,12 @@ export default function Embaixadores() {
         .order("created_at", { ascending: false })
         .limit(2000),
       supabase.from("empresas").select("id, nome").order("nome"),
+      (supabase as any).from("embaixadores_candidatos").select("*").order("created_at", { ascending: false }),
     ]);
     setEmbaixadores((e.data ?? []) as Embaixador[]);
     setLeads((l.data ?? []) as any);
     setEmpresas((emp.data ?? []) as any);
+    setCandidatos((cand.data ?? []) as Candidato[]);
   };
 
   useEffect(() => { load(); }, []);
@@ -209,6 +228,41 @@ export default function Embaixadores() {
     load();
   };
 
+  const aprovarCandidato = async (cand: Candidato) => {
+    const codigo = nextCodigo(embaixadores.map((x) => x.codigo));
+    const { data: embData, error: embErr } = await supabase
+      .from("embaixadores")
+      .insert({
+        codigo,
+        nome: cand.nome,
+        email: cand.email,
+        telefone: cand.telefone,
+        tipo: "pessoa_fisica",
+        cpf_cnpj: null,
+        comissao_percentual: 5,
+        chave_pix: null,
+        ativo: true,
+      } as any)
+      .select()
+      .single();
+    if (embErr) { toast.error(embErr.message); return; }
+    await (supabase as any)
+      .from("embaixadores_candidatos")
+      .update({ status: "aprovado", aprovado_em: new Date().toISOString(), embaixador_id: (embData as any).id })
+      .eq("id", cand.id);
+    toast.success(`Embaixador ${codigo} criado com sucesso!`);
+    load();
+  };
+
+  const rejeitarCandidato = async (id: string) => {
+    await (supabase as any)
+      .from("embaixadores_candidatos")
+      .update({ status: "rejeitado" })
+      .eq("id", id);
+    toast.success("Candidato rejeitado.");
+    load();
+  };
+
   // Resumo financeiro
   const resumoPorEmb = useMemo(() => {
     const map = new Map<string, {
@@ -240,12 +294,92 @@ export default function Embaixadores() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Embaixadores</h1>
 
-      <Tabs defaultValue="cadastro">
+      <Tabs defaultValue="candidatos">
         <TabsList>
-          <TabsTrigger value="cadastro">Cadastro</TabsTrigger>
+          <TabsTrigger value="candidatos" className="relative">
+            Candidatos
+            {candidatos.filter((c) => c.status === "pendente").length > 0 && (
+              <span className="ml-2 bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5">
+                {candidatos.filter((c) => c.status === "pendente").length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="cadastro">Embaixadores</TabsTrigger>
           <TabsTrigger value="leads">Leads por Embaixador</TabsTrigger>
           <TabsTrigger value="financeiro">Resumo Financeiro</TabsTrigger>
         </TabsList>
+
+        {/* CANDIDATOS */}
+        <TabsContent value="candidatos" className="space-y-4">
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Nome</TableHead>
+                    <TableHead>Contato</TableHead>
+                    <TableHead>Cidade/UF</TableHead>
+                    <TableHead>MEI</TableHead>
+                    <TableHead>Equipe</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {candidatos.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="text-xs whitespace-nowrap">
+                        {new Date(c.created_at).toLocaleDateString("pt-BR")}
+                      </TableCell>
+                      <TableCell className="font-medium text-sm">{c.nome}</TableCell>
+                      <TableCell>
+                        <div className="text-xs">{c.telefone}</div>
+                        <div className="text-xs text-muted-foreground">{c.email}</div>
+                      </TableCell>
+                      <TableCell className="text-xs">{c.cidade}/{c.uf}</TableCell>
+                      <TableCell className="text-xs">{c.is_mei ? "Sim" : "Não"}</TableCell>
+                      <TableCell className="text-xs">{c.tem_equipe ? "Sim" : "Não"}</TableCell>
+                      <TableCell>
+                        <Badge className={
+                          c.status === "pendente"   ? "bg-yellow-100 text-yellow-800" :
+                          c.status === "aprovado"   ? "bg-green-100 text-green-700"  :
+                                                      "bg-red-100 text-red-700"
+                        }>
+                          {c.status === "pendente" ? "Pendente" : c.status === "aprovado" ? "Aprovado" : "Rejeitado"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right space-x-1">
+                        {c.status === "pendente" && (
+                          <>
+                            <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => aprovarCandidato(c)}>
+                              <CheckCircle2 className="h-3 w-3 mr-1" /> Aprovar
+                            </Button>
+                            <Button size="sm" variant="outline" className="text-red-600 border-red-200" onClick={() => rejeitarCandidato(c.id)}>
+                              <XCircle className="h-3 w-3 mr-1" /> Rejeitar
+                            </Button>
+                          </>
+                        )}
+                        {c.status === "aprovado" && (
+                          <span className="text-xs text-muted-foreground">
+                            Aprovado em {c.aprovado_em ? new Date(c.aprovado_em).toLocaleDateString("pt-BR") : "—"}
+                          </span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {candidatos.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                        Nenhum candidato ainda.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* CADASTRO */}
         <TabsContent value="cadastro" className="space-y-4">

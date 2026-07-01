@@ -15,6 +15,7 @@ import {
 
 const navLinks = [
   { label: "Como funciona", href: "/como-funciona" },
+  { label: "Seja um Embaixador", href: "/seja-um-embaixador" },
   { label: "Como calculamos", href: "/como-calculamos" },
   { label: "Sobre nós", href: "/sobre" },
 ];
