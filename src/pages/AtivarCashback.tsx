@@ -158,7 +158,13 @@ export default function AtivarCashback() {
         autoriza_validacao: form.autoriza_validacao,
         status: "pendente",
       });
-      if (error) throw error;
+      if (error) {
+        if ((error as { code?: string }).code === "23505") {
+          toast.error("Este CPF/CNPJ já possui um cadastro ativo. Entre em contato pelo WhatsApp se precisar de ajuda.", { duration: 6000 });
+          return;
+        }
+        throw error;
+      }
       setDone(true);
     } catch (e: unknown) {
       toast.error("Erro ao enviar cadastro. Tente novamente.");
