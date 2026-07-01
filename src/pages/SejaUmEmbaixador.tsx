@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -11,12 +11,24 @@ import {
 } from "lucide-react";
 
 const INPUT = "w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white placeholder:text-gray-400";
-const SELECT = "w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white appearance-none";
+const SELECT = "w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white appearance-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed";
 
 const ESTADOS = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
   "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO",
 ];
+
+function maskPhone(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 10) {
+    return digits
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{4})(\d)/, "$1-$2");
+  }
+  return digits
+    .replace(/^(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d)/, "$1-$2");
+}
 
 function RadioGroup({
   label, value, onChange, options,
@@ -92,6 +104,19 @@ export default function SejaUmEmbaixador() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [cidades, setCidades] = useState<string[]>([]);
+  const [loadingCidades, setLoadingCidades] = useState(false);
+
+  useEffect(() => {
+    if (!form.uf) { setCidades([]); return; }
+    setLoadingCidades(true);
+    set("cidade")("");
+    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${form.uf}/municipios?orderBy=nome`)
+      .then((r) => r.json())
+      .then((data) => setCidades(data.map((m: { nome: string }) => m.nome)))
+      .catch(() => toast.error("Erro ao carregar cidades."))
+      .finally(() => setLoadingCidades(false));
+  }, [form.uf]);
 
   const set = (field: string) => (value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
@@ -283,30 +308,16 @@ export default function SejaUmEmbaixador() {
                       type="tel"
                       placeholder="(00) 00000-0000"
                       value={form.telefone}
-                      onChange={(e) => set("telefone")(e.target.value)}
+                      onChange={(e) => set("telefone")(maskPhone(e.target.value))}
+                      onBlur={(e) => set("telefone")(maskPhone(e.target.value))}
                       className={INPUT}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Cidade + UF */}
+              {/* Estado + Cidade */}
               <div className="grid sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Cidade <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Sua cidade"
-                      value={form.cidade}
-                      onChange={(e) => set("cidade")(e.target.value)}
-                      className={INPUT}
-                    />
-                  </div>
-                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     Estado <span className="text-red-500">*</span>
@@ -320,6 +331,28 @@ export default function SejaUmEmbaixador() {
                       <option value="">UF</option>
                       {ESTADOS.map((uf) => (
                         <option key={uf} value={uf}>{uf}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Cidade <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
+                    <select
+                      value={form.cidade}
+                      onChange={(e) => set("cidade")(e.target.value)}
+                      disabled={!form.uf || loadingCidades}
+                      className={`${SELECT} pl-10`}
+                    >
+                      <option value="">
+                        {!form.uf ? "Selecione o estado primeiro" : loadingCidades ? "Carregando cidades..." : "Selecione sua cidade"}
+                      </option>
+                      {cidades.map((c) => (
+                        <option key={c} value={c}>{c}</option>
                       ))}
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
