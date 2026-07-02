@@ -318,8 +318,8 @@ const Ranking = () => {
 
   const seoTitle =
     estadoAtual && distribuidoraAtual
-      ? `Ranking de Comercializadoras — ${estadoAtual.nome} / ${distribuidoraAtual.nome} | Poupe Energia`
-      : "Ranking de Comercializadoras | Poupe Energia";
+      ? `Ranking de Empresas — ${estadoAtual.nome} / ${distribuidoraAtual.nome} | Poupe Energia`
+      : "Ranking de Empresas | Poupe Energia";
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -505,7 +505,7 @@ const Ranking = () => {
           <header className="max-w-3xl mx-auto text-center mb-8">
             {/* Mobile: mantém comportamento atual em uma linha */}
             <h1 className="md:hidden text-2xl font-extrabold text-brand-blue leading-tight">
-              Ranking de Comercializadoras
+              Ranking de Empresas
               {estadoAtual && distribuidoraAtual && (
                 <>
                   {" "}— {estadoAtual.nome} / {distribuidoraAtual.nome}
@@ -515,7 +515,7 @@ const Ranking = () => {
             {/* Desktop: hierarquia em duas linhas */}
             <div className="hidden md:block">
               <h1 className="text-3xl font-bold text-brand-blue leading-tight">
-                Ranking de Comercializadoras
+                Ranking de Empresas
               </h1>
               {estadoAtual && distribuidoraAtual && (
                 <p className="mt-1 text-xl font-normal text-gray-500">
