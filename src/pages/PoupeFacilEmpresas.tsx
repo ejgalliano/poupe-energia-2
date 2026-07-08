@@ -6,7 +6,7 @@ const PoupeFacilEmpresas = () => (
     title="GD Livre - Empresas"
     subtitle="Economia real na sua conta de energia, sem complicação"
     heroIcon={Building2}
-    highlights={["Atende Grupo A (Alta Tensão) e Grupo B (Baixa Tensão)"]}
+    highlights={["Atende Grupo A (Alta e Média Tensão)"]}
     sections={[
       {
         icon: "fire",
