@@ -34,7 +34,7 @@ const Footer = () => {
     script.src = "https://s3.amazonaws.com/raichu-beta/ra-verified/bundle.js";
     script.dataset.id = "TTE0V3ZHTXNHOTZxS3FRZTpwb3VwZS1lbmVyZ2lh";
     script.dataset.target = "ra-verified-seal";
-    script.dataset.model = "compact_1";
+    script.dataset.model = "horizontal_1";
     container.appendChild(script);
   }, []);
 
