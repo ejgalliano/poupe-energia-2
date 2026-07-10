@@ -124,8 +124,13 @@ export default function Notas() {
     if (error) { toast.error(error.message); setSaving(false); return; }
     let notaId = upserted?.id ?? nota.id;
     const scPayload = { nota_empresa_id: notaId, ...Object.fromEntries(SJ_FIELDS.map(([k]) => [k, !!score[k]])) };
-    if (score.id) await supabase.from("scorecard_sj").update(scPayload).eq("id", score.id);
-    else await supabase.from("scorecard_sj").insert(scPayload);
+    let scId = score.id;
+    if (scId) {
+      await supabase.from("scorecard_sj").update(scPayload).eq("id", scId);
+    } else {
+      const { data: scInserted } = await supabase.from("scorecard_sj").insert(scPayload).select("id").single();
+      if (scInserted?.id) { scId = scInserted.id; setScore((s: any) => ({ ...s, id: scInserted.id })); }
+    }
 
     await supabase.functions.invoke("recalc-ranking", { body: { distribuidora_id: distId } });
     setSaving(false);
