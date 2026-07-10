@@ -107,10 +107,13 @@ export default function FormulaConfig() {
           .eq("id", cfg.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
           .from("formula_config")
-          .insert(payload);
+          .insert(payload)
+          .select("id")
+          .single();
         if (error) throw error;
+        if (inserted?.id) setCfg((c) => ({ ...c, id: inserted.id }));
       }
 
       toast.loading("Fórmula salva. Recalculando todos os rankings...", { id: "recalc" });
