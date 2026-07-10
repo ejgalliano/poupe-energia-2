@@ -111,6 +111,8 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
   );
   const [saving, setSaving] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
+  // Armazena o id após o primeiro insert para que saves subsequentes façam UPDATE
+  const [savedId, setSavedId] = useState<string | null>(empresa?.id ?? null);
 
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
   const isBronze = f.tipo_fornecedor === "intermediador";
@@ -134,8 +136,13 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
     const payload = { ...f, parceira: !!f.parceira, ativa: !!f.ativa };
     delete payload.created_at;
     let res;
-    if (empresa) res = await supabase.from("empresas").update(payload).eq("id", empresa.id);
-    else { delete payload.id; res = await supabase.from("empresas").insert(payload); }
+    if (savedId) {
+      res = await supabase.from("empresas").update(payload).eq("id", savedId);
+    } else {
+      delete payload.id;
+      res = await supabase.from("empresas").insert(payload).select("id").single();
+      if (!res.error && res.data?.id) setSavedId(res.data.id);
+    }
     setSaving(false);
     if (res.error) toast.error(res.error.message);
     else setSavedOk(true);
