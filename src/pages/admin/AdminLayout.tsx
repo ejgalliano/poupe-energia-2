@@ -1,24 +1,62 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Building2, Star, MapPin, Users, LogOut, Handshake, Briefcase, Award, Gift, FlaskConical, MessageSquareWarning, Zap, Mail } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
-const items = [
-  { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/admin/empresas", label: "Empresas", icon: Building2 },
-  { to: "/admin/notas", label: "Notas", icon: Star },
-  { to: "/admin/formula", label: "Fórmula do Ranking", icon: FlaskConical },
-  { to: "/admin/distribuidoras", label: "Distribuidoras", icon: MapPin },
-  { to: "/admin/intermediadoras", label: "Intermediadoras", icon: Zap },
-  { to: "/admin/parceiros", label: "Parceiros & Leads", icon: Handshake },
-  { to: "/admin/leads-empresariais", label: "Leads Empresariais", icon: Briefcase },
-  { to: "/admin/embaixadores", label: "Embaixadores", icon: Award },
-  { to: "/admin/cashback", label: "Adesões / Cashback", icon: Gift },
-  { to: "/admin/email-templates", label: "Templates de Email", icon: Mail },
-  { to: "/admin/contestacoes", label: "Contestações", icon: MessageSquareWarning, badge: true },
-  { to: "/admin/usuarios", label: "Usuários Admin", icon: Users },
+type NavItem = {
+  to: string;
+  label: string;
+  icon: React.ElementType;
+  end?: boolean;
+  badge?: boolean;
+};
+
+type NavGroup = {
+  title: string;
+  items: NavItem[];
+};
+
+const groups: NavGroup[] = [
+  {
+    title: "Geral",
+    items: [
+      { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
+    ],
+  },
+  {
+    title: "Ranking",
+    items: [
+      { to: "/admin/empresas",       label: "Empresas",          icon: Building2 },
+      { to: "/admin/notas",          label: "Notas",             icon: Star },
+      { to: "/admin/formula",        label: "Fórmula do Ranking",icon: FlaskConical },
+      { to: "/admin/distribuidoras", label: "Distribuidoras",    icon: MapPin },
+      { to: "/admin/intermediadoras",label: "Intermediadoras",   icon: Zap },
+    ],
+  },
+  {
+    title: "Comercial",
+    items: [
+      { to: "/admin/parceiros",          label: "Parceiros & Leads",   icon: Handshake },
+      { to: "/admin/leads-empresariais", label: "Leads Empresariais",  icon: Briefcase },
+      { to: "/admin/embaixadores",       label: "Embaixadores",        icon: Award },
+      { to: "/admin/cashback",           label: "Adesões / Cashback",  icon: Gift },
+    ],
+  },
+  {
+    title: "Comunicação",
+    items: [
+      { to: "/admin/email-templates", label: "Templates de Email", icon: Mail },
+      { to: "/admin/contestacoes",    label: "Contestações",       icon: MessageSquareWarning, badge: true },
+    ],
+  },
+  {
+    title: "Sistema",
+    items: [
+      { to: "/admin/usuarios", label: "Usuários Admin", icon: Users },
+    ],
+  },
 ];
 
 export default function AdminLayout() {
@@ -59,26 +97,35 @@ export default function AdminLayout() {
             className="h-8 w-auto object-contain"
           />
         </div>
-        <nav className="flex-1 p-3 space-y-1">
-          {items.map((it) => (
-            <NavLink
-              key={it.to}
-              to={it.to}
-              end={it.end}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
-                  isActive ? "bg-[hsl(38,92%,50%)] text-[hsl(214,50%,24%)] font-semibold" : "hover:bg-white/10"
-                }`
-              }
-            >
-              <it.icon className="h-4 w-4 shrink-0" />
-              <span className="flex-1">{it.label}</span>
-              {it.badge && contestacoesPendentes > 0 && (
-                <span className="bg-orange-400 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center leading-none">
-                  {contestacoesPendentes}
-                </span>
-              )}
-            </NavLink>
+        <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+          {groups.map((group) => (
+            <div key={group.title}>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 px-3 mb-1">
+                {group.title}
+              </p>
+              <div className="space-y-0.5">
+                {group.items.map((it) => (
+                  <NavLink
+                    key={it.to}
+                    to={it.to}
+                    end={it.end}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors ${
+                        isActive ? "bg-[hsl(38,92%,50%)] text-[hsl(214,50%,24%)] font-semibold" : "hover:bg-white/10"
+                      }`
+                    }
+                  >
+                    <it.icon className="h-4 w-4 shrink-0" />
+                    <span className="flex-1">{it.label}</span>
+                    {it.badge && contestacoesPendentes > 0 && (
+                      <span className="bg-orange-400 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center leading-none">
+                        {contestacoesPendentes}
+                      </span>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
         <div className="p-3 border-t border-white/10 space-y-2">
