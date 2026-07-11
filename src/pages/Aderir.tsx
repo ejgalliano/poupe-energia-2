@@ -525,7 +525,16 @@ export default function Aderir() {
   const handleFatura = async (file: File | null) => {
     setFaturaFile(file);
     setExtracted(false);
-    if (!file || !file.name.toLowerCase().endsWith(".pdf")) return;
+    // Limpa campos extraídos ao trocar/remover arquivo para não misturar dados de faturas diferentes
+    if (!file) {
+      setForm((f) => ({
+        ...f,
+        numero_uc: "", consumo_kwh: "", valor_conta: "",
+        classe_consumo: "", nome_titular: "", endereco_instalacao: "",
+      }));
+      return;
+    }
+    if (!file.name.toLowerCase().endsWith(".pdf")) return;
     setExtracting(true);
     try {
       const text = await extractTextFromPdf(file);
@@ -606,8 +615,8 @@ export default function Aderir() {
         // Dados da fatura
         nome_titular:        form.nome_titular        || null,
         numero_uc:           form.numero_uc           || null,
-        consumo_kwh:         form.consumo_kwh         ? parseFloat(form.consumo_kwh)  : null,
-        valor_conta:         form.valor_conta         ? parseFloat(form.valor_conta)  : null,
+        consumo_kwh:         form.consumo_kwh         ? parseFloat(form.consumo_kwh.replace(",", "."))  : null,
+        valor_conta:         form.valor_conta         ? parseFloat(form.valor_conta.replace(",", "."))  : null,
         classe_consumo:      form.classe_consumo      || null,
         endereco_instalacao: form.endereco_instalacao || null,
         // Documentos
@@ -859,8 +868,11 @@ export default function Aderir() {
                       setForm((f) => ({ ...f, distribuidora_id: e.target.value, distribuidora_nome: d?.nome ?? "" }));
                     }}
                     className={INPUT}
+                    disabled={distribuidoras.length === 0}
                   >
-                    <option value="">Selecione sua distribuidora</option>
+                    <option value="">
+                      {distribuidoras.length === 0 ? "Carregando distribuidoras..." : "Selecione sua distribuidora"}
+                    </option>
                     {distribuidoras.map((d) => (
                       <option key={d.id} value={d.id}>{d.nome}</option>
                     ))}
