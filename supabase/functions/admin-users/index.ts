@@ -66,6 +66,15 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === "set_password") {
+      const { user_id, new_password } = body;
+      if (!user_id || !new_password) return json({ error: "user_id e new_password obrigatórios" }, 400);
+      if (new_password.length < 8) return json({ error: "A senha deve ter pelo menos 8 caracteres" }, 400);
+      const { error } = await admin.auth.admin.updateUserById(user_id, { password: new_password });
+      if (error) throw error;
+      return json({ ok: true });
+    }
+
     return json({ error: "Ação inválida" }, 400);
   } catch (err) {
     return json({ error: (err as Error).message }, 500);

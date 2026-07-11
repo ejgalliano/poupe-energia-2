@@ -39,8 +39,18 @@ const NIVEL_DESC: Record<Nivel, string> = {
   visualizador: "Somente visualização do dashboard",
 };
 
-// ── Componente de troca de senha (para o próprio usuário logado) ──
-function PasswordChangeForm() {
+const ToggleBtn = ({ show, onToggle }: { show: boolean; onToggle: () => void }) => (
+  <button
+    type="button"
+    onClick={onToggle}
+    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+  >
+    {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+  </button>
+);
+
+// ── Troca de senha para o PRÓPRIO usuário logado (precisa da senha atual) ──
+function OwnPasswordForm() {
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
@@ -48,7 +58,7 @@ function PasswordChangeForm() {
   const [showAtual, setShowAtual] = useState(false);
   const [showNova, setShowNova] = useState(false);
 
-  const senhasCoincide = novaSenha.length > 0 && confirmar.length > 0 && novaSenha === confirmar;
+  const senhasCoincide = novaSenha.length > 0 && confirmar === novaSenha;
   const senhaForte = novaSenha.length >= 8;
   const podeEnviar = senhaAtual && senhasCoincide && senhaForte;
 
@@ -63,11 +73,7 @@ function PasswordChangeForm() {
         email: userData.user.email,
         password: senhaAtual,
       });
-      if (signInErr) {
-        toast.error("Senha atual incorreta.");
-        setLoading(false);
-        return;
-      }
+      if (signInErr) { toast.error("Senha atual incorreta."); return; }
 
       const { error } = await supabase.auth.updateUser({ password: novaSenha });
       if (error) throw error;
@@ -81,75 +87,92 @@ function PasswordChangeForm() {
     }
   };
 
-  const ToggleBtn = ({ show, onToggle }: { show: boolean; onToggle: () => void }) => (
-    <button
-      type="button"
-      onClick={onToggle}
-      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-    >
-      {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-    </button>
-  );
-
   return (
     <div className="space-y-3">
-      {/* Senha atual */}
       <div className="space-y-1">
         <Label className="text-xs">Senha atual</Label>
         <div className="relative">
-          <Input
-            type={showAtual ? "text" : "password"}
-            value={senhaAtual}
-            onChange={(e) => setSenhaAtual(e.target.value)}
-            placeholder="••••••••"
-            className="pr-10 h-9"
-            autoComplete="current-password"
-          />
+          <Input type={showAtual ? "text" : "password"} value={senhaAtual}
+            onChange={(e) => setSenhaAtual(e.target.value)} placeholder="••••••••"
+            className="pr-10 h-9" autoComplete="current-password" />
           <ToggleBtn show={showAtual} onToggle={() => setShowAtual(!showAtual)} />
         </div>
       </div>
-
-      {/* Nova senha */}
       <div className="space-y-1">
         <Label className="text-xs">Nova senha</Label>
         <div className="relative">
-          <Input
-            type={showNova ? "text" : "password"}
-            value={novaSenha}
-            onChange={(e) => setNovaSenha(e.target.value)}
-            placeholder="••••••••"
-            className="pr-10 h-9"
-            autoComplete="new-password"
-          />
+          <Input type={showNova ? "text" : "password"} value={novaSenha}
+            onChange={(e) => setNovaSenha(e.target.value)} placeholder="••••••••"
+            className="pr-10 h-9" autoComplete="new-password" />
           <ToggleBtn show={showNova} onToggle={() => setShowNova(!showNova)} />
         </div>
-        {novaSenha && !senhaForte && (
-          <p className="text-xs text-red-500">Mínimo 8 caracteres</p>
-        )}
+        {novaSenha && !senhaForte && <p className="text-xs text-red-500">Mínimo 8 caracteres</p>}
       </div>
-
-      {/* Confirmar */}
       <div className="space-y-1">
         <Label className="text-xs">Confirmar nova senha</Label>
-        <Input
-          type="password"
-          value={confirmar}
-          onChange={(e) => setConfirmar(e.target.value)}
-          placeholder="••••••••"
-          className={`h-9 ${confirmar && !senhasCoincide ? "border-red-400" : ""}`}
-          autoComplete="new-password"
-        />
-        {confirmar && !senhasCoincide && (
-          <p className="text-xs text-red-500">As senhas não coincidem</p>
-        )}
+        <Input type="password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)}
+          placeholder="••••••••" autoComplete="new-password"
+          className={`h-9 ${confirmar && !senhasCoincide ? "border-red-400" : ""}`} />
+        {confirmar && !senhasCoincide && <p className="text-xs text-red-500">As senhas não coincidem</p>}
       </div>
-
-      <Button
-        onClick={handleSubmit}
-        disabled={loading || !podeEnviar}
-        className="w-full bg-brand-blue hover:bg-brand-blue/90 text-white h-9"
-      >
+      <Button onClick={handleSubmit} disabled={loading || !podeEnviar}
+        className="w-full bg-brand-blue hover:bg-brand-blue/90 text-white h-9">
         {loading ? "Alterando..." : "Alterar senha"}
+      </Button>
+    </div>
+  );
+}
+
+// ── Definir nova senha para OUTRO usuário (admin override, sem senha atual) ──
+function AdminSetPasswordForm({ userId }: { userId: string }) {
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmar, setConfirmar] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showNova, setShowNova] = useState(false);
+
+  const senhasCoincide = novaSenha.length > 0 && confirmar === novaSenha;
+  const senhaForte = novaSenha.length >= 8;
+  const podeEnviar = senhasCoincide && senhaForte;
+
+  const handleSubmit = async () => {
+    if (!podeEnviar) return;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-users", {
+        body: { action: "set_password", user_id: userId, new_password: novaSenha },
+      });
+      if (error || data?.error) throw new Error(data?.error ?? error?.message);
+      toast.success("Senha definida com sucesso!");
+      setNovaSenha(""); setConfirmar("");
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1">
+        <Label className="text-xs">Nova senha</Label>
+        <div className="relative">
+          <Input type={showNova ? "text" : "password"} value={novaSenha}
+            onChange={(e) => setNovaSenha(e.target.value)} placeholder="••••••••"
+            className="pr-10 h-9" autoComplete="new-password" />
+          <ToggleBtn show={showNova} onToggle={() => setShowNova(!showNova)} />
+        </div>
+        {novaSenha && !senhaForte && <p className="text-xs text-red-500">Mínimo 8 caracteres</p>}
+      </div>
+      <div className="space-y-1">
+        <Label className="text-xs">Confirmar nova senha</Label>
+        <Input type="password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)}
+          placeholder="••••••••" autoComplete="new-password"
+          className={`h-9 ${confirmar && !senhasCoincide ? "border-red-400" : ""}`} />
+        {confirmar && !senhasCoincide && <p className="text-xs text-red-500">As senhas não coincidem</p>}
+      </div>
+      <Button onClick={handleSubmit} disabled={loading || !podeEnviar}
+        className="w-full bg-brand-blue hover:bg-brand-blue/90 text-white h-9">
+        {loading ? "Definindo..." : "Definir nova senha"}
       </Button>
     </div>
   );
@@ -232,16 +255,6 @@ export default function UsuariosAdmin() {
     }
   };
 
-  const sendPasswordReset = async () => {
-    if (!selected) return;
-    setActing(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(selected.email, {
-      redirectTo: `${window.location.origin}/admin/alterar-senha`,
-    });
-    setActing(false);
-    if (error) toast.error(error.message);
-    else toast.success(`Link de redefinição enviado para ${selected.email}`);
-  };
 
   const reject = async (r: Request) => {
     if (!confirm(`Rejeitar acesso de ${r.nome}?`)) return;
@@ -541,19 +554,9 @@ export default function UsuariosAdmin() {
                     </div>
 
                     {isOwnUser ? (
-                      // Formulário completo para o próprio usuário
-                      <PasswordChangeForm />
+                      <OwnPasswordForm />
                     ) : (
-                      // Para outros: envia link por email
-                      <>
-                        <p className="text-xs text-muted-foreground">
-                          Envia um link de redefinição de senha para o e-mail do usuário.
-                        </p>
-                        <Button variant="outline" className="w-full" disabled={acting} onClick={sendPasswordReset}>
-                          <KeyRound className="h-4 w-4 mr-2" />
-                          Enviar link de redefinição
-                        </Button>
-                      </>
+                      <AdminSetPasswordForm userId={selected.user_id} />
                     )}
                   </div>
                 )}
