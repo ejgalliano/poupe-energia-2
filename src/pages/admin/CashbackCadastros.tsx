@@ -69,7 +69,7 @@ const SUPABASE_URL = "https://sdmbkayjipowfkxaohxo.supabase.co";
 
 function docUrl(path: string | null) {
   if (!path) return null;
-  return `${SUPABASE_URL}/storage/v1/object/authenticated/documentos-adesao/${path}`;
+  return `${SUPABASE_URL}/storage/v1/object/public/documentos-adesao/${path}`;
 }
 
 function DocLink({ path, label }: { path: string | null; label: string }) {
