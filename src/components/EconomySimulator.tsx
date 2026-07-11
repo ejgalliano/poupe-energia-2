@@ -218,10 +218,9 @@ const EconomySimulator = ({
           )}
 
           {/* Disclaimer */}
-          <p className="text-xs text-muted-foreground leading-snug">
-            * O desconto vale sobre a parte de energia da conta. Impostos e taxas não entram no
-            cálculo, por isso o valor pode variar.
-          </p>
+          <div className="bg-muted/40 rounded-xl px-3 py-2.5 text-xs text-muted-foreground leading-snug">
+            💡 <strong>Como funciona o desconto?</strong> Sua conta de luz tem duas partes: energia consumida (~83%) e impostos/taxas (~17%). O desconto da comercializadora incide <strong>só sobre a energia</strong> — impostos e taxas ficam fora. Por isso a economia real é menor do que o percentual de desconto sugere.
+          </div>
 
           {/* CTA */}
           {isPartner ? (
