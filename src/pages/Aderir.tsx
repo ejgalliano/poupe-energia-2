@@ -45,14 +45,38 @@ async function compressImage(file: File): Promise<File> {
 }
 
 // ─── Extração de texto do PDF ─────────────────────────────────────────────────
+// Agrupa os itens de texto por posição Y (mesma linha visual no PDF).
+// Isso evita que valores de colunas diferentes (ex: tabela de itens) se misturem,
+// e garante que "TOTAL A PAGAR R$ 230,50" fique numa só linha para o regex capturar.
 async function extractTextFromPdf(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
   let fullText = "";
+
   for (let i = 1; i <= Math.min(pdf.numPages, 3); i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    fullText += content.items.map((item: any) => item.str).join(" ") + "\n";
+
+    // Agrupa por Y (arredonda em grupos de 3px para juntar itens da mesma linha)
+    const rowMap = new Map<number, Array<{ x: number; str: string }>>();
+    for (const item of content.items as any[]) {
+      const str = item.str as string;
+      if (!str) continue;
+      const yKey = Math.round((item.transform[5] as number) / 3) * 3;
+      if (!rowMap.has(yKey)) rowMap.set(yKey, []);
+      rowMap.get(yKey)!.push({ x: item.transform[4] as number, str });
+    }
+
+    // Ordena de cima para baixo (PDF: Y maior = mais alto na página)
+    const sortedYs = [...rowMap.keys()].sort((a, b) => b - a);
+    for (const y of sortedYs) {
+      const line = rowMap.get(y)!
+        .sort((a, b) => a.x - b.x)
+        .map(i => i.str)
+        .join(" ")
+        .trim();
+      if (line) fullText += line + "\n";
+    }
   }
   return fullText;
 }
@@ -77,90 +101,220 @@ function tryMatch(text: string, patterns: RegExp[]): string {
 
 function parseValor(s: string): number | null {
   if (!s) return null;
-  // "1.234,56" → 1234.56
   const clean = s.replace(/\./g, "").replace(",", ".");
   const n = parseFloat(clean);
   return isNaN(n) ? null : n;
 }
 
-function parseFaturaText(text: string): Extracted {
-  // Normaliza: remove espaços duplos, junta linhas curtas (comum em PDFs de distribuidoras)
-  const t = text.replace(/[ \t]{2,}/g, " ");
+// ─── Padrões específicos por distribuidora ────────────────────────────────────
+type DistConfig = { uc?: RegExp[]; kwh?: RegExp[]; valor?: RegExp[] };
 
+function getDistConfig(nome: string): DistConfig {
+  const n = nome.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+  // Padrão genérico de valor que funciona bem quando label e valor estão na mesma linha
+  // (graças ao agrupamento por Y na extração)
+  const valorGenerico: RegExp[] = [
+    /TOTAL\s+A\s+PAGAR\D{0,25}([\d.]{1,7}[.,]\d{2})/i,
+    /VALOR\s+A\s+PAGAR\D{0,25}([\d.]{1,7}[.,]\d{2})/i,
+    /VALOR\s+TOTAL\D{0,25}([\d.]{1,7}[.,]\d{2})/i,
+    /VALOR\s+DA\s+FATURA\D{0,25}([\d.]{1,7}[.,]\d{2})/i,
+    /TOTAL\s+COM\s+TRIBUTOS?\D{0,25}([\d.]{1,7}[.,]\d{2})/i,
+    /Total\s+Fatura\D{0,20}([\d.]{1,7}[.,]\d{2})/i,
+  ];
+
+  if (n.includes("light"))
+    return {
+      uc: [/INSTALA[CÇ][AÃ]O\D{0,15}(\d{10})/i, /Unidade\s+Consumidora\D{0,10}(\d{9,12})/i],
+      kwh: [
+        // Tabela histórico de consumo: "CONSUMO / kWh ... 264 30" (264 kWh, 30 dias)
+        /CONSUMO\s*\/\s*kWh[\s\S]{0,500}?\b(\d{3,5})\s+\d{2}\b/i,
+      ],
+      valor: valorGenerico,
+    };
+
+  if (n.includes("cemig"))
+    return {
+      uc: [/INST[ALAÇAO\s]*[:\-]\s*(\d{10})/i, /[Ii]nstala[cç][aã]o\D{0,10}(\d{10})/],
+      kwh: [
+        /CONSUMO\s+FATURADO\D{0,25}([\d.]+(?:,\d+)?)/i,
+        /Consumo\s*\(kWh\)\D{0,15}(\d{3,6})/i,
+        /Consumo\s+de\s+Energia\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+        /Energia\s+Consumida\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+      ],
+      valor: [
+        /TOTAL\s+COM\s+DESCONTO\D{0,25}([\d.]{1,7}[.,]\d{2})/i,
+        ...valorGenerico,
+      ],
+    };
+
+  if (n.includes("copel"))
+    return {
+      uc: [/C[oó]digo\s+da\s+[Uu]nidade\D{0,10}(\d{5,12})/, /Unidade\s+Consumidora\D{0,10}(\d{5,12})/],
+      kwh: [
+        /Consumo\s+do\s+[Mm][eê]s\D{0,20}([\d.]+(?:,\d+)?)/i,
+        /Energia\s+Ativa\s+Fornecida\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+        /ENERGIA\s+EL[EÉ]TRICA\s+kWh\D{0,15}(\d{3,6})/i,
+      ],
+      valor: [/Total\s+Atual\D{0,20}([\d.]{1,7}[.,]\d{2})/i, ...valorGenerico],
+    };
+
+  if (n.includes("cpfl") || n.includes("rge") || n.includes("piratininga"))
+    return {
+      kwh: [
+        /CONSUMO\s+FATURADO\D{0,25}([\d.]+(?:,\d+)?)/i,
+        /Energia\s+El[eé]trica\s+kWh\D{0,20}(\d{3,6})/i,
+        /Consumo\s+Ativo\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+      ],
+      valor: valorGenerico,
+    };
+
+  if (n.includes("enel"))
+    return {
+      uc: [/N[uú]mero\s+(?:do\s+)?[Cc]ontrato\D{0,10}(\d{5,12})/, /[Ii]nstala[cç][aã]o\D{0,10}(\d{5,12})/],
+      kwh: [
+        /Consumo\s+do\s+[Mm][eê]s\D{0,20}([\d.]+(?:,\d+)?)/i,
+        /ENERGIA\s+ATIVA\s*kWh\D{0,15}(\d{3,6})/i,
+        /Consumo\s+Total\D{0,20}(\d{3,6})\s*kWh/i,
+      ],
+      valor: valorGenerico,
+    };
+
+  if (n.includes("elektro") || (n.includes("neoenergia") && !n.includes("coelba") && !n.includes("cosern") && !n.includes("coelce")))
+    return {
+      kwh: [
+        /CONSUMO\s+FATURADO\D{0,25}([\d.]+(?:,\d+)?)/i,
+        /Energia\s+Ativa\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+      ],
+      valor: valorGenerico,
+    };
+
+  if (n.includes("energisa"))
+    return {
+      kwh: [
+        /Consumo\s+do\s+[Mm][eê]s\D{0,20}([\d.]+(?:,\d+)?)/i,
+        /CONSUMO\s+ATIVO\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+        /Energia\s+Ativa\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+      ],
+      valor: [/Total\s+R\$\D{0,15}([\d.]{1,7}[.,]\d{2})/i, ...valorGenerico],
+    };
+
+  if (n.includes("equatorial") || n.includes("cemar") || n.includes("ceal") || n.includes("boa energia"))
+    return {
+      kwh: [
+        /Energia\s+Consumida\D{0,20}([\d.]+(?:,\d+)?)/i,
+        /ENERGIA\s+CONSUMIDA\D{0,20}([\d.]+(?:,\d+)?)/i,
+        /Consumo\s+(?:de\s+)?Energia\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+      ],
+      valor: valorGenerico,
+    };
+
+  if (n.includes("celesc"))
+    return {
+      kwh: [
+        /Consumo\s+(?:de\s+)?[Ee]nergia\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+        /ENERGIA\s+ATIVA\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+      ],
+      valor: valorGenerico,
+    };
+
+  if (n.includes("ceee"))
+    return {
+      kwh: [/Consumo\s+Ativo\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i],
+      valor: valorGenerico,
+    };
+
+  if (n.includes("edp"))
+    return {
+      kwh: [
+        /CONSUMO\s+FATURADO\D{0,25}([\d.]+(?:,\d+)?)/i,
+        /Energia\s+El[eé]trica\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+      ],
+      valor: valorGenerico,
+    };
+
+  if (n.includes("coelba") || n.includes("cosern") || n.includes("coelce") || n.includes("celpe"))
+    return {
+      kwh: [
+        /CONSUMO\s+FATURADO\D{0,25}([\d.]+(?:,\d+)?)/i,
+        /Energia\s+Ativa\D{0,20}([\d.]+(?:,\d+)?)\s*kWh/i,
+      ],
+      valor: valorGenerico,
+    };
+
+  return {}; // distribuidora não mapeada: usa só padrões genéricos
+}
+
+function parseFaturaText(text: string, distribuidoraNome = ""): Extracted {
+  const t = text.replace(/[ \t]{2,}/g, " ");
+  const dist = getDistConfig(distribuidoraNome);
+
+  // UC — específicos da distribuidora primeiro, depois genéricos
   const uc = tryMatch(t, [
-    // Padrões com label explícito
-    /[Nn][uú]mero\s+de\s+[Ii]nstala[cç][aã]o\s*[:\-]?\s*(\d{5,12})/,
-    /[Nn]o\.?\s+de\s+[Ii]nstala[cç][aã]o\s*[:\-#°]*\s*(\d{5,12})/,
-    /[Cc][oó]digo\s+de\s+[Ii]nstala[cç][aã]o\s*[:\-]?\s*(\d{5,12})/,
+    ...(dist.uc ?? []),
+    /[Nn][uú]mero\s+de\s+[Ii]nstala[cç][aã]o\D{0,10}(\d{5,12})/,
+    /[Nn]o\.?\s+de\s+[Ii]nstala[cç][aã]o\D{0,10}(\d{5,12})/,
+    /[Cc][oó]digo\s+de\s+[Ii]nstala[cç][aã]o\D{0,10}(\d{5,12})/,
     /[Ii]nstala[cç][aã]o\s*[:\-#N°]*\s*(\d{5,12})/,
     /\bUC\s*[:\-]?\s*(\d{5,12})/,
-    /N[°º\.]\s*INSTALA[CÇ][AÃ]O\s*[:\-]?\s*(\d{5,12})/i,
-    /COD[.\s_-]*INST\s*[:\-]?\s*(\d{5,12})/i,
-    /UNIDADE\s+CONSUMIDORA\s*[:\-]?\s*(\d{5,12})/i,
-    /N[°º\.]\s*UC\s*[:\-]?\s*(\d{5,12})/i,
-    // CEMIG
+    /N[°º\.]\s*INSTALA[CÇ][AÃ]O\D{0,10}(\d{5,12})/i,
+    /COD[.\s_-]*INST\D{0,10}(\d{5,12})/i,
+    /UNIDADE\s+CONSUMIDORA\D{0,10}(\d{5,12})/i,
+    /N[°º\.]\s*UC\D{0,10}(\d{5,12})/i,
     /INST[:\s]+(\d{10})/i,
-    // COPEL
-    /C[oó]digo\s+da\s+[Uu]nidade\s*[:\-]?\s*(\d{5,12})/,
-    // Enel
-    /[Nn][uú]mero\s+do\s+[Cc]ontrato\s*[:\-]?\s*(\d{5,12})/,
-    // Número sozinho de 10 dígitos (fallback)
+    /C[oó]digo\s+da\s+[Uu]nidade\D{0,10}(\d{5,12})/,
+    /[Nn][uú]mero\s+do\s+[Cc]ontrato\D{0,10}(\d{5,12})/,
     /\b(\d{10})\b/,
   ]);
 
-  // Consumo kWh — prioriza consumo total/faturado, evita faixas de tarifa parciais
+  // kWh — específicos da distribuidora + genéricos + fallback de soma de faixas
   const consumoRaw = (() => {
-    // 1. Labels explícitos de consumo total
     const labeled = tryMatch(t, [
-      /[Cc]onsumo\s+[Ff]aturado\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]?/,
-      /[Cc]onsumo\s+[Tt]otal\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]?/,
-      /[Cc]onsumo\s+(?:de\s+)?[Ee]nergia\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]/,
-      /[Cc]onsumo\s+(?:no\s+)?[Mm][eê]s\s*[:\-]?\s*([\d.]+(?:,\d+)?)/i,
-      /ENERGIA\s+ATIVA\s+[kK][wW][hH]\s*([\d.]+(?:,\d+)?)/i,
+      ...(dist.kwh ?? []),
+      /[Cc]onsumo\s+[Ff]aturado\D{0,20}([\d.]+(?:,\d+)?)\s*[kK][wW][hH]?/,
+      /[Cc]onsumo\s+[Tt]otal\D{0,20}([\d.]+(?:,\d+)?)\s*[kK][wW][hH]?/,
+      /[Cc]onsumo\s+(?:de\s+)?[Ee]nergia\D{0,20}([\d.]+(?:,\d+)?)\s*[kK][wW][hH]/,
+      /[Cc]onsumo\s+(?:no\s+)?[Mm][eê]s\D{0,20}([\d.]+(?:,\d+)?)/i,
+      /ENERGIA\s+ATIVA\s+[kK][wW][hH]\s+([\d.]+(?:,\d+)?)/i,
     ]);
     if (labeled) return labeled;
 
-    // 2. Tabela CONSUMO / kWh: pega o primeiro valor de 3+ dígitos após o header da tabela
-    const tabelaConsumo = tryMatch(t, [
-      /CONSUMO\s*[\/\\]\s*kWh[\s\S]{0,200}?(\d{3,5})\s+\d{2}/i,
-      /CONSUMO\s+FATURADO[\s\S]{0,100}?(\d{3,5})/i,
-    ]);
-    if (tabelaConsumo) return tabelaConsumo;
+    // Tabela histórico de consumo (Light e outras SAP): valor de 3+ dígitos antes de "dias"
+    const tabela = tryMatch(t, [/CONSUMO\s*[\/\\]\s*kWh[\s\S]{0,500}?\b(\d{3,5})\s+\d{2}\b/i]);
+    if (tabela) return tabela;
 
-    // 3. Soma de faixas: "80 kWh" + "184 kWh" → 264 (Light, CEMIG, COPEL)
+    // Soma de faixas tarifárias: "80 kWh" + "184 kWh" = 264
     const faixas = [...t.matchAll(/\b(\d{2,5})\s*[kK][wW][hH]/g)]
       .map(m => parseInt(m[1]))
       .filter(v => v >= 10 && v <= 9999);
     if (faixas.length >= 2) {
       const soma = faixas.reduce((a, b) => a + b, 0);
-      if (soma >= 50) return String(soma);
+      if (soma >= 50 && soma <= 99999) return String(soma);
     }
     if (faixas.length === 1 && faixas[0] >= 50) return String(faixas[0]);
     return "";
   })();
 
-  // Valor total — ignora valores de tabelas internas (geralmente < R$50 são taxas avulsas)
+  // Valor total — específicos da distribuidora + fallback por maior valor >= R$50
   const valorRaw = (() => {
-    // 1. Labels explícitos de total a pagar (mais confiável)
     const labeled = tryMatch(t, [
-      /TOTAL\s+A\s+PAGAR\s*[:\-R$\s]*([\d.]{2,7}[.,]\d{2})/i,
-      /VALOR\s+A\s+PAGAR\s*[:\-R$\s]*([\d.]{2,7}[.,]\d{2})/i,
-      /VALOR\s+TOTAL\s*[:\-R$\s]*([\d.]{2,7}[.,]\d{2})/i,
-      /VALOR\s+DA\s+FATURA\s*[:\-R$\s]*([\d.]{2,7}[.,]\d{2})/i,
-      /TOTAL\s+COM\s+TRIBUTOS?\s*[:\-R$\s]*([\d.]{2,7}[.,]\d{2})/i,
+      ...(dist.valor ?? []),
+      /TOTAL\s+A\s+PAGAR\D{0,25}([\d.]{1,7}[.,]\d{2})/i,
+      /VALOR\s+A\s+PAGAR\D{0,25}([\d.]{1,7}[.,]\d{2})/i,
+      /VALOR\s+TOTAL\D{0,25}([\d.]{1,7}[.,]\d{2})/i,
+      /VALOR\s+DA\s+FATURA\D{0,25}([\d.]{1,7}[.,]\d{2})/i,
     ]);
     if (labeled) {
       const v = parseValor(labeled);
       if (v && v >= 10) return labeled;
     }
-    // 2. Maior valor monetário do documento (filtrado: >= R$50 para evitar taxas avulsas)
-    const all = [...t.matchAll(/R\$\s*([\d.]{2,7}[.,]\d{2})/g)];
+    // Fallback: maior valor monetário no doc (>= R$50 para evitar taxas avulsas)
+    const all = [...t.matchAll(/R\$\s*([\d.]{1,7}[.,]\d{2})/g)];
     const parsed = all
       .map(m => ({ raw: m[1], val: parseValor(m[1]) }))
-      .filter(x => x.val !== null && x.val >= 50);
+      .filter(x => x.val !== null && x.val >= 50 && x.val <= 99999);
     if (!parsed.length) return "";
-    const max = parsed.reduce((a, b) => (b.val! > a.val! ? b : a));
-    return max.raw;
+    return parsed.reduce((a, b) => (b.val! > a.val! ? b : a)).raw;
   })();
 
   // Classe — inclui "Res Baixa Renda" e variações
@@ -375,7 +529,7 @@ export default function Aderir() {
     setExtracting(true);
     try {
       const text = await extractTextFromPdf(file);
-      const parsed = parseFaturaText(text);
+      const parsed = parseFaturaText(text, form.distribuidora_nome);
       setForm((f) => ({
         ...f,
         numero_uc:           parsed.numero_uc           || f.numero_uc,
