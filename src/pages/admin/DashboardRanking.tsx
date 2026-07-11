@@ -12,14 +12,14 @@ import {
   CheckCircle2, Star, ExternalLink,
 } from "lucide-react";
 
-type Empresa = { id: string; nome: string; slug?: string; distribuidora_nome?: string; estado?: string };
+type Empresa = { id: string; nome: string; slug?: string; estado?: string };
 type Nota = { empresa_id: string; nota_final: number; updated_at: string; empresa_nome?: string; dist_nome?: string; estado?: string };
 
 type ModalKey = "semNota" | "semDistribuidora" | "notasAntigas" | null;
 
 const MODAL_TITLES: Record<Exclude<ModalKey, null>, string> = {
   semNota:           "Empresas sem nota lançada",
-  semDistribuidora:  "Empresas sem distribuidora",
+  semDistribuidora:  "Empresas sem estado preenchido",
   notasAntigas:      "Notas desatualizadas (+30 dias)",
 };
 
@@ -60,19 +60,17 @@ export default function DashboardRanking() {
         parceiras: pCount.count ?? 0,
       });
 
-      // 2. Todas as empresas (nome, slug, distribuidora_id, distribuidora nome)
+      // 2. Todas as empresas
       const { data: todasEmpresas } = await supabase
         .from("empresas")
-        .select("id, nome, slug, distribuidora_id, distribuidoras(nome), estados(sigla)")
+        .select("id, nome, slug, estados_atuacao")
         .order("nome");
 
       const empresasList = (todasEmpresas ?? []).map((e: any) => ({
         id: e.id,
         nome: e.nome,
         slug: e.slug,
-        distribuidora_nome: e.distribuidoras?.nome ?? null,
-        estado: e.estados?.sigla ?? null,
-        distribuidora_id: e.distribuidora_id,
+        estado: e.estados_atuacao ? e.estados_atuacao.split(",")[0].trim() : null,
       }));
 
       // 3. IDs que têm nota
@@ -84,13 +82,13 @@ export default function DashboardRanking() {
       // Sem nota
       setSemNota(empresasList.filter((e) => !comNotaIds.has(e.id)));
 
-      // Sem distribuidora
-      setSemDist(empresasList.filter((e) => !e.distribuidora_id));
+      // Sem estado preenchido
+      setSemDist(empresasList.filter((e) => !e.estado));
 
       // 4. Todas as notas para top ranking + antigas
       const { data: todasNotas } = await supabase
         .from("notas_empresas")
-        .select("empresa_id, nota_final, updated_at, empresas(nome, slug), distribuidoras(nome), estados(sigla)")
+        .select("empresa_id, nota_final, updated_at, empresas(nome, slug, estados_atuacao), distribuidoras(nome)")
         .order("nota_final", { ascending: false });
 
       const notasList: Nota[] = (todasNotas ?? []).map((n: any) => ({
@@ -99,7 +97,9 @@ export default function DashboardRanking() {
         updated_at: n.updated_at,
         empresa_nome: n.empresas?.nome ?? "—",
         dist_nome: n.distribuidoras?.nome ?? "—",
-        estado: n.estados?.sigla ?? "—",
+        estado: n.empresas?.estados_atuacao
+          ? n.empresas.estados_atuacao.split(",")[0].trim()
+          : "—",
       }));
 
       setTopNotas(notasList.slice(0, 10));
@@ -206,10 +206,10 @@ export default function DashboardRanking() {
               border-orange-200 bg-orange-50 hover:border-orange-400">
             <div className="flex items-center gap-2 mb-1">
               <AlertTriangle className="h-4 w-4 text-orange-500 shrink-0" />
-              <span className="text-xs font-semibold text-orange-700 uppercase tracking-wide">Sem distribuidora</span>
+              <span className="text-xs font-semibold text-orange-700 uppercase tracking-wide">Sem estado</span>
             </div>
             <p className="text-3xl font-extrabold text-orange-600">{semDist.length}</p>
-            <p className="text-xs text-orange-500 mt-0.5">empresas sem distribuidora vinculada</p>
+            <p className="text-xs text-orange-500 mt-0.5">empresas sem estado preenchido</p>
             {semDist.length > 0 && <p className="text-xs text-orange-400 mt-2 underline">Clique para ver a lista →</p>}
           </button>
 
