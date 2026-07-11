@@ -40,6 +40,7 @@ import SejaUmEmbaixador from "./pages/SejaUmEmbaixador.tsx";
 import Embaixadores from "./pages/admin/Embaixadores";
 import CashbackCadastros from "./pages/admin/CashbackCadastros";
 import CashbackDetalhe from "./pages/admin/CashbackDetalhe";
+import EmailTemplates from "./pages/admin/EmailTemplates";
 import FormulaConfig from "./pages/admin/FormulaConfig";
 import Contestacoes from "./pages/admin/Contestacoes";
 import AnalisarFatura from "./pages/AnalisarFatura";
@@ -102,6 +103,7 @@ const App = () => (
             <Route path="cashback/:id" element={<CashbackDetalhe />} />
             <Route path="formula" element={<FormulaConfig />} />
             <Route path="contestacoes" element={<Contestacoes />} />
+            <Route path="email-templates" element={<EmailTemplates />} />
             <Route path="analises-fatura" element={<AnalisesFatura />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

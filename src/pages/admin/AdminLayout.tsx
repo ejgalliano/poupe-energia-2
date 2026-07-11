@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Building2, Star, MapPin, Users, LogOut, Handshake, Briefcase, Award, Gift, FlaskConical, MessageSquareWarning, Zap } from "lucide-react";
+import { LayoutDashboard, Building2, Star, MapPin, Users, LogOut, Handshake, Briefcase, Award, Gift, FlaskConical, MessageSquareWarning, Zap, Mail } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ const items = [
   { to: "/admin/leads-empresariais", label: "Leads Empresariais", icon: Briefcase },
   { to: "/admin/embaixadores", label: "Embaixadores", icon: Award },
   { to: "/admin/cashback", label: "Adesões / Cashback", icon: Gift },
+  { to: "/admin/email-templates", label: "Templates de Email", icon: Mail },
   { to: "/admin/contestacoes", label: "Contestações", icon: MessageSquareWarning, badge: true },
   { to: "/admin/usuarios", label: "Usuários Admin", icon: Users },
 ];
