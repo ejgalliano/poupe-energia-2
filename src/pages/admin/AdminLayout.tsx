@@ -15,7 +15,7 @@ const items = [
   { to: "/admin/parceiros", label: "Parceiros & Leads", icon: Handshake },
   { to: "/admin/leads-empresariais", label: "Leads Empresariais", icon: Briefcase },
   { to: "/admin/embaixadores", label: "Embaixadores", icon: Award },
-  { to: "/admin/cashback", label: "Cashback", icon: Gift },
+  { to: "/admin/cashback", label: "Adesões / Cashback", icon: Gift },
   { to: "/admin/contestacoes", label: "Contestações", icon: MessageSquareWarning, badge: true },
   { to: "/admin/usuarios", label: "Usuários Admin", icon: Users },
 ];
