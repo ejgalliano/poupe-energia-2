@@ -64,6 +64,7 @@ type Extracted = {
   valor_conta: number | null;
   classe_consumo: string;
   nome_titular: string;
+  endereco_instalacao: string;
 };
 
 function tryMatch(text: string, patterns: RegExp[]): string {
@@ -135,30 +136,52 @@ function parseFaturaText(text: string): Extracted {
     return max > 0 ? String(max).replace(".", ",") : "";
   })();
 
-  const classe = tryMatch(t, [
+  // Classe — inclui "Res Baixa Renda" e variações
+  const classeRaw = tryMatch(t, [
     /[Cc]lasse\s+(?:de\s+[Cc]onsumo\s*)?[:\-]?\s*(Residencial|Comercial|Rural|Industrial|Ilumina[cç][aã]o)/i,
     /CLASSE\s*[:\-]?\s*(RESIDENCIAL|COMERCIAL|RURAL|INDUSTRIAL)/i,
     /SUBGRUPO\s*[:\-]?\s*(B1|B2|B3|B4|A[1-4])/i,
-    // Palavra isolada no texto (menos confiável)
+    /\b(Res(?:idencial)?\s+Baixa\s+Renda)\b/i,
     /\b(Residencial|Comercial|Rural|Industrial)\b/,
   ]);
+  // Normaliza: "Res Baixa Renda" → "Residencial"
+  const classeNorm = classeRaw.replace(/^Res\b.*/i, "Residencial");
+  const classe = classeNorm
+    ? classeNorm.charAt(0).toUpperCase() + classeNorm.slice(1).toLowerCase()
+    : "";
 
+  // Nome do titular: com label explícito ou em CAIXA ALTA após categoria de consumo / antes de endereço
+  const NOME_CAPS = /([A-ZÁÀÂÃÉÊÍÓÔÕÚÇÑ]{2,}(?:\s+[A-ZÁÀÂÃÉÊÍÓÔÕÚÇÑ]{2,}){1,5})/;
   const titular = tryMatch(t, [
-    /[Nn]ome\s+do\s+[Cc]onsumidor\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9])/,
-    /[Cc]onsumidor\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9])/,
-    /[Cc]liente\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9])/,
-    /NOME\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9])/,
-    /TITULAR\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9])/,
+    // Com label
+    /[Nn]ome\s+do\s+[Cc]onsumidor\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9]|R\.|AV\.)/,
+    /[Cc]onsumidor\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9]|R\.|AV\.)/,
+    /[Cc]liente\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9]|R\.|AV\.)/,
+    /NOME\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9]|R\.|AV\.)/,
+    /TITULAR\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9]|R\.|AV\.)/,
+    // Nome em CAPS após categoria de consumo (ex: "Res Baixa Renda CALEBE GANJÃO GUILHERME R.FUAS...")
+    new RegExp(`(?:Res(?:idencial)?(?:\\s+\\S+)*|Comercial|Rural|Industrial)\\s+${NOME_CAPS.source}`, "i"),
+    // Nome em CAPS antes de endereço (R., AV., RUA, ESTRADA)
+    new RegExp(`${NOME_CAPS.source}\\s+(?:R\\.|AV\\.|RUA |ESTRADA |AL\\.|PRACA )`),
+    // Nome em CAPS antes de CPF
+    new RegExp(`${NOME_CAPS.source}\\s+CPF`),
+  ]);
+
+  // Endereço: bloco entre nome/início e CEP
+  const endereco = tryMatch(t, [
+    // Endereço seguido de CEP
+    /([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç0-9\s.,\/\-]{8,120}?)\s*CEP[\s:]*\d{5}/i,
+    // Rua/Av seguida de número e bairro/cidade
+    /((?:R\.|RUA |AV\.|AVENIDA |AL\.|ALAMEDA |EST\.|ESTRADA )[A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç0-9\s.,\/\-]{8,100}?)(?=\s{2,}|\n|CEP|CPF)/i,
   ]);
 
   return {
     numero_uc: uc,
     consumo_kwh: consumoRaw ? parseValor(consumoRaw) : null,
     valor_conta: valorRaw ? parseValor(valorRaw) : null,
-    classe_consumo: classe
-      ? classe.charAt(0).toUpperCase() + classe.slice(1).toLowerCase()
-      : "",
+    classe_consumo: classe,
     nome_titular: titular,
+    endereco_instalacao: endereco,
   };
 }
 
@@ -257,6 +280,7 @@ type Form = {
   valor_conta: string;
   classe_consumo: string;
   nome_titular: string;
+  endereco_instalacao: string;
 };
 
 const EMPTY_FORM: Form = {
@@ -265,7 +289,7 @@ const EMPTY_FORM: Form = {
   empresa_id: "", empresa_nome: "",
   codigo_embaixador: "",
   numero_uc: "", consumo_kwh: "", valor_conta: "",
-  classe_consumo: "", nome_titular: "",
+  classe_consumo: "", nome_titular: "", endereco_instalacao: "",
 };
 
 const CLASSES = ["Residencial", "Comercial", "Rural", "Industrial"];
@@ -327,11 +351,12 @@ export default function Aderir() {
       const parsed = parseFaturaText(text);
       setForm((f) => ({
         ...f,
-        numero_uc:      parsed.numero_uc      || f.numero_uc,
-        consumo_kwh:    parsed.consumo_kwh    != null ? String(parsed.consumo_kwh)    : f.consumo_kwh,
-        valor_conta:    parsed.valor_conta    != null ? String(parsed.valor_conta)    : f.valor_conta,
-        classe_consumo: parsed.classe_consumo || f.classe_consumo,
-        nome_titular:   parsed.nome_titular   || f.nome_titular,
+        numero_uc:           parsed.numero_uc           || f.numero_uc,
+        consumo_kwh:         parsed.consumo_kwh         != null ? String(parsed.consumo_kwh) : f.consumo_kwh,
+        valor_conta:         parsed.valor_conta         != null ? String(parsed.valor_conta) : f.valor_conta,
+        classe_consumo:      parsed.classe_consumo      || f.classe_consumo,
+        nome_titular:        parsed.nome_titular        || f.nome_titular,
+        endereco_instalacao: parsed.endereco_instalacao || f.endereco_instalacao,
       }));
       const anyExtracted = !!(parsed.numero_uc || parsed.consumo_kwh || parsed.valor_conta);
       setExtracted(anyExtracted);
@@ -398,11 +423,12 @@ export default function Aderir() {
         cashback_percentual: cashbackPct ? parseFloat(cashbackPct) : null,
         codigo_embaixador: form.codigo_embaixador || null,
         // Dados da fatura
-        nome_titular:      form.nome_titular || null,
-        numero_uc:         form.numero_uc || null,
-        consumo_kwh:       form.consumo_kwh ? parseFloat(form.consumo_kwh) : null,
-        valor_conta:       form.valor_conta ? parseFloat(form.valor_conta) : null,
-        classe_consumo:    form.classe_consumo || null,
+        nome_titular:        form.nome_titular        || null,
+        numero_uc:           form.numero_uc           || null,
+        consumo_kwh:         form.consumo_kwh         ? parseFloat(form.consumo_kwh)  : null,
+        valor_conta:         form.valor_conta         ? parseFloat(form.valor_conta)  : null,
+        classe_consumo:      form.classe_consumo      || null,
+        endereco_instalacao: form.endereco_instalacao || null,
         // Documentos
         fatura_url:        faturaPath,
         doc_frente_url:    frentePath,
@@ -574,6 +600,18 @@ export default function Aderir() {
                       placeholder="Nome completo como está na conta"
                       value={form.nome_titular}
                       onChange={(e) => set("nome_titular")(e.target.value)}
+                      className={INPUT}
+                    />
+                  </Field>
+                </div>
+
+                <div className="col-span-2">
+                  <Field label="Endereço da instalação" hint="opcional">
+                    <input
+                      type="text"
+                      placeholder="Rua, número, bairro, cidade/UF"
+                      value={form.endereco_instalacao}
+                      onChange={(e) => set("endereco_instalacao")(e.target.value)}
                       className={INPUT}
                     />
                   </Field>
