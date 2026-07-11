@@ -12,7 +12,7 @@ import {
   CheckCircle2, Star, ExternalLink,
 } from "lucide-react";
 
-type Empresa = { id: string; nome: string; slug?: string; estado?: string };
+type Empresa = { id: string; nome: string; estado?: string };
 type Nota = { empresa_id: string; nota_final: number; updated_at: string; empresa_nome?: string; dist_nome?: string; estado?: string };
 
 type ModalKey = "semNota" | "semDistribuidora" | "notasAntigas" | null;
@@ -51,7 +51,7 @@ export default function DashboardRanking() {
         supabase.from("empresas").select("id", { count: "exact", head: true }),
         supabase.from("distribuidoras").select("id", { count: "exact", head: true }),
         supabase.from("estados").select("id", { count: "exact", head: true }),
-        supabase.from("empresas").select("id", { count: "exact", head: true }).eq("is_partner", true),
+        supabase.from("empresas").select("id", { count: "exact", head: true }).eq("parceira", true),
       ]);
       setTotais({
         empresas: eCount.count ?? 0,
@@ -63,13 +63,12 @@ export default function DashboardRanking() {
       // 2. Todas as empresas
       const { data: todasEmpresas } = await supabase
         .from("empresas")
-        .select("id, nome, slug, estados_atuacao")
+        .select("id, nome, estados_atuacao")
         .order("nome");
 
       const empresasList = (todasEmpresas ?? []).map((e: any) => ({
         id: e.id,
         nome: e.nome,
-        slug: e.slug,
         estado: e.estados_atuacao ? e.estados_atuacao.split(",")[0].trim() : null,
       }));
 
@@ -88,7 +87,7 @@ export default function DashboardRanking() {
       // 4. Todas as notas para top ranking + antigas
       const { data: todasNotas } = await supabase
         .from("notas_empresas")
-        .select("empresa_id, nota_final, updated_at, empresas(nome, slug, estados_atuacao), distribuidoras(nome)")
+        .select("empresa_id, nota_final, updated_at, empresas(nome, estados_atuacao), distribuidoras(nome)")
         .order("nota_final", { ascending: false });
 
       const notasList: Nota[] = (todasNotas ?? []).map((n: any) => ({
