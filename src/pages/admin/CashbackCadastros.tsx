@@ -14,10 +14,26 @@ import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import {
-  Download, Search, FileText, ExternalLink, Phone, Mail,
-  Building2, User, Calendar, CreditCard, CheckCircle2, XCircle,
-  DollarSign, MessageSquare, Eye,
+  Download, Search, FileText, Phone, Mail,
+  Building2, User, Calendar, CheckCircle2, XCircle,
+  DollarSign, MessageSquare, Eye, Zap, Clock, ChevronRight,
 } from "lucide-react";
+
+// ─── Tipos ───────────────────────────────────────────────────────────────────
+
+type Checklist = {
+  docs_conferidos?: boolean;
+  dados_validados?: boolean;
+  cadastrado_parceiro?: boolean;
+  contrato_emitido?: boolean;
+  contrato_enviado?: boolean;
+  contrato_assinado?: boolean;
+};
+
+type HistoricoEvento = {
+  status: string;
+  data: string;
+};
 
 type Cadastro = {
   id: string;
@@ -45,25 +61,60 @@ type Cadastro = {
   valor_cashback: number | null;
   observacoes: string | null;
   data_pagamento: string | null;
+  checklist: Checklist | null;
+  historico: HistoricoEvento[] | null;
+  consumo_kwh: number | null;
+  valor_conta: number | null;
+  classe_consumo: string | null;
+  nome_titular: string | null;
+  endereco_instalacao: string | null;
+};
+
+// ─── Configuração de status ───────────────────────────────────────────────────
+
+const STATUS_FLOW = [
+  "pendente",
+  "em_analise",
+  "cadastrado_parceiro",
+  "contrato_enviado",
+  "ativo",
+  "pago",
+];
+
+const STATUS_LABELS: Record<string, string> = {
+  pendente:             "Pendente",
+  em_analise:           "Em análise",
+  cadastrado_parceiro:  "Cadastrado no parceiro",
+  contrato_enviado:     "Contrato enviado",
+  ativo:                "Ativo",
+  pago:                 "Pago",
+  cancelado:            "Cancelado",
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  pendente:   "bg-yellow-100 text-yellow-800",
-  em_analise: "bg-blue-100 text-blue-700",
-  aprovado:   "bg-indigo-100 text-indigo-700",
-  pago:       "bg-green-100 text-green-700",
-  cancelado:  "bg-red-100 text-red-700",
+  pendente:             "bg-yellow-100 text-yellow-800",
+  em_analise:           "bg-blue-100 text-blue-700",
+  cadastrado_parceiro:  "bg-purple-100 text-purple-700",
+  contrato_enviado:     "bg-indigo-100 text-indigo-700",
+  ativo:                "bg-green-100 text-green-700",
+  pago:                 "bg-emerald-100 text-emerald-800",
+  cancelado:            "bg-red-100 text-red-700",
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  pendente:   "Pendente",
-  em_analise: "Em análise",
-  aprovado:   "Aprovado",
-  pago:       "Pago",
-  cancelado:  "Cancelado",
-};
+const STATUS_OPTIONS = [...STATUS_FLOW, "cancelado"];
 
-const STATUS_OPTIONS = Object.keys(STATUS_LABELS);
+// ─── Checklist ───────────────────────────────────────────────────────────────
+
+const CHECKLIST_ITEMS: { key: keyof Checklist; label: string }[] = [
+  { key: "docs_conferidos",    label: "Documentos conferidos" },
+  { key: "dados_validados",    label: "Dados do cliente validados" },
+  { key: "cadastrado_parceiro", label: "Cadastrado na comercializadora" },
+  { key: "contrato_emitido",   label: "Contrato gerado/emitido" },
+  { key: "contrato_enviado",   label: "Contrato enviado ao cliente" },
+  { key: "contrato_assinado",  label: "Contrato assinado pelo cliente" },
+];
+
+// ─── Utilitários ─────────────────────────────────────────────────────────────
 
 const SUPABASE_URL = "https://sdmbkayjipowfkxaohxo.supabase.co";
 
@@ -96,6 +147,16 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
+function SectionTitle({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5 mb-3">
+      {icon}{label}
+    </p>
+  );
+}
+
+// ─── Componente principal ─────────────────────────────────────────────────────
+
 export default function CashbackCadastros() {
   const [cadastros, setCadastros] = useState<Cadastro[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,7 +181,6 @@ export default function CashbackCadastros() {
 
   useEffect(() => { load(); }, []);
 
-  // Sync local state when sel changes
   useEffect(() => {
     setObsLocal(sel?.observacoes ?? "");
     setValorLocal(sel?.valor_cashback != null ? String(sel.valor_cashback) : "");
@@ -135,21 +195,47 @@ export default function CashbackCadastros() {
     });
   }, [cadastros, search, filterStatus]);
 
+  // ── Atualiza status e registra no histórico ──
   const updateStatus = async (id: string, status: string) => {
+    const cadastro = cadastros.find((c) => c.id === id);
+    const historicoAtual: HistoricoEvento[] = cadastro?.historico ?? [];
+    const novoEvento: HistoricoEvento = { status, data: new Date().toISOString() };
+    const novoHistorico = [...historicoAtual, novoEvento];
+
     const extra: any = {};
     if (status === "pago") extra.data_pagamento = new Date().toISOString();
-    const { error } = await supabase.from("cashback_cadastros" as any).update({ status, ...extra } as any).eq("id", id);
+
+    const { error } = await supabase
+      .from("cashback_cadastros" as any)
+      .update({ status, historico: novoHistorico, ...extra } as any)
+      .eq("id", id);
+
     if (error) { toast.error(error.message); return; }
     toast.success("Status atualizado!");
-    setCadastros((prev) => prev.map((c) => c.id === id ? { ...c, status, ...extra } : c));
-    if (sel?.id === id) setSel((s) => s ? { ...s, status, ...extra } : s);
+    setCadastros((prev) => prev.map((c) => c.id === id ? { ...c, status, historico: novoHistorico, ...extra } : c));
+    if (sel?.id === id) setSel((s) => s ? { ...s, status, historico: novoHistorico, ...extra } : s);
   };
 
+  // ── Atualiza checklist ──
+  const toggleChecklist = async (key: keyof Checklist, value: boolean) => {
+    if (!sel) return;
+    const novoChecklist: Checklist = { ...(sel.checklist ?? {}), [key]: value };
+    const { error } = await supabase
+      .from("cashback_cadastros" as any)
+      .update({ checklist: novoChecklist } as any)
+      .eq("id", sel.id);
+    if (error) { toast.error(error.message); return; }
+    setCadastros((prev) => prev.map((c) => c.id === sel.id ? { ...c, checklist: novoChecklist } : c));
+    setSel((s) => s ? { ...s, checklist: novoChecklist } : s);
+  };
+
+  // ── Salva observações e valor cashback ──
   const saveObs = async () => {
     if (!sel) return;
     setSavingObs(true);
     const valor = valorLocal ? parseFloat(valorLocal.replace(",", ".")) : null;
-    const { error } = await supabase.from("cashback_cadastros" as any)
+    const { error } = await supabase
+      .from("cashback_cadastros" as any)
       .update({ observacoes: obsLocal || null, valor_cashback: valor } as any)
       .eq("id", sel.id);
     if (error) { toast.error(error.message); }
@@ -161,12 +247,14 @@ export default function CashbackCadastros() {
     setSavingObs(false);
   };
 
+  // ── Export CSV ──
   const exportCSV = () => {
-    const header = ["Data", "Nome", "CPF/CNPJ", "Telefone", "Email", "Distribuidora", "Empresa", "Cód Embaixador", "Valor Cashback", "Status", "Data Pagamento"];
+    const header = ["Data", "Nome", "CPF/CNPJ", "Telefone", "Email", "Distribuidora", "Empresa", "UC", "Consumo kWh", "Valor Conta", "Classe", "Cód Embaixador", "Valor Cashback", "Status", "Data Pagamento"];
     const rows = filtrados.map((c) => [
       new Date(c.created_at).toLocaleString("pt-BR"),
       c.nome, c.cpf_cnpj, c.telefone ?? c.whatsapp, c.email,
       c.distribuidora_nome ?? "", c.empresa_nome ?? "",
+      c.numero_uc ?? "", c.consumo_kwh ?? "", c.valor_conta ?? "", c.classe_consumo ?? "",
       c.codigo_embaixador ?? "",
       c.valor_cashback != null ? `R$ ${c.valor_cashback.toFixed(2)}` : "",
       STATUS_LABELS[c.status] ?? c.status,
@@ -181,13 +269,15 @@ export default function CashbackCadastros() {
   };
 
   const counts = useMemo(() => {
-    const c = { pendente: 0, em_analise: 0, aprovado: 0, pago: 0, cancelado: 0 };
-    for (const item of cadastros) if (item.status in c) c[item.status as keyof typeof c]++;
+    const c: Record<string, number> = { pendente: 0, em_analise: 0, cadastrado_parceiro: 0, contrato_enviado: 0, ativo: 0, pago: 0, cancelado: 0 };
+    for (const item of cadastros) if (item.status in c) c[item.status]++;
     return c;
   }, [cadastros]);
 
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Gestão de Adesões</h1>
@@ -197,18 +287,24 @@ export default function CashbackCadastros() {
       </div>
 
       {/* Cards de resumo */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
         {[
-          { label: "Pendentes",   value: counts.pendente,   color: "text-yellow-700", bg: "bg-yellow-50"  },
-          { label: "Em análise",  value: counts.em_analise, color: "text-blue-700",   bg: "bg-blue-50"    },
-          { label: "Aprovados",   value: counts.aprovado,   color: "text-indigo-700", bg: "bg-indigo-50"  },
-          { label: "Pagos",       value: counts.pago,       color: "text-green-700",  bg: "bg-green-50"   },
-          { label: "Cancelados",  value: counts.cancelado,  color: "text-red-600",    bg: "bg-red-50"     },
+          { label: "Pendentes",          key: "pendente",            color: "text-yellow-700",  bg: "bg-yellow-50"  },
+          { label: "Em análise",         key: "em_analise",          color: "text-blue-700",    bg: "bg-blue-50"    },
+          { label: "No parceiro",        key: "cadastrado_parceiro", color: "text-purple-700",  bg: "bg-purple-50"  },
+          { label: "Contrato enviado",   key: "contrato_enviado",    color: "text-indigo-700",  bg: "bg-indigo-50"  },
+          { label: "Ativos",             key: "ativo",               color: "text-green-700",   bg: "bg-green-50"   },
+          { label: "Pagos",              key: "pago",                color: "text-emerald-700", bg: "bg-emerald-50" },
+          { label: "Cancelados",         key: "cancelado",           color: "text-red-600",     bg: "bg-red-50"     },
         ].map((s) => (
-          <Card key={s.label} className={s.bg}>
-            <CardContent className="pt-4 pb-3">
-              <div className={`text-3xl font-extrabold ${s.color}`}>{s.value}</div>
-              <div className="text-xs text-muted-foreground mt-0.5 font-medium">{s.label}</div>
+          <Card
+            key={s.key}
+            className={`${s.bg} cursor-pointer transition hover:ring-2 hover:ring-offset-1 ${filterStatus === s.key ? "ring-2 ring-offset-1" : ""}`}
+            onClick={() => setFilterStatus(filterStatus === s.key ? "all" : s.key)}
+          >
+            <CardContent className="pt-3 pb-2 px-3">
+              <div className={`text-2xl font-extrabold ${s.color}`}>{counts[s.key] ?? 0}</div>
+              <div className="text-[10px] text-muted-foreground mt-0.5 font-medium leading-tight">{s.label}</div>
             </CardContent>
           </Card>
         ))}
@@ -218,15 +314,19 @@ export default function CashbackCadastros() {
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por nome, email, CPF, empresa ou distribuidora..." value={search}
-            onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          <Input
+            placeholder="Buscar por nome, email, CPF, empresa ou distribuidora..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder="Status" />
+          <SelectTrigger className="w-52">
+            <SelectValue placeholder="Todos os status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">Todos os status</SelectItem>
             {STATUS_OPTIONS.map((s) => (
               <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
             ))}
@@ -246,8 +346,8 @@ export default function CashbackCadastros() {
                 <TableHead>Contato</TableHead>
                 <TableHead>Distribuidora</TableHead>
                 <TableHead>Empresa</TableHead>
+                <TableHead>Fatura</TableHead>
                 <TableHead>Docs</TableHead>
-                <TableHead>Valor CB</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -275,23 +375,26 @@ export default function CashbackCadastros() {
                   <TableCell className="text-xs max-w-[120px]">
                     <div className="truncate">{c.empresa_nome ?? "—"}</div>
                     {c.cashback_percentual != null && c.cashback_percentual > 0 && (
-                      <div className="text-[10px] text-brand-blue font-semibold">⚡ {c.cashback_percentual}% cashback</div>
+                      <div className="text-[10px] text-brand-blue font-semibold">⚡ {c.cashback_percentual}%</div>
                     )}
+                  </TableCell>
+                  <TableCell className="text-xs">
+                    {c.consumo_kwh != null ? (
+                      <div>
+                        <div className="font-medium">{c.consumo_kwh} kWh</div>
+                        {c.valor_conta != null && <div className="text-muted-foreground">R$ {c.valor_conta.toFixed(0)}</div>}
+                      </div>
+                    ) : <span className="text-gray-300">—</span>}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
                       {c.doc_frente_url && <span className="h-2 w-2 rounded-full bg-green-500" title="Doc frente" />}
                       {c.doc_verso_url  && <span className="h-2 w-2 rounded-full bg-green-500" title="Doc verso" />}
-                      {c.fatura_url     && <span className="h-2 w-2 rounded-full bg-blue-500" title="Fatura" />}
+                      {c.fatura_url     && <span className="h-2 w-2 rounded-full bg-blue-500"  title="Fatura" />}
                       {!c.doc_frente_url && !c.doc_verso_url && !c.fatura_url && (
                         <span className="text-xs text-gray-400">—</span>
                       )}
                     </div>
-                  </TableCell>
-                  <TableCell className="text-xs">
-                    {c.valor_cashback != null
-                      ? <span className="font-semibold text-green-700">R$ {c.valor_cashback.toFixed(2)}</span>
-                      : "—"}
                   </TableCell>
                   <TableCell>
                     <Badge className={`${STATUS_COLORS[c.status] ?? "bg-gray-100 text-gray-700"} text-[11px]`}>
@@ -301,7 +404,7 @@ export default function CashbackCadastros() {
                 </TableRow>
               ))}
               {!loading && filtrados.length === 0 && (
-                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Nenhum cadastro encontrado.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Nenhuma adesão encontrada.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
@@ -309,51 +412,115 @@ export default function CashbackCadastros() {
       </Card>
 
       <div className="text-xs text-muted-foreground text-right">
-        {filtrados.length} de {cadastros.length} registros
+        {filtrados.length} de {cadastros.length} adesões
       </div>
 
-      {/* Painel de detalhe */}
+      {/* ═══ Painel de detalhe ═══════════════════════════════════════════════ */}
       <Sheet open={!!sel} onOpenChange={(o) => !o && setSel(null)}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
           <SheetHeader className="pb-4 border-b">
             <SheetTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-brand-blue" />
-              Detalhe do Cadastro
+              Detalhe da Adesão
             </SheetTitle>
           </SheetHeader>
 
           {sel && (
             <div className="space-y-5 mt-5 text-sm">
 
-              {/* Status */}
-              <div className="flex items-center justify-between gap-3 bg-muted/30 rounded-xl px-4 py-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Status atual</p>
-                  <Badge className={`${STATUS_COLORS[sel.status] ?? "bg-gray-100 text-gray-700"} text-xs`}>
+              {/* ── Fluxo de status ── */}
+              <div className="border rounded-xl p-4">
+                <SectionTitle icon={<ChevronRight className="h-3.5 w-3.5" />} label="Status da adesão" />
+
+                {/* Barra de progresso */}
+                <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+                  {STATUS_FLOW.map((s, i) => {
+                    const idx = STATUS_FLOW.indexOf(sel.status);
+                    const done = i < idx;
+                    const active = s === sel.status && sel.status !== "cancelado";
+                    return (
+                      <div key={s} className="flex items-center gap-1 shrink-0">
+                        <div className={`h-2 w-2 rounded-full shrink-0 ${done || active ? "bg-brand-blue" : "bg-gray-200"}`} />
+                        <span className={`text-[10px] whitespace-nowrap ${active ? "font-bold text-brand-blue" : done ? "text-gray-500" : "text-gray-300"}`}>
+                          {STATUS_LABELS[s]}
+                        </span>
+                        {i < STATUS_FLOW.length - 1 && <div className={`h-px w-3 ${done ? "bg-brand-blue" : "bg-gray-200"}`} />}
+                      </div>
+                    );
+                  })}
+                  {sel.status === "cancelado" && (
+                    <Badge className="bg-red-100 text-red-700 ml-2 text-[10px]">Cancelado</Badge>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Badge className={`${STATUS_COLORS[sel.status] ?? "bg-gray-100 text-gray-700"} text-xs shrink-0`}>
                     {STATUS_LABELS[sel.status] ?? sel.status}
                   </Badge>
+                  <Select value={sel.status} onValueChange={(v) => updateStatus(sel.id, v)}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_OPTIONS.map((s) => (
+                        <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Select value={sel.status} onValueChange={(v) => updateStatus(sel.id, v)}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUS_OPTIONS.map((s) => (
-                      <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
 
-              {/* Dados pessoais */}
+              {/* ── Checklist interno ── */}
+              <div className="border rounded-xl p-4">
+                <SectionTitle icon={<CheckCircle2 className="h-3.5 w-3.5" />} label="Checklist interno" />
+                <div className="space-y-2">
+                  {CHECKLIST_ITEMS.map(({ key, label }) => {
+                    const checked = !!(sel.checklist?.[key]);
+                    return (
+                      <label
+                        key={key}
+                        className="flex items-center gap-3 cursor-pointer group"
+                        onClick={() => toggleChecklist(key, !checked)}
+                      >
+                        <div className={`h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition ${
+                          checked ? "bg-green-500 border-green-500" : "border-gray-300 group-hover:border-green-400"
+                        }`}>
+                          {checked && (
+                            <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <span className={`text-xs ${checked ? "line-through text-gray-400" : "text-gray-700"}`}>
+                          {label}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 pt-3 border-t">
+                  <div className="flex justify-between items-center text-[11px] text-muted-foreground">
+                    <span>Progresso</span>
+                    <span className="font-semibold">
+                      {CHECKLIST_ITEMS.filter(({ key }) => sel.checklist?.[key]).length} / {CHECKLIST_ITEMS.length}
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-gray-100 rounded-full mt-1.5 overflow-hidden">
+                    <div
+                      className="h-full bg-green-500 rounded-full transition-all"
+                      style={{ width: `${(CHECKLIST_ITEMS.filter(({ key }) => sel.checklist?.[key]).length / CHECKLIST_ITEMS.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Dados do cliente ── */}
               <div className="border rounded-xl p-4 space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                  <User className="h-3.5 w-3.5" /> Dados do Solicitante
-                </p>
+                <SectionTitle icon={<User className="h-3.5 w-3.5" />} label="Dados do solicitante" />
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                   <div className="col-span-2"><InfoRow label="Nome" value={sel.nome} /></div>
                   <InfoRow label="CPF/CNPJ" value={<span className="font-mono">{sel.cpf_cnpj}</span>} />
-                  <InfoRow label="Data de cadastro" value={new Date(sel.created_at).toLocaleString("pt-BR")} />
+                  <InfoRow label="Cadastro" value={new Date(sel.created_at).toLocaleDateString("pt-BR")} />
                   <InfoRow label="Telefone" value={sel.telefone ?? sel.whatsapp} />
                   <div className="col-span-2"><InfoRow label="E-mail" value={sel.email} /></div>
                   {sel.codigo_embaixador && (
@@ -362,22 +529,25 @@ export default function CashbackCadastros() {
                 </div>
               </div>
 
-              {/* Dados da energia */}
+              {/* ── Dados da energia ── */}
               <div className="border rounded-xl p-4 space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                  <Building2 className="h-3.5 w-3.5" /> Dados da Energia
-                </p>
+                <SectionTitle icon={<Zap className="h-3.5 w-3.5" />} label="Dados da energia" />
                 <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                   <InfoRow label="Distribuidora" value={sel.distribuidora_nome} />
                   <InfoRow label="Comercializadora" value={
                     sel.empresa_nome
                       ? <span>{sel.empresa_nome}{sel.cashback_percentual != null && sel.cashback_percentual > 0 && <span className="ml-1.5 text-brand-blue font-bold">⚡ {sel.cashback_percentual}%</span>}</span>
-                      : "—"
+                      : null
                   } />
                   {sel.numero_uc && <InfoRow label="Número UC" value={<span className="font-mono">{sel.numero_uc}</span>} />}
+                  {sel.classe_consumo && <InfoRow label="Classe" value={sel.classe_consumo} />}
+                  {sel.consumo_kwh != null && <InfoRow label="Consumo médio" value={`${sel.consumo_kwh} kWh`} />}
+                  {sel.valor_conta != null && <InfoRow label="Valor da conta" value={`R$ ${sel.valor_conta.toFixed(2)}`} />}
+                  {sel.nome_titular && <div className="col-span-2"><InfoRow label="Titular na fatura" value={sel.nome_titular} /></div>}
+                  {sel.endereco_instalacao && <div className="col-span-2"><InfoRow label="Endereço da instalação" value={sel.endereco_instalacao} /></div>}
                   {sel.chave_pix && (
                     <div className="col-span-2">
-                      <InfoRow label="Chave Pix (para pagamento)" value={
+                      <InfoRow label="Chave Pix" value={
                         <span className="font-mono bg-green-50 text-green-800 px-2 py-0.5 rounded text-xs">{sel.chave_pix}</span>
                       } />
                     </div>
@@ -385,11 +555,9 @@ export default function CashbackCadastros() {
                 </div>
               </div>
 
-              {/* Documentos */}
+              {/* ── Documentos ── */}
               <div className="border rounded-xl p-4 space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                  <FileText className="h-3.5 w-3.5" /> Documentos Anexados
-                </p>
+                <SectionTitle icon={<FileText className="h-3.5 w-3.5" />} label="Documentos anexados" />
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-600">RG/CNH — Frente</span>
@@ -406,13 +574,13 @@ export default function CashbackCadastros() {
                 </div>
               </div>
 
-              {/* Confirmações */}
+              {/* ── Confirmações ── */}
               <div className="border rounded-xl p-4 space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">Confirmações</p>
+                <SectionTitle icon={<CheckCircle2 className="h-3.5 w-3.5" />} label="Confirmações do cliente" />
                 {[
-                  { label: "Aceite dos Termos",        val: sel.aceite_termos },
-                  { label: "Ciente da parcela única",  val: sel.ciente_parcela_unica },
-                  { label: "Autoriza validação",       val: sel.autoriza_validacao },
+                  { label: "Aceite dos Termos",       val: sel.aceite_termos },
+                  { label: "Ciente da parcela única", val: sel.ciente_parcela_unica },
+                  { label: "Autoriza validação",      val: sel.autoriza_validacao },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center gap-2">
                     {item.val
@@ -422,18 +590,16 @@ export default function CashbackCadastros() {
                   </div>
                 ))}
                 {sel.data_pagamento && (
-                  <div className="flex items-center gap-2 pt-1 border-t mt-2">
+                  <div className="flex items-center gap-2 pt-2 border-t mt-2">
                     <Calendar className="h-4 w-4 text-green-600 shrink-0" />
                     <span className="text-xs">Pago em: <strong>{new Date(sel.data_pagamento).toLocaleDateString("pt-BR")}</strong></span>
                   </div>
                 )}
               </div>
 
-              {/* Valor Cashback + Observações */}
+              {/* ── Gestão interna (valor + observações) ── */}
               <div className="border rounded-xl p-4 space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
-                  <DollarSign className="h-3.5 w-3.5" /> Gestão Interna
-                </p>
+                <SectionTitle icon={<DollarSign className="h-3.5 w-3.5" />} label="Gestão interna" />
                 <div>
                   <label className="text-xs font-semibold block mb-1">Valor do Cashback (R$)</label>
                   <input
@@ -448,7 +614,7 @@ export default function CashbackCadastros() {
                     <MessageSquare className="h-3.5 w-3.5" /> Observações internas
                   </label>
                   <Textarea
-                    placeholder="Anotações da equipe sobre este cadastro..."
+                    placeholder="Anotações da equipe sobre esta adesão..."
                     value={obsLocal}
                     onChange={(e) => setObsLocal(e.target.value)}
                     rows={3}
@@ -456,20 +622,41 @@ export default function CashbackCadastros() {
                   />
                 </div>
                 <Button onClick={saveObs} disabled={savingObs} size="sm" className="w-full">
-                  {savingObs ? "Salvando..." : "Salvar observações"}
+                  {savingObs ? "Salvando..." : "Salvar"}
                 </Button>
               </div>
 
-              {/* Ações */}
-              <div className="flex flex-col gap-2">
+              {/* ── Histórico de status ── */}
+              {sel.historico && sel.historico.length > 0 && (
+                <div className="border rounded-xl p-4">
+                  <SectionTitle icon={<Clock className="h-3.5 w-3.5" />} label="Histórico" />
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <div className="h-2 w-2 rounded-full bg-gray-300 shrink-0" />
+                      <span>Adesão criada — {new Date(sel.created_at).toLocaleString("pt-BR")}</span>
+                    </div>
+                    {sel.historico.map((ev, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className={`h-2 w-2 rounded-full shrink-0 ${STATUS_COLORS[ev.status]?.includes("green") ? "bg-green-500" : "bg-brand-blue"}`} />
+                        <span>
+                          <span className="font-semibold">{STATUS_LABELS[ev.status] ?? ev.status}</span>
+                          {" — "}
+                          {new Date(ev.data).toLocaleString("pt-BR")}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Ações de contato ── */}
+              <div className="flex flex-col gap-2 pb-2">
                 <a
                   href={`https://wa.me/55${(sel.telefone ?? sel.whatsapp).replace(/\D/g, "")}`}
                   target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b958] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition w-full"
                 >
-                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                  </svg>
+                  <Phone className="h-4 w-4" />
                   Contatar via WhatsApp
                 </a>
                 <a
