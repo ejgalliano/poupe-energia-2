@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Building2, Star, MapPin, Users, LogOut,
   Handshake, Briefcase, Award, Gift, FlaskConical,
-  MessageSquareWarning, Zap, Mail, KeyRound,
+  MessageSquareWarning, Zap, Mail,
 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminNivel, canAccess, NIVEL_LABELS, NIVEL_COLORS, type Nivel } from "@/hooks/useAdminNivel";
@@ -60,8 +60,7 @@ const groups: NavGroup[] = [
   {
     title: "Sistema",
     items: [
-      { to: "/admin/usuarios",      label: "Usuários Admin", icon: Users,    section: "usuarios" },
-      { to: "/admin/alterar-senha", label: "Alterar Senha",  icon: KeyRound, section: "alterar-senha" },
+      { to: "/admin/usuarios", label: "Usuários Admin", icon: Users, section: "usuarios" },
     ],
   },
 ];
