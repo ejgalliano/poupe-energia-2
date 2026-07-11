@@ -434,7 +434,7 @@ export default function UsuariosAdmin() {
 
                   {selected.status === "aprovado" && nivelEdit !== (selected.nivel ?? "operacional") && (
                     <Button
-                      className="w-full bg-brand-blue hover:bg-brand-blue/90"
+                      className="w-full bg-brand-blue hover:bg-brand-blue/90 text-white"
                       disabled={acting}
                       onClick={changeNivel}
                     >
