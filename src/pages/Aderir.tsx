@@ -83,49 +83,72 @@ function parseValor(s: string): number | null {
 }
 
 function parseFaturaText(text: string): Extracted {
-  const t = text;
+  // Normaliza: remove espaços duplos, junta linhas curtas (comum em PDFs de distribuidoras)
+  const t = text.replace(/[ \t]{2,}/g, " ");
 
   const uc = tryMatch(t, [
-    /[Nn]úmero\s+de\s+[Ii]nstalação[:\s]+(\d{5,12})/,
-    /[Nn]o\.?\s+de\s+[Ii]nstalação[:\s#°\s]*(\d{5,12})/,
-    /[Cc]ódigo\s+de\s+[Ii]nstalação[:\s]+(\d{5,12})/,
-    /[Ii]nstalação[:\s#N°\s]+(\d{5,12})/,
-    /UC[:\s]+(\d{5,12})/,
-    /N[°º]\s*INSTALAÇÃO[:\s]+(\d{5,12})/i,
-    /COD[.\s_-]*INST[:\s]+(\d{5,12})/i,
-    /UNIDADE CONSUMIDORA[:\s]+(\d{5,12})/i,
-    /N[°º]\s*UC[:\s]+(\d{5,12})/i,
+    // Padrões com label explícito
+    /[Nn][uú]mero\s+de\s+[Ii]nstala[cç][aã]o\s*[:\-]?\s*(\d{5,12})/,
+    /[Nn]o\.?\s+de\s+[Ii]nstala[cç][aã]o\s*[:\-#°]*\s*(\d{5,12})/,
+    /[Cc][oó]digo\s+de\s+[Ii]nstala[cç][aã]o\s*[:\-]?\s*(\d{5,12})/,
+    /[Ii]nstala[cç][aã]o\s*[:\-#N°]*\s*(\d{5,12})/,
+    /\bUC\s*[:\-]?\s*(\d{5,12})/,
+    /N[°º\.]\s*INSTALA[CÇ][AÃ]O\s*[:\-]?\s*(\d{5,12})/i,
+    /COD[.\s_-]*INST\s*[:\-]?\s*(\d{5,12})/i,
+    /UNIDADE\s+CONSUMIDORA\s*[:\-]?\s*(\d{5,12})/i,
+    /N[°º\.]\s*UC\s*[:\-]?\s*(\d{5,12})/i,
+    // CEMIG
+    /INST[:\s]+(\d{10})/i,
+    // COPEL
+    /C[oó]digo\s+da\s+[Uu]nidade\s*[:\-]?\s*(\d{5,12})/,
+    // Enel
+    /[Nn][uú]mero\s+do\s+[Cc]ontrato\s*[:\-]?\s*(\d{5,12})/,
+    // Número sozinho de 10 dígitos (fallback)
+    /\b(\d{10})\b/,
   ]);
 
   const consumoRaw = tryMatch(t, [
-    /[Cc]onsumo\s+(?:de\s+)?[Ee]nergia[:\s]+([\d.]+(?:,\d+)?)\s*kWh/,
-    /[Cc]onsumo[:\s]+([\d.]+(?:,\d+)?)\s*kWh/,
-    /([\d.]{1,5}(?:,\d+)?)\s*kWh/,
-    /ENERGIA ATIVA[:\s]+([\d.]+(?:,\d+)?)/i,
-    /CONSUMO NO MÊS[:\s]+([\d.]+(?:,\d+)?)/i,
-    /CONSUMO[:\s]+([\d.]+(?:,\d+)?)\s*KWH/i,
+    /[Cc]onsumo\s+(?:de\s+)?[Ee]nergia\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]/,
+    /[Cc]onsumo\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]/,
+    /ENERGIA\s+ATIVA\s+[kK][wW][hH]\s*([\d.]+(?:,\d+)?)/i,
+    /CONSUMO\s+NO\s+M[EÊ]S\s*[:\-]?\s*([\d.]+(?:,\d+)?)/i,
+    /CONSUMO\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]/i,
+    // Número seguido de kWh sem label (mais comum em PDFs SAP)
+    /\b(\d{2,5})\s*[kK][wW][hH]/,
   ]);
 
-  const valorRaw = tryMatch(t, [
-    /TOTAL A PAGAR[:\sR$]*([\d.]+,\d{2})/i,
-    /VALOR TOTAL[:\sR$]*([\d.]+,\d{2})/i,
-    /TOTAL[:\sR$]*([\d.]+,\d{2})/i,
-    /VALOR DA FATURA[:\sR$]*([\d.]+,\d{2})/i,
-    /R\$\s*([\d]{2,4}[.,]\d{2})/,
-  ]);
+  // Valor: prioriza valores maiores (evita pegar R$13,51 de taxas avulsas)
+  // Tenta primeiro patterns com label explícito de "total"
+  const valorRaw = (() => {
+    const labeled = tryMatch(t, [
+      /TOTAL\s+A\s+PAGAR\s*[:\-R$]*\s*([\d]{1,4}[.,]\d{2}(?:\d{2})?)/i,
+      /VALOR\s+TOTAL\s*[:\-R$]*\s*([\d]{1,4}[.,]\d{2}(?:\d{2})?)/i,
+      /VALOR\s+DA\s+FATURA\s*[:\-R$]*\s*([\d]{1,4}[.,]\d{2}(?:\d{2})?)/i,
+      /TOTAL\s*[:\-R$]*\s*([\d]{1,4}[.,]\d{2})/i,
+    ]);
+    if (labeled) return labeled;
+    // Fallback: maior valor monetário no documento (R$ XXX,XX)
+    const all = [...t.matchAll(/R\$\s*([\d]{2,4}[.,]\d{2})/g)];
+    if (!all.length) return "";
+    const parsed = all.map(m => parseValor(m[1])).filter((v): v is number => v !== null);
+    const max = Math.max(...parsed);
+    return max > 0 ? String(max).replace(".", ",") : "";
+  })();
 
   const classe = tryMatch(t, [
-    /[Cc]lasse[:\s]+(Residencial|Comercial|Rural|Industrial|Iluminação\s+Pública)/i,
-    /CLASSE DE CONSUMO[:\s]+(Residencial|Comercial|Rural|Industrial)/i,
-    /SUBGRUPO[:\s]+(B1|B2|B3|B4|A[\d])/i,
-    /(Residencial|Comercial|Rural|Industrial)/,
+    /[Cc]lasse\s+(?:de\s+[Cc]onsumo\s*)?[:\-]?\s*(Residencial|Comercial|Rural|Industrial|Ilumina[cç][aã]o)/i,
+    /CLASSE\s*[:\-]?\s*(RESIDENCIAL|COMERCIAL|RURAL|INDUSTRIAL)/i,
+    /SUBGRUPO\s*[:\-]?\s*(B1|B2|B3|B4|A[1-4])/i,
+    // Palavra isolada no texto (menos confiável)
+    /\b(Residencial|Comercial|Rural|Industrial)\b/,
   ]);
 
   const titular = tryMatch(t, [
-    /[Nn]ome\s+do\s+[Cc]onsumidor[:\s]+([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,60}?)(?:\n|  )/,
-    /[Cc]onsumidor[:\s]+([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,60}?)(?:\n|  )/,
-    /[Cc]liente[:\s]+([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,60}?)(?:\n|  )/,
-    /NOME[:\s]+([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,60}?)(?:\n|  )/,
+    /[Nn]ome\s+do\s+[Cc]onsumidor\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9])/,
+    /[Cc]onsumidor\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9])/,
+    /[Cc]liente\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9])/,
+    /NOME\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9])/,
+    /TITULAR\s*[:\-]?\s*([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇa-záàâãéêíóôõúç\s]{4,55}?)(?=\s{2,}|\n|[0-9])/,
   ]);
 
   return {
