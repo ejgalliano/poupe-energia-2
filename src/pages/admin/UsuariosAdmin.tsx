@@ -4,7 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, Clock, ShieldCheck } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, ShieldCheck, ChevronRight, KeyRound, ShieldOff, User } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Select,
   SelectContent,
@@ -12,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { type Nivel, NIVEL_LABELS, NIVEL_COLORS } from "@/hooks/useAdminNivel";
 
 type Request = {
@@ -28,12 +35,21 @@ type Request = {
 
 const NIVEIS: Nivel[] = ["super_admin", "gestor", "operacional", "visualizador"];
 
+const NIVEL_DESC: Record<Nivel, string> = {
+  super_admin: "Acesso total a todas as funcionalidades",
+  gestor: "Comercial, comunicação e adesões",
+  operacional: "Adesões e contestações apenas",
+  visualizador: "Somente visualização do dashboard",
+};
+
 export default function UsuariosAdmin() {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
-  const [acting, setActing] = useState<string | null>(null);
-  // nivel selecionado por request (antes de aprovar)
-  const [nivelSelecionado, setNivelSelecionado] = useState<Record<string, Nivel>>({});
+  const [acting, setActing] = useState(false);
+  const [selected, setSelected] = useState<Request | null>(null);
+  const [nivelEdit, setNivelEdit] = useState<Nivel>("operacional");
+  // nivel para aprovação de pendentes (por id)
+  const [nivelPendente, setNivelPendente] = useState<Record<string, Nivel>>({});
 
   const load = async () => {
     setLoading(true);
@@ -48,14 +64,15 @@ export default function UsuariosAdmin() {
 
   useEffect(() => { load(); }, []);
 
-  const nivelParaAprovar = (id: string): Nivel =>
-    nivelSelecionado[id] ?? "operacional";
+  const openSheet = (r: Request) => {
+    setSelected(r);
+    setNivelEdit(r.nivel ?? "operacional");
+  };
 
-  const approve = async (r: Request, nivel?: Nivel) => {
-    const nivelFinal = nivel ?? nivelParaAprovar(r.id);
-    setActing(r.id);
+  // ── Aprovar ──
+  const approve = async (r: Request, nivelFinal: Nivel) => {
+    setActing(true);
     try {
-      // Verifica se já tem role, atualiza ou insere
       const { data: existing } = await supabase
         .from("user_roles")
         .select("user_id")
@@ -77,7 +94,6 @@ export default function UsuariosAdmin() {
         if (error) throw error;
       }
 
-      // Atualiza status e nivel na solicitação
       const { error: updErr } = await supabase
         .from("admin_requests")
         .update({ status: "aprovado", nivel: nivelFinal })
@@ -85,60 +101,80 @@ export default function UsuariosAdmin() {
       if (updErr) throw updErr;
 
       toast.success(`${r.nome} aprovado como ${NIVEL_LABELS[nivelFinal]}`);
+      setSelected(null);
       load();
     } catch (err: any) {
       toast.error(err.message);
     } finally {
-      setActing(null);
+      setActing(false);
     }
   };
 
-  const changeNivel = async (r: Request, novoNivel: Nivel) => {
-    setActing(r.id);
+  // ── Alterar nível ──
+  const changeNivel = async () => {
+    if (!selected) return;
+    setActing(true);
     try {
       await supabase
         .from("user_roles")
-        .update({ nivel: novoNivel })
-        .eq("user_id", r.user_id)
+        .update({ nivel: nivelEdit })
+        .eq("user_id", selected.user_id)
         .eq("role", "admin");
       await supabase
         .from("admin_requests")
-        .update({ nivel: novoNivel })
-        .eq("id", r.id);
-      toast.success(`Nível de ${r.nome} atualizado para ${NIVEL_LABELS[novoNivel]}`);
+        .update({ nivel: nivelEdit })
+        .eq("id", selected.id);
+      toast.success(`Nível de ${selected.nome} atualizado para ${NIVEL_LABELS[nivelEdit]}`);
+      setSelected(null);
       load();
     } catch (err: any) {
       toast.error(err.message);
     } finally {
-      setActing(null);
+      setActing(false);
     }
   };
 
+  // ── Enviar reset de senha por email ──
+  const sendPasswordReset = async () => {
+    if (!selected) return;
+    setActing(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(selected.email, {
+      redirectTo: `${window.location.origin}/admin/alterar-senha`,
+    });
+    setActing(false);
+    if (error) toast.error(error.message);
+    else toast.success(`Email de redefinição enviado para ${selected.email}`);
+  };
+
+  // ── Rejeitar ──
   const reject = async (r: Request) => {
     if (!confirm(`Rejeitar acesso de ${r.nome}?`)) return;
-    setActing(r.id);
+    setActing(true);
     const { error } = await supabase
       .from("admin_requests")
       .update({ status: "rejeitado" })
       .eq("id", r.id);
-    setActing(null);
+    setActing(false);
     if (error) toast.error(error.message);
-    else { toast.success("Solicitação rejeitada"); load(); }
+    else { toast.success("Solicitação rejeitada"); setSelected(null); load(); }
   };
 
-  const revoke = async (r: Request) => {
-    if (!confirm(`Revogar acesso admin de ${r.nome}?`)) return;
-    setActing(r.id);
+  // ── Revogar ──
+  const revoke = async () => {
+    if (!selected) return;
+    if (!confirm(`Revogar acesso admin de ${selected.nome}?`)) return;
+    setActing(true);
     const { error } = await supabase
       .from("user_roles")
       .delete()
-      .eq("user_id", r.user_id)
+      .eq("user_id", selected.user_id)
       .eq("role", "admin");
-    if (error) { toast.error(error.message); setActing(null); return; }
-    await supabase.from("admin_requests").update({ status: "rejeitado" }).eq("id", r.id);
-    setActing(null);
-    toast.success("Acesso revogado");
-    load();
+    if (!error) {
+      await supabase.from("admin_requests").update({ status: "rejeitado" }).eq("id", selected.id);
+    }
+    setActing(false);
+    if (error) toast.error(error.message);
+    else { toast.success("Acesso revogado"); setSelected(null); load(); }
   };
 
   const pendentes  = requests.filter((r) => r.status === "pendente");
@@ -151,8 +187,24 @@ export default function UsuariosAdmin() {
       hour: "2-digit", minute: "2-digit",
     });
 
+  const NivelBadge = ({ nivel }: { nivel: Nivel }) => (
+    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${NIVEL_COLORS[nivel ?? "operacional"]}`}>
+      {NIVEL_LABELS[nivel ?? "operacional"]}
+    </span>
+  );
+
+  const RowClickable = ({ r, children }: { r: Request; children: React.ReactNode }) => (
+    <tr
+      key={r.id}
+      className="border-t hover:bg-muted/30 cursor-pointer transition-colors"
+      onClick={() => openSheet(r)}
+    >
+      {children}
+    </tr>
+  );
+
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="space-y-6 max-w-4xl">
       <h1 className="text-2xl font-bold">Usuários Admin</h1>
 
       {/* ── Pendentes ── */}
@@ -166,69 +218,51 @@ export default function UsuariosAdmin() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left p-3">Nome</th>
-                    <th className="text-left p-3">E-mail</th>
-                    <th className="text-left p-3">Celular</th>
-                    <th className="text-left p-3">Nível de acesso</th>
-                    <th className="text-left p-3">Solicitado em</th>
-                    <th className="text-right p-3">Ação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pendentes.map((r) => (
-                    <tr key={r.id} className="border-t">
-                      <td className="p-3 font-semibold">{r.nome}</td>
-                      <td className="p-3">{r.email}</td>
-                      <td className="p-3">{r.celular}</td>
-                      <td className="p-3">
-                        <Select
-                          value={nivelSelecionado[r.id] ?? "operacional"}
-                          onValueChange={(v) =>
-                            setNivelSelecionado((prev) => ({ ...prev, [r.id]: v as Nivel }))
-                          }
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left p-3">Nome</th>
+                  <th className="text-left p-3">E-mail</th>
+                  <th className="text-left p-3">Nível</th>
+                  <th className="text-left p-3">Solicitado em</th>
+                  <th className="text-right p-3 w-8"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendentes.map((r) => (
+                  <RowClickable key={r.id} r={r}>
+                    <td className="p-3 font-semibold">{r.nome}</td>
+                    <td className="p-3 text-muted-foreground">{r.email}</td>
+                    <td className="p-3">
+                      <Select
+                        value={nivelPendente[r.id] ?? "operacional"}
+                        onValueChange={(v) =>
+                          setNivelPendente((prev) => ({ ...prev, [r.id]: v as Nivel }))
+                        }
+                      >
+                        <SelectTrigger
+                          className="h-7 w-32 text-xs"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <SelectTrigger className="h-8 w-36">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {NIVEIS.map((n) => (
-                              <SelectItem key={n} value={n}>
-                                {NIVEL_LABELS[n]}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="p-3 text-muted-foreground text-xs">{fmt(r.created_at)}</td>
-                      <td className="p-3 text-right space-x-2">
-                        <Button
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                          disabled={acting === r.id}
-                          onClick={() => approve(r)}
-                        >
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                          Aprovar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          disabled={acting === r.id}
-                          onClick={() => reject(r)}
-                        >
-                          <XCircle className="h-3.5 w-3.5 mr-1" />
-                          Rejeitar
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {NIVEIS.map((n) => (
+                            <SelectItem key={n} value={n} className="text-xs">
+                              {NIVEL_LABELS[n]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="p-3 text-muted-foreground text-xs">{fmt(r.created_at)}</td>
+                    <td className="p-3 text-right text-muted-foreground">
+                      <ChevronRight className="h-4 w-4 inline" />
+                    </td>
+                  </RowClickable>
+                ))}
+              </tbody>
+            </table>
           </CardContent>
         </Card>
       )}
@@ -250,64 +284,30 @@ export default function UsuariosAdmin() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left p-3">Nome</th>
-                    <th className="text-left p-3">E-mail</th>
-                    <th className="text-left p-3">Celular</th>
-                    <th className="text-left p-3">Nível atual</th>
-                    <th className="text-left p-3">Aprovado em</th>
-                    <th className="text-right p-3">Ação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {aprovados.map((r) => (
-                    <tr key={r.id} className="border-t">
-                      <td className="p-3 font-semibold">{r.nome}</td>
-                      <td className="p-3">{r.email}</td>
-                      <td className="p-3">{r.celular}</td>
-                      <td className="p-3">
-                        <Select
-                          value={r.nivel ?? "operacional"}
-                          onValueChange={(v) => changeNivel(r, v as Nivel)}
-                          disabled={acting === r.id}
-                        >
-                          <SelectTrigger className="h-8 w-36">
-                            <SelectValue>
-                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${NIVEL_COLORS[r.nivel ?? "operacional"]}`}>
-                                {NIVEL_LABELS[r.nivel ?? "operacional"]}
-                              </span>
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {NIVEIS.map((n) => (
-                              <SelectItem key={n} value={n}>
-                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${NIVEL_COLORS[n]}`}>
-                                  {NIVEL_LABELS[n]}
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="p-3 text-muted-foreground text-xs">{fmt(r.created_at)}</td>
-                      <td className="p-3 text-right">
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          disabled={acting === r.id}
-                          onClick={() => revoke(r)}
-                        >
-                          Revogar acesso
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left p-3">Nome</th>
+                  <th className="text-left p-3">E-mail</th>
+                  <th className="text-left p-3">Nível</th>
+                  <th className="text-left p-3">Aprovado em</th>
+                  <th className="text-right p-3 w-8"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {aprovados.map((r) => (
+                  <RowClickable key={r.id} r={r}>
+                    <td className="p-3 font-semibold">{r.nome}</td>
+                    <td className="p-3 text-muted-foreground">{r.email}</td>
+                    <td className="p-3"><NivelBadge nivel={r.nivel ?? "operacional"} /></td>
+                    <td className="p-3 text-muted-foreground text-xs">{fmt(r.created_at)}</td>
+                    <td className="p-3 text-right text-muted-foreground">
+                      <ChevronRight className="h-4 w-4 inline" />
+                    </td>
+                  </RowClickable>
+                ))}
+              </tbody>
+            </table>
           </CardContent>
         </Card>
       )}
@@ -323,39 +323,28 @@ export default function UsuariosAdmin() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="text-left p-3">Nome</th>
-                    <th className="text-left p-3">E-mail</th>
-                    <th className="text-left p-3">Celular</th>
-                    <th className="text-left p-3">Data</th>
-                    <th className="text-right p-3">Ação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rejeitados.map((r) => (
-                    <tr key={r.id} className="border-t opacity-60">
-                      <td className="p-3">{r.nome}</td>
-                      <td className="p-3">{r.email}</td>
-                      <td className="p-3">{r.celular}</td>
-                      <td className="p-3 text-xs text-muted-foreground">{fmt(r.created_at)}</td>
-                      <td className="p-3 text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={acting === r.id}
-                          onClick={() => approve(r, "operacional")}
-                        >
-                          Aprovar mesmo assim
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left p-3">Nome</th>
+                  <th className="text-left p-3">E-mail</th>
+                  <th className="text-left p-3">Data</th>
+                  <th className="text-right p-3 w-8"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rejeitados.map((r) => (
+                  <RowClickable key={r.id} r={r}>
+                    <td className="p-3 opacity-60">{r.nome}</td>
+                    <td className="p-3 text-muted-foreground opacity-60">{r.email}</td>
+                    <td className="p-3 text-xs text-muted-foreground opacity-60">{fmt(r.created_at)}</td>
+                    <td className="p-3 text-right text-muted-foreground">
+                      <ChevronRight className="h-4 w-4 inline" />
+                    </td>
+                  </RowClickable>
+                ))}
+              </tbody>
+            </table>
           </CardContent>
         </Card>
       )}
@@ -363,6 +352,148 @@ export default function UsuariosAdmin() {
       {loading && (
         <div className="text-center text-muted-foreground py-8">Carregando...</div>
       )}
+
+      {/* ── Painel lateral ── */}
+      <Sheet open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+        <SheetContent className="w-[360px] sm:w-[420px] flex flex-col gap-0 p-0">
+          {selected && (
+            <>
+              {/* Cabeçalho */}
+              <SheetHeader className="px-6 py-5 border-b">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-brand-blue/10 flex items-center justify-center shrink-0">
+                    <User className="h-5 w-5 text-brand-blue" />
+                  </div>
+                  <div>
+                    <SheetTitle className="text-base">{selected.nome}</SheetTitle>
+                    <p className="text-xs text-muted-foreground mt-0.5">{selected.email}</p>
+                    {selected.celular && (
+                      <p className="text-xs text-muted-foreground">{selected.celular}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center gap-2">
+                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                    selected.status === "aprovado" ? "bg-green-100 text-green-700" :
+                    selected.status === "pendente" ? "bg-yellow-100 text-yellow-700" :
+                    "bg-gray-100 text-gray-500"
+                  }`}>
+                    {selected.status === "aprovado" ? "Acesso ativo" :
+                     selected.status === "pendente" ? "Aguardando aprovação" : "Rejeitado"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    desde {fmt(selected.created_at)}
+                  </span>
+                </div>
+              </SheetHeader>
+
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+
+                {/* ── Nível de acesso ── */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold">Nível de acesso</Label>
+                  <Select value={nivelEdit} onValueChange={(v) => setNivelEdit(v as Nivel)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {NIVEIS.map((n) => (
+                        <SelectItem key={n} value={n}>
+                          <div>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full mr-2 ${NIVEL_COLORS[n]}`}>
+                              {NIVEL_LABELS[n]}
+                            </span>
+                            <span className="text-xs text-muted-foreground">{NIVEL_DESC[n]}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* Ações de acordo com o status */}
+                  {selected.status === "pendente" && (
+                    <div className="flex gap-2 pt-1">
+                      <Button
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                        disabled={acting}
+                        onClick={() => approve(selected, nivelEdit)}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Aprovar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        disabled={acting}
+                        onClick={() => reject(selected)}
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Rejeitar
+                      </Button>
+                    </div>
+                  )}
+
+                  {selected.status === "aprovado" && nivelEdit !== (selected.nivel ?? "operacional") && (
+                    <Button
+                      className="w-full bg-brand-blue hover:bg-brand-blue/90"
+                      disabled={acting}
+                      onClick={changeNivel}
+                    >
+                      Salvar novo nível
+                    </Button>
+                  )}
+
+                  {selected.status === "rejeitado" && (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      disabled={acting}
+                      onClick={() => approve(selected, nivelEdit)}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Aprovar mesmo assim
+                    </Button>
+                  )}
+                </div>
+
+                {/* ── Senha ── (só para aprovados) */}
+                {selected.status === "aprovado" && (
+                  <div className="space-y-2 border-t pt-5">
+                    <Label className="text-sm font-semibold">Senha</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Envia um link de redefinição de senha para o e-mail do usuário.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      disabled={acting}
+                      onClick={sendPasswordReset}
+                    >
+                      <KeyRound className="h-4 w-4 mr-2" />
+                      Enviar link de redefinição de senha
+                    </Button>
+                  </div>
+                )}
+
+              </div>
+
+              {/* ── Rodapé ── */}
+              {selected.status === "aprovado" && (
+                <div className="px-6 py-4 border-t">
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    disabled={acting}
+                    onClick={revoke}
+                  >
+                    <ShieldOff className="h-4 w-4 mr-2" />
+                    Revogar acesso
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
