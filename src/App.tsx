@@ -41,6 +41,9 @@ import Embaixadores from "./pages/admin/Embaixadores";
 import CashbackCadastros from "./pages/admin/CashbackCadastros";
 import FormulaConfig from "./pages/admin/FormulaConfig";
 import Contestacoes from "./pages/admin/Contestacoes";
+import AnalisarFatura from "./pages/AnalisarFatura";
+import Aderir from "./pages/Aderir";
+import AnalisesFatura from "./pages/admin/AnalisesFatura";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 import EmbCapture from "./components/EmbCapture";
 import ScrollToTop from "./components/ScrollToTop";
@@ -67,6 +70,8 @@ const App = () => (
           <Route path="/termos-de-uso" element={<TermosDeUso />} />
           <Route path="/termos-cashback" element={<TermosCashback />} />
           <Route path="/ativar-cashback" element={<AtivarCashback />} />
+          <Route path="/analisar-fatura" element={<AnalisarFatura />} />
+          <Route path="/aderir" element={<Aderir />} />
           <Route path="/duvidas-frequentes" element={<DuvidasFrequentes />} />
           <Route path="/contestacao" element={<Contestacao />} />
           <Route path="/diretrizes-metodologicas" element={<DiretrizesMetodologicas />} />
@@ -95,6 +100,7 @@ const App = () => (
             <Route path="cashback" element={<CashbackCadastros />} />
             <Route path="formula" element={<FormulaConfig />} />
             <Route path="contestacoes" element={<Contestacoes />} />
+            <Route path="analises-fatura" element={<AnalisesFatura />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
