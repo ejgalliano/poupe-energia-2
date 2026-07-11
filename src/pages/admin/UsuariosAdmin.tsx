@@ -55,11 +55,27 @@ export default function UsuariosAdmin() {
     const nivelFinal = nivel ?? nivelParaAprovar(r.id);
     setActing(r.id);
     try {
-      // Concede role admin com nivel
-      const { error: roleErr } = await supabase
+      // Verifica se já tem role, atualiza ou insere
+      const { data: existing } = await supabase
         .from("user_roles")
-        .upsert({ user_id: r.user_id, role: "admin", nivel: nivelFinal });
-      if (roleErr) throw roleErr;
+        .select("user_id")
+        .eq("user_id", r.user_id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("user_roles")
+          .update({ nivel: nivelFinal })
+          .eq("user_id", r.user_id)
+          .eq("role", "admin");
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({ user_id: r.user_id, role: "admin", nivel: nivelFinal });
+        if (error) throw error;
+      }
 
       // Atualiza status e nivel na solicitação
       const { error: updErr } = await supabase
