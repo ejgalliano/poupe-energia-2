@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Zap, ArrowRight, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -77,6 +78,18 @@ const EconomySimulator = ({
   const [valor, setValor] = useState(0);
   const [selectedFaixaIdx, setSelectedFaixaIdx] = useState(0);
   const [adesaoOpen, setAdesaoOpen] = useState(false);
+  const [coeficiente, setCoeficiente] = useState(0.83);
+
+  useEffect(() => {
+    supabase
+      .from("formula_config")
+      .select("coeficiente_simulacao")
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.coeficiente_simulacao) setCoeficiente(data.coeficiente_simulacao);
+      });
+  }, []);
 
   const descontosPorFaixa = [
     descontoAte1mwh   ?? discountPercent,
@@ -88,13 +101,14 @@ const EconomySimulator = ({
   const descontoAtivo = descontosPorFaixa[selectedFaixaIdx];
 
   const economia = useMemo(() => {
-    const mensal = valor * (descontoAtivo / 100);
+    const base = valor * coeficiente;
+    const mensal = base * (descontoAtivo / 100);
     return {
       mensal,
       anual: mensal * 12,
       novaConta: Math.max(valor - mensal, 0),
     };
-  }, [valor, descontoAtivo]);
+  }, [valor, descontoAtivo, coeficiente]);
 
   const handleAderir = () => {
     if (!empresaId) return;

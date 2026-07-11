@@ -15,6 +15,7 @@ interface Config {
   peso_vm: number;
   vm_melhor: number;
   vm_pior: number;
+  coeficiente_simulacao: number;
   updated_at?: string;
   updated_by?: string;
 }
@@ -26,6 +27,7 @@ const DEFAULT: Config = {
   peso_vm: 0.1,
   vm_melhor: 100,
   vm_pior: 1000,
+  coeficiente_simulacao: 0.83,
 };
 
 export default function FormulaConfig() {
@@ -97,6 +99,7 @@ export default function FormulaConfig() {
         peso_vm: cfg.peso_vm,
         vm_melhor: cfg.vm_melhor,
         vm_pior: cfg.vm_pior,
+        coeficiente_simulacao: cfg.coeficiente_simulacao,
         updated_at: new Date().toISOString(),
       };
 
@@ -197,6 +200,45 @@ export default function FormulaConfig() {
               </div>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      {/* Coeficiente do Simulador */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Coeficiente do Simulador de Economia</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex gap-3 bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800">
+            <Info className="h-5 w-5 shrink-0 mt-0.5" />
+            <div>
+              Representa a <strong>fatia da conta de luz que recebe desconto</strong> — ou seja, a parte de energia pura, excluindo impostos, taxas e encargos (ICMS, PIS, COFINS, bandeiras etc.).
+              O valor padrão <strong>0,83</strong> significa que ~83% da conta é energia e ~17% são tributos.
+            </div>
+          </div>
+          <div>
+            <Label>Coeficiente de energia da fatura</Label>
+            <p className="text-xs text-muted-foreground mb-1">
+              Fórmula: Economia = Fatura × <strong>coeficiente</strong> × (desconto ÷ 100)
+            </p>
+            <div className="flex items-center gap-3">
+              <Input
+                type="number" min="0.5" max="1" step="0.01"
+                value={cfg.coeficiente_simulacao}
+                onChange={(e) => setCfg({ ...cfg, coeficiente_simulacao: +e.target.value })}
+                className="max-w-[120px]"
+              />
+              <span className="text-sm text-muted-foreground">
+                = {(cfg.coeficiente_simulacao * 100).toFixed(0)}% da conta é energia
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Exemplo com fatura de R$ 1.000 e desconto de 20%:
+              base = 1.000 × {cfg.coeficiente_simulacao} = R$ {(1000 * cfg.coeficiente_simulacao).toFixed(0)} →
+              economia = R$ {(1000 * cfg.coeficiente_simulacao * 0.2).toFixed(0)} →
+              nova fatura = R$ {(1000 - 1000 * cfg.coeficiente_simulacao * 0.2).toFixed(0)}
+            </p>
+          </div>
         </CardContent>
       </Card>
 
