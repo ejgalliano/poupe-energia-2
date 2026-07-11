@@ -46,6 +46,7 @@ import Contestacoes from "./pages/admin/Contestacoes";
 import AnalisarFatura from "./pages/AnalisarFatura";
 import Aderir from "./pages/Aderir";
 import AnalisesFatura from "./pages/admin/AnalisesFatura";
+import AlterarSenha from "./pages/admin/AlterarSenha";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 import EmbCapture from "./components/EmbCapture";
 import ScrollToTop from "./components/ScrollToTop";
@@ -105,6 +106,7 @@ const App = () => (
             <Route path="contestacoes" element={<Contestacoes />} />
             <Route path="email-templates" element={<EmailTemplates />} />
             <Route path="analises-fatura" element={<AnalisesFatura />} />
+            <Route path="alterar-senha" element={<AlterarSenha />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
