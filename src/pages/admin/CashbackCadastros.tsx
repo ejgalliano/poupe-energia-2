@@ -417,7 +417,7 @@ export default function CashbackCadastros() {
 
       {/* ═══ Painel de detalhe ═══════════════════════════════════════════════ */}
       <Sheet open={!!sel} onOpenChange={(o) => !o && setSel(null)}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
           <SheetHeader className="pb-4 border-b">
             <SheetTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-brand-blue" />
