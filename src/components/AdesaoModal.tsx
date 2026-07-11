@@ -95,6 +95,31 @@ const INPUT =
   "w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white";
 const ACCEPT = "image/jpeg,image/png,image/webp,application/pdf";
 
+function maskCpfCnpj(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 14);
+  if (d.length <= 11)
+    return d
+      .replace(/^(\d{3})(\d)/, "$1.$2")
+      .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1-$2");
+  return d
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
+function maskTelefone(v: string) {
+  const d = v.replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 10)
+    return d
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{4})(\d)/, "$1-$2");
+  return d
+    .replace(/^(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d)/, "$1-$2");
+}
+
 const MONTHS = [
   "janeiro","fevereiro","março","abril","maio","junho",
   "julho","agosto","setembro","outubro","novembro","dezembro",
@@ -316,7 +341,8 @@ export default function AdesaoModal({
                         type="text"
                         placeholder="000.000.000-00"
                         value={form.cpf_cnpj}
-                        onChange={(e) => set("cpf_cnpj")(e.target.value)}
+                        onChange={(e) => set("cpf_cnpj")(maskCpfCnpj(e.target.value))}
+                        inputMode="numeric"
                         className={INPUT}
                       />
                     </div>
@@ -340,7 +366,8 @@ export default function AdesaoModal({
                         type="tel"
                         placeholder="(00) 00000-0000"
                         value={form.telefone}
-                        onChange={(e) => set("telefone")(e.target.value)}
+                        onChange={(e) => set("telefone")(maskTelefone(e.target.value))}
+                        inputMode="numeric"
                         className={INPUT}
                       />
                     </div>
