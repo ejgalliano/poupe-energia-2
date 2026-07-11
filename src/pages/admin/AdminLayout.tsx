@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Building2, Star, MapPin, Users, LogOut,
   Handshake, Briefcase, Award, Gift, FlaskConical,
-  MessageSquareWarning, Zap, Mail,
+  MessageSquareWarning, Zap, Mail, BarChart2,
 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminNivel, canAccess, NIVEL_LABELS, NIVEL_COLORS, type Nivel } from "@/hooks/useAdminNivel";
@@ -28,7 +28,8 @@ const groups: NavGroup[] = [
   {
     title: "Geral",
     items: [
-      { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true, section: "dashboard" },
+      { to: "/admin", label: "Dashboard Adesões", icon: LayoutDashboard, end: true, section: "dashboard" },
+      { to: "/admin/dashboard-ranking", label: "Dashboard Ranking", icon: BarChart2, section: "dashboard" },
     ],
   },
   {
