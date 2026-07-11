@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -11,29 +11,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import {
-  Download, Search, FileText, Phone, Mail,
-  Building2, User, Calendar, CheckCircle2, XCircle,
-  DollarSign, MessageSquare, Eye, Zap, Clock, ChevronRight,
-} from "lucide-react";
+import { Download, Search } from "lucide-react";
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
-
-type Checklist = {
-  docs_conferidos?: boolean;
-  dados_validados?: boolean;
-  cadastrado_parceiro?: boolean;
-  contrato_emitido?: boolean;
-  contrato_enviado?: boolean;
-  contrato_assinado?: boolean;
-};
-
-type HistoricoEvento = {
-  status: string;
-  data: string;
-};
 
 type Cadastro = {
   id: string;
@@ -61,8 +42,8 @@ type Cadastro = {
   valor_cashback: number | null;
   observacoes: string | null;
   data_pagamento: string | null;
-  checklist: Checklist | null;
-  historico: HistoricoEvento[] | null;
+  checklist: Record<string, boolean> | null;
+  historico: { status: string; data: string }[] | null;
   consumo_kwh: number | null;
   valor_conta: number | null;
   classe_consumo: string | null;
@@ -103,69 +84,14 @@ const STATUS_COLORS: Record<string, string> = {
 
 const STATUS_OPTIONS = [...STATUS_FLOW, "cancelado"];
 
-// ─── Checklist ───────────────────────────────────────────────────────────────
-
-const CHECKLIST_ITEMS: { key: keyof Checklist; label: string }[] = [
-  { key: "docs_conferidos",    label: "Documentos conferidos" },
-  { key: "dados_validados",    label: "Dados do cliente validados" },
-  { key: "cadastrado_parceiro", label: "Cadastrado na comercializadora" },
-  { key: "contrato_emitido",   label: "Contrato gerado/emitido" },
-  { key: "contrato_enviado",   label: "Contrato enviado ao cliente" },
-  { key: "contrato_assinado",  label: "Contrato assinado pelo cliente" },
-];
-
-// ─── Utilitários ─────────────────────────────────────────────────────────────
-
-const SUPABASE_URL = "https://sdmbkayjipowfkxaohxo.supabase.co";
-
-function docUrl(path: string | null) {
-  if (!path) return null;
-  return `${SUPABASE_URL}/storage/v1/object/public/documentos-adesao/${path}`;
-}
-
-function DocLink({ path, label }: { path: string | null; label: string }) {
-  if (!path) return <span className="text-xs text-gray-400">—</span>;
-  return (
-    <a
-      href={docUrl(path)!}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-blue hover:underline"
-    >
-      <Eye className="h-3 w-3" />
-      {label}
-    </a>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-[11px] text-muted-foreground uppercase tracking-wide font-semibold mb-0.5">{label}</p>
-      <p className="text-sm font-medium text-gray-800 break-all">{value || "—"}</p>
-    </div>
-  );
-}
-
-function SectionTitle({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground flex items-center gap-1.5 mb-3">
-      {icon}{label}
-    </p>
-  );
-}
-
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 export default function CashbackCadastros() {
+  const navigate = useNavigate();
   const [cadastros, setCadastros] = useState<Cadastro[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [sel, setSel] = useState<Cadastro | null>(null);
-  const [savingObs, setSavingObs] = useState(false);
-  const [obsLocal, setObsLocal] = useState("");
-  const [valorLocal, setValorLocal] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -181,11 +107,6 @@ export default function CashbackCadastros() {
 
   useEffect(() => { load(); }, []);
 
-  useEffect(() => {
-    setObsLocal(sel?.observacoes ?? "");
-    setValorLocal(sel?.valor_cashback != null ? String(sel.valor_cashback) : "");
-  }, [sel?.id]);
-
   const filtrados = useMemo(() => {
     const q = search.toLowerCase();
     return cadastros.filter((c) => {
@@ -194,58 +115,6 @@ export default function CashbackCadastros() {
       return true;
     });
   }, [cadastros, search, filterStatus]);
-
-  // ── Atualiza status e registra no histórico ──
-  const updateStatus = async (id: string, status: string) => {
-    const cadastro = cadastros.find((c) => c.id === id);
-    const historicoAtual: HistoricoEvento[] = cadastro?.historico ?? [];
-    const novoEvento: HistoricoEvento = { status, data: new Date().toISOString() };
-    const novoHistorico = [...historicoAtual, novoEvento];
-
-    const extra: any = {};
-    if (status === "pago") extra.data_pagamento = new Date().toISOString();
-
-    const { error } = await supabase
-      .from("cashback_cadastros" as any)
-      .update({ status, historico: novoHistorico, ...extra } as any)
-      .eq("id", id);
-
-    if (error) { toast.error(error.message); return; }
-    toast.success("Status atualizado!");
-    setCadastros((prev) => prev.map((c) => c.id === id ? { ...c, status, historico: novoHistorico, ...extra } : c));
-    if (sel?.id === id) setSel((s) => s ? { ...s, status, historico: novoHistorico, ...extra } : s);
-  };
-
-  // ── Atualiza checklist ──
-  const toggleChecklist = async (key: keyof Checklist, value: boolean) => {
-    if (!sel) return;
-    const novoChecklist: Checklist = { ...(sel.checklist ?? {}), [key]: value };
-    const { error } = await supabase
-      .from("cashback_cadastros" as any)
-      .update({ checklist: novoChecklist } as any)
-      .eq("id", sel.id);
-    if (error) { toast.error(error.message); return; }
-    setCadastros((prev) => prev.map((c) => c.id === sel.id ? { ...c, checklist: novoChecklist } : c));
-    setSel((s) => s ? { ...s, checklist: novoChecklist } : s);
-  };
-
-  // ── Salva observações e valor cashback ──
-  const saveObs = async () => {
-    if (!sel) return;
-    setSavingObs(true);
-    const valor = valorLocal ? parseFloat(valorLocal.replace(",", ".")) : null;
-    const { error } = await supabase
-      .from("cashback_cadastros" as any)
-      .update({ observacoes: obsLocal || null, valor_cashback: valor } as any)
-      .eq("id", sel.id);
-    if (error) { toast.error(error.message); }
-    else {
-      toast.success("Salvo!");
-      setCadastros((prev) => prev.map((c) => c.id === sel.id ? { ...c, observacoes: obsLocal || null, valor_cashback: valor } : c));
-      setSel((s) => s ? { ...s, observacoes: obsLocal || null, valor_cashback: valor } : s);
-    }
-    setSavingObs(false);
-  };
 
   // ── Export CSV ──
   const exportCSV = () => {
@@ -356,7 +225,7 @@ export default function CashbackCadastros() {
                 <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
               )}
               {!loading && filtrados.map((c) => (
-                <TableRow key={c.id} className="cursor-pointer hover:bg-muted/40" onClick={() => setSel(c)}>
+                <TableRow key={c.id} className="cursor-pointer hover:bg-muted/40" onClick={() => navigate(`/admin/cashback/${c.id}`)}>
                   <TableCell className="text-xs whitespace-nowrap">
                     {new Date(c.created_at).toLocaleDateString("pt-BR")}
                   </TableCell>
@@ -414,264 +283,6 @@ export default function CashbackCadastros() {
       <div className="text-xs text-muted-foreground text-right">
         {filtrados.length} de {cadastros.length} adesões
       </div>
-
-      {/* ═══ Painel de detalhe ═══════════════════════════════════════════════ */}
-      <Sheet open={!!sel} onOpenChange={(o) => !o && setSel(null)}>
-        <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
-          <SheetHeader className="pb-4 border-b">
-            <SheetTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-brand-blue" />
-              Detalhe da Adesão
-            </SheetTitle>
-          </SheetHeader>
-
-          {sel && (
-            <div className="space-y-5 mt-5 text-sm">
-
-              {/* ── Fluxo de status ── */}
-              <div className="border rounded-xl p-4">
-                <SectionTitle icon={<ChevronRight className="h-3.5 w-3.5" />} label="Status da adesão" />
-
-                {/* Barra de progresso */}
-                <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
-                  {STATUS_FLOW.map((s, i) => {
-                    const idx = STATUS_FLOW.indexOf(sel.status);
-                    const done = i < idx;
-                    const active = s === sel.status && sel.status !== "cancelado";
-                    return (
-                      <div key={s} className="flex items-center gap-1 shrink-0">
-                        <div className={`h-2 w-2 rounded-full shrink-0 ${done || active ? "bg-brand-blue" : "bg-gray-200"}`} />
-                        <span className={`text-[10px] whitespace-nowrap ${active ? "font-bold text-brand-blue" : done ? "text-gray-500" : "text-gray-300"}`}>
-                          {STATUS_LABELS[s]}
-                        </span>
-                        {i < STATUS_FLOW.length - 1 && <div className={`h-px w-3 ${done ? "bg-brand-blue" : "bg-gray-200"}`} />}
-                      </div>
-                    );
-                  })}
-                  {sel.status === "cancelado" && (
-                    <Badge className="bg-red-100 text-red-700 ml-2 text-[10px]">Cancelado</Badge>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Badge className={`${STATUS_COLORS[sel.status] ?? "bg-gray-100 text-gray-700"} text-xs shrink-0`}>
-                    {STATUS_LABELS[sel.status] ?? sel.status}
-                  </Badge>
-                  <Select value={sel.status} onValueChange={(v) => updateStatus(sel.id, v)}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map((s) => (
-                        <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* ── Checklist interno ── */}
-              <div className="border rounded-xl p-4">
-                <SectionTitle icon={<CheckCircle2 className="h-3.5 w-3.5" />} label="Checklist interno" />
-                <div className="space-y-2">
-                  {CHECKLIST_ITEMS.map(({ key, label }) => {
-                    const checked = !!(sel.checklist?.[key]);
-                    return (
-                      <label
-                        key={key}
-                        className="flex items-center gap-3 cursor-pointer group"
-                        onClick={() => toggleChecklist(key, !checked)}
-                      >
-                        <div className={`h-5 w-5 shrink-0 rounded border-2 flex items-center justify-center transition ${
-                          checked ? "bg-green-500 border-green-500" : "border-gray-300 group-hover:border-green-400"
-                        }`}>
-                          {checked && (
-                            <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </div>
-                        <span className={`text-xs ${checked ? "line-through text-gray-400" : "text-gray-700"}`}>
-                          {label}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 pt-3 border-t">
-                  <div className="flex justify-between items-center text-[11px] text-muted-foreground">
-                    <span>Progresso</span>
-                    <span className="font-semibold">
-                      {CHECKLIST_ITEMS.filter(({ key }) => sel.checklist?.[key]).length} / {CHECKLIST_ITEMS.length}
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full mt-1.5 overflow-hidden">
-                    <div
-                      className="h-full bg-green-500 rounded-full transition-all"
-                      style={{ width: `${(CHECKLIST_ITEMS.filter(({ key }) => sel.checklist?.[key]).length / CHECKLIST_ITEMS.length) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Dados do cliente ── */}
-              <div className="border rounded-xl p-4 space-y-3">
-                <SectionTitle icon={<User className="h-3.5 w-3.5" />} label="Dados do solicitante" />
-                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                  <div className="col-span-2"><InfoRow label="Nome" value={sel.nome} /></div>
-                  <InfoRow label="CPF/CNPJ" value={<span className="font-mono">{sel.cpf_cnpj}</span>} />
-                  <InfoRow label="Cadastro" value={new Date(sel.created_at).toLocaleDateString("pt-BR")} />
-                  <InfoRow label="Telefone" value={sel.telefone ?? sel.whatsapp} />
-                  <div className="col-span-2"><InfoRow label="E-mail" value={sel.email} /></div>
-                  {sel.codigo_embaixador && (
-                    <div className="col-span-2"><InfoRow label="Código do Embaixador" value={sel.codigo_embaixador} /></div>
-                  )}
-                </div>
-              </div>
-
-              {/* ── Dados da energia ── */}
-              <div className="border rounded-xl p-4 space-y-3">
-                <SectionTitle icon={<Zap className="h-3.5 w-3.5" />} label="Dados da energia" />
-                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                  <InfoRow label="Distribuidora" value={sel.distribuidora_nome} />
-                  <InfoRow label="Comercializadora" value={
-                    sel.empresa_nome
-                      ? <span>{sel.empresa_nome}{sel.cashback_percentual != null && sel.cashback_percentual > 0 && <span className="ml-1.5 text-brand-blue font-bold">⚡ {sel.cashback_percentual}%</span>}</span>
-                      : null
-                  } />
-                  {sel.numero_uc && <InfoRow label="Número UC" value={<span className="font-mono">{sel.numero_uc}</span>} />}
-                  {sel.classe_consumo && <InfoRow label="Classe" value={sel.classe_consumo} />}
-                  {sel.consumo_kwh != null && <InfoRow label="Consumo médio" value={`${sel.consumo_kwh} kWh`} />}
-                  {sel.valor_conta != null && <InfoRow label="Valor da conta" value={`R$ ${sel.valor_conta.toFixed(2)}`} />}
-                  {sel.nome_titular && <div className="col-span-2"><InfoRow label="Titular na fatura" value={sel.nome_titular} /></div>}
-                  {sel.endereco_instalacao && <div className="col-span-2"><InfoRow label="Endereço da instalação" value={sel.endereco_instalacao} /></div>}
-                  {sel.chave_pix && (
-                    <div className="col-span-2">
-                      <InfoRow label="Chave Pix" value={
-                        <span className="font-mono bg-green-50 text-green-800 px-2 py-0.5 rounded text-xs">{sel.chave_pix}</span>
-                      } />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* ── Documentos ── */}
-              <div className="border rounded-xl p-4 space-y-3">
-                <SectionTitle icon={<FileText className="h-3.5 w-3.5" />} label="Documentos anexados" />
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600">RG/CNH — Frente</span>
-                    <DocLink path={sel.doc_frente_url} label="Abrir" />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600">RG/CNH — Verso</span>
-                    <DocLink path={sel.doc_verso_url} label="Abrir" />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-600">Fatura de Luz</span>
-                    <DocLink path={sel.fatura_url} label="Abrir" />
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Confirmações ── */}
-              <div className="border rounded-xl p-4 space-y-2">
-                <SectionTitle icon={<CheckCircle2 className="h-3.5 w-3.5" />} label="Confirmações do cliente" />
-                {[
-                  { label: "Aceite dos Termos",       val: sel.aceite_termos },
-                  { label: "Ciente da parcela única", val: sel.ciente_parcela_unica },
-                  { label: "Autoriza validação",      val: sel.autoriza_validacao },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-2">
-                    {item.val
-                      ? <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
-                      : <XCircle className="h-4 w-4 text-red-400 shrink-0" />}
-                    <span className="text-xs">{item.label}</span>
-                  </div>
-                ))}
-                {sel.data_pagamento && (
-                  <div className="flex items-center gap-2 pt-2 border-t mt-2">
-                    <Calendar className="h-4 w-4 text-green-600 shrink-0" />
-                    <span className="text-xs">Pago em: <strong>{new Date(sel.data_pagamento).toLocaleDateString("pt-BR")}</strong></span>
-                  </div>
-                )}
-              </div>
-
-              {/* ── Gestão interna (valor + observações) ── */}
-              <div className="border rounded-xl p-4 space-y-3">
-                <SectionTitle icon={<DollarSign className="h-3.5 w-3.5" />} label="Gestão interna" />
-                <div>
-                  <label className="text-xs font-semibold block mb-1">Valor do Cashback (R$)</label>
-                  <input
-                    type="number" min="0" step="0.01" placeholder="0,00"
-                    value={valorLocal}
-                    onChange={(e) => setValorLocal(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold flex items-center gap-1.5 mb-1">
-                    <MessageSquare className="h-3.5 w-3.5" /> Observações internas
-                  </label>
-                  <Textarea
-                    placeholder="Anotações da equipe sobre esta adesão..."
-                    value={obsLocal}
-                    onChange={(e) => setObsLocal(e.target.value)}
-                    rows={3}
-                    className="text-sm resize-none"
-                  />
-                </div>
-                <Button onClick={saveObs} disabled={savingObs} size="sm" className="w-full">
-                  {savingObs ? "Salvando..." : "Salvar"}
-                </Button>
-              </div>
-
-              {/* ── Histórico de status ── */}
-              {sel.historico && sel.historico.length > 0 && (
-                <div className="border rounded-xl p-4">
-                  <SectionTitle icon={<Clock className="h-3.5 w-3.5" />} label="Histórico" />
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <div className="h-2 w-2 rounded-full bg-gray-300 shrink-0" />
-                      <span>Adesão criada — {new Date(sel.created_at).toLocaleString("pt-BR")}</span>
-                    </div>
-                    {sel.historico.map((ev, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
-                        <div className={`h-2 w-2 rounded-full shrink-0 ${STATUS_COLORS[ev.status]?.includes("green") ? "bg-green-500" : "bg-brand-blue"}`} />
-                        <span>
-                          <span className="font-semibold">{STATUS_LABELS[ev.status] ?? ev.status}</span>
-                          {" — "}
-                          {new Date(ev.data).toLocaleString("pt-BR")}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Ações de contato ── */}
-              <div className="flex flex-col gap-2 pb-2">
-                <a
-                  href={`https://wa.me/55${(sel.telefone ?? sel.whatsapp).replace(/\D/g, "")}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b958] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition w-full"
-                >
-                  <Phone className="h-4 w-4" />
-                  Contatar via WhatsApp
-                </a>
-                <a
-                  href={`mailto:${sel.email}`}
-                  className="inline-flex items-center justify-center gap-2 bg-brand-blue/10 hover:bg-brand-blue/20 text-brand-blue text-sm font-semibold px-4 py-2.5 rounded-xl transition w-full"
-                >
-                  <Mail className="h-4 w-4" />
-                  Enviar e-mail
-                </a>
-              </div>
-
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }

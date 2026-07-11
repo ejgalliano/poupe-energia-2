@@ -39,6 +39,7 @@ import ComoFunciona from "./pages/ComoFunciona.tsx";
 import SejaUmEmbaixador from "./pages/SejaUmEmbaixador.tsx";
 import Embaixadores from "./pages/admin/Embaixadores";
 import CashbackCadastros from "./pages/admin/CashbackCadastros";
+import CashbackDetalhe from "./pages/admin/CashbackDetalhe";
 import FormulaConfig from "./pages/admin/FormulaConfig";
 import Contestacoes from "./pages/admin/Contestacoes";
 import AnalisarFatura from "./pages/AnalisarFatura";
@@ -98,6 +99,7 @@ const App = () => (
             <Route path="leads-empresariais" element={<LeadsEmpresariais />} />
             <Route path="embaixadores" element={<Embaixadores />} />
             <Route path="cashback" element={<CashbackCadastros />} />
+            <Route path="cashback/:id" element={<CashbackDetalhe />} />
             <Route path="formula" element={<FormulaConfig />} />
             <Route path="contestacoes" element={<Contestacoes />} />
             <Route path="analises-fatura" element={<AnalisesFatura />} />
