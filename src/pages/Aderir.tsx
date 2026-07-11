@@ -108,32 +108,59 @@ function parseFaturaText(text: string): Extracted {
     /\b(\d{10})\b/,
   ]);
 
-  const consumoRaw = tryMatch(t, [
-    /[Cc]onsumo\s+(?:de\s+)?[Ee]nergia\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]/,
-    /[Cc]onsumo\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]/,
-    /ENERGIA\s+ATIVA\s+[kK][wW][hH]\s*([\d.]+(?:,\d+)?)/i,
-    /CONSUMO\s+NO\s+M[EÊ]S\s*[:\-]?\s*([\d.]+(?:,\d+)?)/i,
-    /CONSUMO\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]/i,
-    // Número seguido de kWh sem label (mais comum em PDFs SAP)
-    /\b(\d{2,5})\s*[kK][wW][hH]/,
-  ]);
-
-  // Valor: prioriza valores maiores (evita pegar R$13,51 de taxas avulsas)
-  // Tenta primeiro patterns com label explícito de "total"
-  const valorRaw = (() => {
+  // Consumo kWh — prioriza consumo total/faturado, evita faixas de tarifa parciais
+  const consumoRaw = (() => {
+    // 1. Labels explícitos de consumo total
     const labeled = tryMatch(t, [
-      /TOTAL\s+A\s+PAGAR\s*[:\-R$]*\s*([\d]{1,4}[.,]\d{2}(?:\d{2})?)/i,
-      /VALOR\s+TOTAL\s*[:\-R$]*\s*([\d]{1,4}[.,]\d{2}(?:\d{2})?)/i,
-      /VALOR\s+DA\s+FATURA\s*[:\-R$]*\s*([\d]{1,4}[.,]\d{2}(?:\d{2})?)/i,
-      /TOTAL\s*[:\-R$]*\s*([\d]{1,4}[.,]\d{2})/i,
+      /[Cc]onsumo\s+[Ff]aturado\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]?/,
+      /[Cc]onsumo\s+[Tt]otal\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]?/,
+      /[Cc]onsumo\s+(?:de\s+)?[Ee]nergia\s*[:\-]?\s*([\d.]+(?:,\d+)?)\s*[kK][wW][hH]/,
+      /[Cc]onsumo\s+(?:no\s+)?[Mm][eê]s\s*[:\-]?\s*([\d.]+(?:,\d+)?)/i,
+      /ENERGIA\s+ATIVA\s+[kK][wW][hH]\s*([\d.]+(?:,\d+)?)/i,
     ]);
     if (labeled) return labeled;
-    // Fallback: maior valor monetário no documento (R$ XXX,XX)
-    const all = [...t.matchAll(/R\$\s*([\d]{2,4}[.,]\d{2})/g)];
-    if (!all.length) return "";
-    const parsed = all.map(m => parseValor(m[1])).filter((v): v is number => v !== null);
-    const max = Math.max(...parsed);
-    return max > 0 ? String(max).replace(".", ",") : "";
+
+    // 2. Tabela CONSUMO / kWh: pega o primeiro valor de 3+ dígitos após o header da tabela
+    const tabelaConsumo = tryMatch(t, [
+      /CONSUMO\s*[\/\\]\s*kWh[\s\S]{0,200}?(\d{3,5})\s+\d{2}/i,
+      /CONSUMO\s+FATURADO[\s\S]{0,100}?(\d{3,5})/i,
+    ]);
+    if (tabelaConsumo) return tabelaConsumo;
+
+    // 3. Soma de faixas: "80 kWh" + "184 kWh" → 264 (Light, CEMIG, COPEL)
+    const faixas = [...t.matchAll(/\b(\d{2,5})\s*[kK][wW][hH]/g)]
+      .map(m => parseInt(m[1]))
+      .filter(v => v >= 10 && v <= 9999);
+    if (faixas.length >= 2) {
+      const soma = faixas.reduce((a, b) => a + b, 0);
+      if (soma >= 50) return String(soma);
+    }
+    if (faixas.length === 1 && faixas[0] >= 50) return String(faixas[0]);
+    return "";
+  })();
+
+  // Valor total — ignora valores de tabelas internas (geralmente < R$50 são taxas avulsas)
+  const valorRaw = (() => {
+    // 1. Labels explícitos de total a pagar (mais confiável)
+    const labeled = tryMatch(t, [
+      /TOTAL\s+A\s+PAGAR\s*[:\-R$\s]*([\d.]{2,7}[.,]\d{2})/i,
+      /VALOR\s+A\s+PAGAR\s*[:\-R$\s]*([\d.]{2,7}[.,]\d{2})/i,
+      /VALOR\s+TOTAL\s*[:\-R$\s]*([\d.]{2,7}[.,]\d{2})/i,
+      /VALOR\s+DA\s+FATURA\s*[:\-R$\s]*([\d.]{2,7}[.,]\d{2})/i,
+      /TOTAL\s+COM\s+TRIBUTOS?\s*[:\-R$\s]*([\d.]{2,7}[.,]\d{2})/i,
+    ]);
+    if (labeled) {
+      const v = parseValor(labeled);
+      if (v && v >= 10) return labeled;
+    }
+    // 2. Maior valor monetário do documento (filtrado: >= R$50 para evitar taxas avulsas)
+    const all = [...t.matchAll(/R\$\s*([\d.]{2,7}[.,]\d{2})/g)];
+    const parsed = all
+      .map(m => ({ raw: m[1], val: parseValor(m[1]) }))
+      .filter(x => x.val !== null && x.val >= 50);
+    if (!parsed.length) return "";
+    const max = parsed.reduce((a, b) => (b.val! > a.val! ? b : a));
+    return max.raw;
   })();
 
   // Classe — inclui "Res Baixa Renda" e variações
