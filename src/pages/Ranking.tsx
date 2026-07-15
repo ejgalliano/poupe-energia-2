@@ -640,7 +640,7 @@ const Ranking = () => {
                         rel="noopener noreferrer"
                         className="shrink-0 inline-flex items-center gap-1.5 bg-brand-blue text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-brand-blue/90 transition-colors whitespace-nowrap"
                       >
-                        Ir para o site
+                        Ver oferta no site oficial
                       </a>
                     )}
                   </div>

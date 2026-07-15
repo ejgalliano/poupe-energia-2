@@ -230,7 +230,7 @@ const EconomySimulator = ({
           ) : siteUrl ? (
             <a href={siteUrl} target="_blank" rel="noopener noreferrer" className="block w-full">
               <Button className="w-full py-3 h-auto rounded-xl font-bold bg-brand-blue text-white hover:bg-brand-blue/90">
-                Ir para o site
+                Ver oferta no site oficial
                 <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
             </a>

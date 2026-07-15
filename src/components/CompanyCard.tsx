@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Zap, FileText, Star } from "lucide-react";
+import ExternalSiteModal from "@/components/ExternalSiteModal";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { slugify } from "@/lib/slug";
@@ -49,6 +50,7 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
   const navigate = useNavigate();
   const [simOpen, setSimOpen] = useState(false);
   const [adesaoOpen, setAdesaoOpen] = useState(false);
+  const [externalOpen, setExternalOpen] = useState(false);
   const discountNumber = parseFloat(
     String(company.discount).replace("%", "").replace(",", ".")
   ) || 0;
@@ -129,7 +131,7 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
       {/* Badge rank */}
       {isTop1 ? (
         <div className="absolute -top-3 left-5 bg-brand-success text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm z-10">
-          Melhor empresa
+          🥇 1º lugar no Ranking Poupe Energia
         </div>
       ) : (
         <div className="absolute -top-3 left-5 bg-muted text-muted-foreground text-xs font-bold px-3 py-1 rounded-full border border-border z-10">
@@ -246,17 +248,16 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
               onClick={handleAderir}
               className="flex-1 h-11 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
             >
-              Ver plano e Aderir
+              Contratar pela Poupe
             </Button>
           ) : company.siteUrl ? (
-            <a href={company.siteUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-              <Button
-                variant="outline"
-                className="w-full h-11 rounded-xl font-bold border-brand-blue text-brand-blue hover:bg-brand-blue/10"
-              >
-                Ir para o site
-              </Button>
-            </a>
+            <Button
+              onClick={() => setExternalOpen(true)}
+              variant="outline"
+              className="flex-1 h-11 rounded-xl font-bold border-brand-blue text-brand-blue hover:bg-brand-blue/10"
+            >
+              Ver oferta no site oficial
+            </Button>
           ) : null}
         </div>
       )}
@@ -340,21 +341,29 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
                 onClick={handleAderir}
                 className="w-full h-12 rounded-xl font-bold bg-brand-success text-white hover:bg-brand-success/90"
               >
-                Ver plano e Aderir
+                Contratar pela Poupe
               </Button>
             ) : company.siteUrl ? (
-              <a href={company.siteUrl} target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="outline"
-                  className="w-full h-12 rounded-xl font-bold border-brand-blue text-brand-blue hover:bg-brand-blue/10"
-                >
-                  Ir para o site
-                </Button>
-              </a>
+              <Button
+                onClick={() => setExternalOpen(true)}
+                variant="outline"
+                className="w-full h-12 rounded-xl font-bold border-brand-blue text-brand-blue hover:bg-brand-blue/10"
+              >
+                Ver oferta no site oficial
+              </Button>
             ) : null}
           </div>
         )}
       </div>
+
+      {company.siteUrl && (
+        <ExternalSiteModal
+          open={externalOpen}
+          onOpenChange={setExternalOpen}
+          companyName={company.name}
+          siteUrl={company.siteUrl}
+        />
+      )}
 
       <EconomySimulator
         open={simOpen}
