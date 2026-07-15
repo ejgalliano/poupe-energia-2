@@ -46,6 +46,7 @@ import Contestacoes from "./pages/admin/Contestacoes";
 import AnalisarFatura from "./pages/AnalisarFatura";
 import Aderir from "./pages/Aderir";
 import AnalisesFatura from "./pages/admin/AnalisesFatura";
+import PlacasSolares from "./pages/PlacasSolares";
 import AlterarSenha from "./pages/admin/AlterarSenha";
 import DashboardRanking from "./pages/admin/DashboardRanking";
 import WhatsAppFloat from "./components/WhatsAppFloat";
@@ -89,6 +90,7 @@ const App = () => (
           <Route path="/cogeracao" element={<Cogeracao />} />
           <Route path="/bess" element={<Bess />} />
           <Route path="/eletropostos" element={<Eletropostos />} />
+          <Route path="/placas-solares" element={<PlacasSolares />} />
           <Route path="/admin/auth" element={<AdminAuth />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
