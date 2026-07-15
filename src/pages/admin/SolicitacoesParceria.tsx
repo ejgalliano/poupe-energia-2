@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ExternalLink, Users, Mail, Phone, Search, Building2, Download } from "lucide-react";
+import { ExternalLink, Users, Mail, Phone, Search, Building2, Download, Trash2 } from "lucide-react";
 
 type Lead = {
   id: string;
@@ -38,6 +38,7 @@ export default function SolicitacoesParceria() {
   const [search, setSearch] = useState("");
   const [filterEmpresa, setFilterEmpresa] = useState("all");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -97,6 +98,14 @@ export default function SolicitacoesParceria() {
 
   const fmtDate = (d: string) =>
     new Date(d).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Excluir este cadastro?")) return;
+    setDeleting(id);
+    const { error } = await supabase.from("solicitacoes_parceria").delete().eq("id", id);
+    if (!error) setLeads(prev => prev.filter(l => l.id !== id));
+    setDeleting(null);
+  };
 
   const exportCsv = () => {
     const rows = [
@@ -224,6 +233,7 @@ export default function SolicitacoesParceria() {
                       <th className="text-left px-4 py-2.5 text-xs text-muted-foreground font-medium">Localização</th>
                       <th className="text-left px-4 py-2.5 text-xs text-muted-foreground font-medium">Empresa desejada</th>
                       <th className="text-left px-4 py-2.5 text-xs text-muted-foreground font-medium">Data</th>
+                      <th className="px-4 py-2.5" />
                     </tr>
                   </thead>
                   <tbody>
@@ -268,6 +278,16 @@ export default function SolicitacoesParceria() {
                           </div>
                         </td>
                         <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">{fmtDate(l.created_at)}</td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => handleDelete(l.id)}
+                            disabled={deleting === l.id}
+                            className="text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-40"
+                            title="Excluir"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -325,6 +345,7 @@ export default function SolicitacoesParceria() {
                             <th className="text-left px-4 py-2 font-medium">Telefone</th>
                             <th className="text-left px-4 py-2 font-medium">Cidade / UF</th>
                             <th className="text-left px-4 py-2 font-medium">Data</th>
+                            <th className="px-4 py-2" />
                           </tr>
                         </thead>
                         <tbody>
@@ -343,6 +364,16 @@ export default function SolicitacoesParceria() {
                               </td>
                               <td className="px-4 py-2 text-muted-foreground">{[lead.cidade, lead.estado_sigla].filter(Boolean).join(" / ") || "—"}</td>
                               <td className="px-4 py-2 text-muted-foreground">{fmtDate(lead.created_at)}</td>
+                              <td className="px-4 py-2">
+                                <button
+                                  onClick={() => handleDelete(lead.id)}
+                                  disabled={deleting === lead.id}
+                                  className="text-muted-foreground hover:text-red-500 transition-colors disabled:opacity-40"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
