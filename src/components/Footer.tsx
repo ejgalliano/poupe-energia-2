@@ -10,6 +10,7 @@ const col1 = [
   { label: "Cogeração", href: "/cogeracao" },
   { label: "Bess – Armazenamento de energia em Baterias", href: "/bess" },
   { label: "Eletropostos – Carregadores de carros Elétricos", href: "/eletropostos" },
+  { label: "Placas Solares – Venda e Instalação", href: "/placas-solares" },
 ];
 
 const col2 = [
