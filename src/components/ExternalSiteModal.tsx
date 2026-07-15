@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ExternalLink, X, CheckCircle2 } from "lucide-react";
+import { ExternalLink, X, CheckCircle2, AlertCircle } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -21,7 +21,7 @@ const ExternalSiteModal = ({
   companyName, siteUrl,
   empresaId, estadoSigla, distribuidoraId,
 }: Props) => {
-  const [view, setView] = useState<"main" | "success">("main");
+  const [view, setView] = useState<"main" | "success" | "error">("main");
   const [loading, setLoading] = useState(false);
 
   const handleClose = (v: boolean) => {
@@ -31,14 +31,14 @@ const ExternalSiteModal = ({
 
   const handleSolicitar = async () => {
     setLoading(true);
-    await supabase.from("solicitacoes_parceria").insert({
+    const { error } = await supabase.from("solicitacoes_parceria").insert({
       empresa_id: empresaId ?? null,
       empresa_nome: companyName,
       estado_sigla: estadoSigla ?? null,
       distribuidora_id: distribuidoraId ?? null,
     });
     setLoading(false);
-    setView("success");
+    setView(error ? "error" : "success");
   };
 
   const handleGoToSite = () => {
@@ -105,6 +105,29 @@ const ExternalSiteModal = ({
               </button>
             </div>
           </>
+        )}
+
+        {view === "error" && (
+          <div className="text-center py-4 space-y-4">
+            <div className="flex justify-center">
+              <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertCircle className="h-8 w-8 text-red-500" />
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-brand-blue">Ocorreu um erro</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Não conseguimos registrar seu interesse. Tente novamente mais tarde.
+            </p>
+            {siteUrl && (
+              <Button onClick={handleGoToSite} variant="outline" size="sm" className="border-brand-blue text-brand-blue hover:bg-brand-blue/10">
+                Ir para o site da empresa
+                <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+              </Button>
+            )}
+            <Button onClick={() => handleClose(false)} className="w-full bg-brand-blue text-white hover:bg-brand-blue/90 font-bold mt-2">
+              Fechar
+            </Button>
+          </div>
         )}
 
         {view === "success" && (
