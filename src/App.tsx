@@ -49,6 +49,7 @@ import AnalisesFatura from "./pages/admin/AnalisesFatura";
 import PlacasSolares from "./pages/PlacasSolares";
 import AlterarSenha from "./pages/admin/AlterarSenha";
 import DashboardRanking from "./pages/admin/DashboardRanking";
+import SolicitacoesParceria from "./pages/admin/SolicitacoesParceria";
 import WhatsAppFloat from "./components/WhatsAppFloat";
 import EmbCapture from "./components/EmbCapture";
 import ScrollToTop from "./components/ScrollToTop";
@@ -111,6 +112,7 @@ const App = () => (
             <Route path="analises-fatura" element={<AnalisesFatura />} />
             <Route path="alterar-senha" element={<AlterarSenha />} />
             <Route path="dashboard-ranking" element={<DashboardRanking />} />
+            <Route path="solicitacoes-parceria" element={<SolicitacoesParceria />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

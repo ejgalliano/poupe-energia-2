@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Building2, Star, MapPin, Users, LogOut,
   Handshake, Briefcase, Award, Gift, FlaskConical,
-  MessageSquareWarning, Zap, Mail, BarChart2,
+  MessageSquareWarning, Zap, Mail, BarChart2, UserPlus,
 } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { useAdminNivel, canAccess, NIVEL_LABELS, NIVEL_COLORS, type Nivel } from "@/hooks/useAdminNivel";
@@ -48,7 +48,8 @@ const groups: NavGroup[] = [
       { to: "/admin/parceiros",           label: "Parceiros & Leads",  icon: Handshake, section: "parceiros" },
       { to: "/admin/leads-empresariais",  label: "Leads Empresariais", icon: Briefcase, section: "leads-empresariais" },
       { to: "/admin/embaixadores",        label: "Embaixadores",       icon: Award,     section: "embaixadores" },
-      { to: "/admin/cashback",            label: "Adesões / Cashback", icon: Gift,      section: "cashback" },
+      { to: "/admin/cashback",            label: "Adesões / Cashback",     icon: Gift,     section: "cashback" },
+      { to: "/admin/solicitacoes-parceria", label: "Solicitações de Parceria", icon: UserPlus, section: "parceiros" },
     ],
   },
   {

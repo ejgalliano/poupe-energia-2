@@ -250,15 +250,15 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
             >
               Contratar pela Poupe
             </Button>
-          ) : company.siteUrl ? (
+          ) : (
             <Button
               onClick={() => setExternalOpen(true)}
               variant="outline"
               className="flex-1 h-11 rounded-xl font-bold border-brand-blue text-brand-blue hover:bg-brand-blue/10"
             >
-              Ver oferta no site oficial
+              Solicitar parceria
             </Button>
-          ) : null}
+          )}
         </div>
       )}
 
@@ -343,27 +343,28 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
               >
                 Contratar pela Poupe
               </Button>
-            ) : company.siteUrl ? (
+            ) : (
               <Button
                 onClick={() => setExternalOpen(true)}
                 variant="outline"
                 className="w-full h-12 rounded-xl font-bold border-brand-blue text-brand-blue hover:bg-brand-blue/10"
               >
-                Ver oferta no site oficial
+                Solicitar parceria
               </Button>
-            ) : null}
+            )}
           </div>
         )}
       </div>
 
-      {company.siteUrl && (
-        <ExternalSiteModal
-          open={externalOpen}
-          onOpenChange={setExternalOpen}
-          companyName={company.name}
-          siteUrl={company.siteUrl}
-        />
-      )}
+      <ExternalSiteModal
+        open={externalOpen}
+        onOpenChange={setExternalOpen}
+        companyName={company.name}
+        siteUrl={company.siteUrl}
+        empresaId={company.empresaId}
+        estadoSigla={company.estado}
+        distribuidoraId={company.distribuidoraId}
+      />
 
       <EconomySimulator
         open={simOpen}
