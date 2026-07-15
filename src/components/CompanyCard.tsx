@@ -131,7 +131,7 @@ const CompanyCard = ({ company, hideActions = false, hideMetrics = false }: Prop
       {/* Badge rank */}
       {isTop1 ? (
         <div className="absolute -top-3 left-5 bg-brand-success text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm z-10">
-          🥇 1º lugar no Ranking Poupe Energia
+          🥇 1º lugar no Ranking
         </div>
       ) : (
         <div className="absolute -top-3 left-5 bg-muted text-muted-foreground text-xs font-bold px-3 py-1 rounded-full border border-border z-10">
