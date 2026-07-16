@@ -40,8 +40,7 @@ export function canAccess(nivel: Nivel, section: string): boolean {
 }
 
 export function useAdminNivel() {
-  // Começa como super_admin para evitar flash de menu colapsado
-  const [nivel, setNivel] = useState<Nivel>("super_admin");
+  const [nivel, setNivel] = useState<Nivel>("visualizador");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
