@@ -123,6 +123,62 @@ export type Database = {
         }
         Relationships: []
       }
+      embaixadores_candidatos: {
+        Row: {
+          id: string
+          created_at: string
+          nome: string
+          email: string
+          telefone: string
+          cidade: string | null
+          uf: string | null
+          is_mei: boolean | null
+          tem_equipe: boolean
+          status: string
+          observacoes: string | null
+          aprovado_em: string | null
+          embaixador_id: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          nome: string
+          email: string
+          telefone: string
+          cidade?: string | null
+          uf?: string | null
+          is_mei?: boolean | null
+          tem_equipe?: boolean
+          status?: string
+          observacoes?: string | null
+          aprovado_em?: string | null
+          embaixador_id?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          nome?: string
+          email?: string
+          telefone?: string
+          cidade?: string | null
+          uf?: string | null
+          is_mei?: boolean | null
+          tem_equipe?: boolean
+          status?: string
+          observacoes?: string | null
+          aprovado_em?: string | null
+          embaixador_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "embaixadores_candidatos_embaixador_id_fkey"
+            columns: ["embaixador_id"]
+            isOneToOne: false
+            referencedRelation: "embaixadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empresas: {
         Row: {
           arquetipo: string | null

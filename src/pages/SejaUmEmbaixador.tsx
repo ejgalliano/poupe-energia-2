@@ -174,7 +174,7 @@ export default function SejaUmEmbaixador() {
     if (blocked) { toast.error(`Aguarde ${secondsLeft}s antes de enviar novamente.`); return; }
     setSubmitting(true);
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("embaixadores_candidatos")
         .insert({
           nome: form.nome,

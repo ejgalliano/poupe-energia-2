@@ -116,7 +116,7 @@ export default function Embaixadores() {
         .order("created_at", { ascending: false })
         .limit(2000),
       supabase.from("empresas").select("id, nome").order("nome"),
-      (supabase as any).from("embaixadores_candidatos").select("*").order("created_at", { ascending: false }),
+      supabase.from("embaixadores_candidatos").select("*").order("created_at", { ascending: false }),
     ]);
     setEmbaixadores((e.data ?? []) as Embaixador[]);
     setLeads((l.data ?? []) as any);
@@ -246,7 +246,7 @@ export default function Embaixadores() {
       .select()
       .single();
     if (embErr) { toast.error(embErr.message); return; }
-    await (supabase as any)
+    await supabase
       .from("embaixadores_candidatos")
       .update({ status: "aprovado", aprovado_em: new Date().toISOString(), embaixador_id: (embData as any).id })
       .eq("id", cand.id);
@@ -255,7 +255,7 @@ export default function Embaixadores() {
   };
 
   const rejeitarCandidato = async (id: string) => {
-    await (supabase as any)
+    await supabase
       .from("embaixadores_candidatos")
       .update({ status: "rejeitado" })
       .eq("id", id);
