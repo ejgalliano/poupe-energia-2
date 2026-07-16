@@ -879,8 +879,8 @@ export default function Aderir() {
                   </select>
                 </Field>
 
-                <Field label="Código do embaixador" hint="opcional">
-                  <input type="text" placeholder="Código do embaixador, se tiver"
+                <Field label="Código do parceiro" hint="opcional">
+                  <input type="text" placeholder="Código do parceiro, se tiver"
                     value={form.codigo_embaixador} onChange={(e) => set("codigo_embaixador")(e.target.value)}
                     className={INPUT} />
                 </Field>

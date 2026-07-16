@@ -79,11 +79,11 @@ const fmtBRL = (n: number) =>
 
 const nextCodigo = (existing: string[]) => {
   const nums = existing
-    .map((c) => /^EMP(\d+)$/i.exec(c)?.[1])
+    .map((c) => /^PPO(\d+)$/i.exec(c)?.[1])
     .filter(Boolean)
     .map((n) => parseInt(n as string, 10));
   const next = (nums.length ? Math.max(...nums) : 0) + 1;
-  return `EMP${String(next).padStart(3, "0")}`;
+  return `PPO${String(next).padStart(3, "0")}`;
 };
 
 export default function Embaixadores() {
@@ -190,7 +190,7 @@ export default function Embaixadores() {
   }, [leads, dataIni, dataFim, filterEmb, filterStatus, filterEmpresa]);
 
   const exportCSV = () => {
-    const header = ["Data", "Cliente", "Email", "Telefone", "Empresa", "Embaixador", "Comissão %", "Valor", "Status", "Data adesão", "Data pagamento"];
+    const header = ["Data", "Cliente", "Email", "Telefone", "Empresa", "Parceiro", "Comissão %", "Valor", "Status", "Data adesão", "Data pagamento"];
     const rows = leadsFiltrados.map((l) => [
       new Date(l.created_at).toLocaleString("pt-BR"),
       l.leads?.nome ?? "",
@@ -211,7 +211,7 @@ export default function Embaixadores() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `leads-embaixadores-${dataIni}-a-${dataFim}.csv`;
+    a.download = `leads-parceiros-${dataIni}-a-${dataFim}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -250,7 +250,7 @@ export default function Embaixadores() {
       .from("embaixadores_candidatos")
       .update({ status: "aprovado", aprovado_em: new Date().toISOString(), embaixador_id: (embData as any).id })
       .eq("id", cand.id);
-    toast.success(`Embaixador ${codigo} criado com sucesso!`);
+    toast.success(`Parceiro ${codigo} criado com sucesso!`);
     load();
   };
 
@@ -292,7 +292,7 @@ export default function Embaixadores() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Embaixadores</h1>
+      <h1 className="text-2xl font-bold">Parceiros</h1>
 
       <Tabs defaultValue="candidatos">
         <TabsList>
@@ -304,8 +304,8 @@ export default function Embaixadores() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="cadastro">Embaixadores</TabsTrigger>
-          <TabsTrigger value="leads">Leads por Embaixador</TabsTrigger>
+          <TabsTrigger value="cadastro">Parceiros</TabsTrigger>
+          <TabsTrigger value="leads">Leads por Parceiro</TabsTrigger>
           <TabsTrigger value="financeiro">Resumo Financeiro</TabsTrigger>
         </TabsList>
 
@@ -384,7 +384,7 @@ export default function Embaixadores() {
         {/* CADASTRO */}
         <TabsContent value="cadastro" className="space-y-4">
           <div className="flex justify-end">
-            <Button onClick={startNew}><Plus className="h-4 w-4 mr-1" /> Novo Embaixador</Button>
+            <Button onClick={startNew}><Plus className="h-4 w-4 mr-1" /> Novo Parceiro</Button>
           </div>
           <Card>
             <CardContent className="p-0">
@@ -428,7 +428,7 @@ export default function Embaixadores() {
                     </TableRow>
                   ))}
                   {embaixadores.length === 0 && (
-                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhum embaixador cadastrado.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhum parceiro cadastrado.</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -450,7 +450,7 @@ export default function Embaixadores() {
                 <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
               </div>
               <div>
-                <label className="text-xs font-bold">Embaixador</label>
+                <label className="text-xs font-bold">Parceiro</label>
                 <Select value={filterEmb} onValueChange={setFilterEmb}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -503,7 +503,7 @@ export default function Embaixadores() {
                     <TableHead>Data</TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead>Empresa</TableHead>
-                    <TableHead>Embaixador</TableHead>
+                    <TableHead>Parceiro</TableHead>
                     <TableHead>Comissão</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Adesão</TableHead>
@@ -571,7 +571,7 @@ export default function Embaixadores() {
               </Card>
             ))}
             {resumoPorEmb.length === 0 && (
-              <p className="text-muted-foreground text-sm">Nenhum embaixador.</p>
+              <p className="text-muted-foreground text-sm">Nenhum parceiro.</p>
             )}
           </div>
         </TabsContent>
@@ -580,7 +580,7 @@ export default function Embaixadores() {
       {/* Form Sheet */}
       <Sheet open={openForm} onOpenChange={setOpenForm}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-          <SheetHeader><SheetTitle>{editing?.id ? "Editar" : "Novo"} embaixador</SheetTitle></SheetHeader>
+          <SheetHeader><SheetTitle>{editing?.id ? "Editar" : "Novo"} parceiro</SheetTitle></SheetHeader>
           {editing && (
             <div className="space-y-3 mt-4">
               <div>
@@ -637,7 +637,7 @@ export default function Embaixadores() {
               <Dialog open={savedOk} onOpenChange={setSavedOk}>
                 <DialogContent className="max-w-sm">
                   <DialogHeader><DialogTitle>Salvo com sucesso!</DialogTitle></DialogHeader>
-                  <p className="text-sm text-muted-foreground">As informações do embaixador foram atualizadas.</p>
+                  <p className="text-sm text-muted-foreground">As informações do parceiro foram atualizadas.</p>
                   <DialogFooter><Button onClick={() => setSavedOk(false)}>OK</Button></DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -663,7 +663,7 @@ export default function Embaixadores() {
                 <div><span className="text-muted-foreground">Email: </span>{selLead.leads?.email ?? "—"}</div>
                 <div><span className="text-muted-foreground">Telefone: </span>{selLead.leads?.telefone ?? "—"}</div>
                 <div><span className="text-muted-foreground">Empresa: </span>{selLead.empresas?.nome}</div>
-                <div><span className="text-muted-foreground">Embaixador: </span>{selLead.embaixadores?.codigo} — {selLead.embaixadores?.nome}</div>
+                <div><span className="text-muted-foreground">Parceiro: </span>{selLead.embaixadores?.codigo} — {selLead.embaixadores?.nome}</div>
               </div>
 
               <div>

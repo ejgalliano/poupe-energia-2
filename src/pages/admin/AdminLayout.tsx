@@ -47,7 +47,7 @@ const groups: NavGroup[] = [
     items: [
       { to: "/admin/parceiros",           label: "Parceiros & Leads",  icon: Handshake, section: "parceiros" },
       { to: "/admin/leads-empresariais",  label: "Leads Empresariais", icon: Briefcase, section: "leads-empresariais" },
-      { to: "/admin/embaixadores",        label: "Embaixadores",       icon: Award,     section: "embaixadores" },
+      { to: "/admin/embaixadores",        label: "Parceiros",          icon: Award,     section: "embaixadores" },
       { to: "/admin/cashback",            label: "Adesões / Cashback",     icon: Gift,     section: "cashback" },
       { to: "/admin/solicitacoes-parceria", label: "Solicitações de Parceria", icon: UserPlus, section: "parceiros" },
     ],

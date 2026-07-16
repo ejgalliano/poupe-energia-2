@@ -243,7 +243,7 @@ export default function CashbackDetalhe() {
               <InfoRow label="Telefone / WhatsApp" value={fone} />
               <div className="col-span-2"><InfoRow label="E-mail" value={rec.email} /></div>
               {rec.codigo_embaixador && (
-                <div className="col-span-2"><InfoRow label="Código do Embaixador" value={rec.codigo_embaixador} /></div>
+                <div className="col-span-2"><InfoRow label="Código do Parceiro" value={rec.codigo_embaixador} /></div>
               )}
             </div>
           </Card>

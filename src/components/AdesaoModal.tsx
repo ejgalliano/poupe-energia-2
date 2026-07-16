@@ -378,12 +378,12 @@ export default function AdesaoModal({
               {/* Section 2: Embaixador */}
               <div className="border border-gray-200 rounded-xl p-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-                  <Field label="Código do Embaixador (opcional)">
+                  <Field label="Código do Parceiro (opcional)">
                     <div className="relative">
                       <Gift className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Código do embaixador"
+                        placeholder="Código do parceiro"
                         value={form.codigo_embaixador}
                         onChange={(e) => set("codigo_embaixador")(e.target.value)}
                         className={INPUT}
@@ -395,7 +395,7 @@ export default function AdesaoModal({
                       <span className="text-white text-[9px] font-bold leading-none">i</span>
                     </div>
                     <p className="text-xs text-gray-500 leading-relaxed">
-                      Preencha apenas se um embaixador ou vendedor estiver te atendendo pessoalmente.
+                      Preencha apenas se um parceiro ou vendedor estiver te atendendo pessoalmente.
                     </p>
                   </div>
                 </div>

@@ -224,14 +224,14 @@ const LeadCaptureDialog = ({
                   <p className="font-bold text-sm text-gray-800">
                     {embValidation.state === "valid" ? embValidation.nome : embaixador?.nome}
                   </p>
-                  <p className="text-xs text-gray-500">Embaixador Poupe Energia</p>
+                  <p className="text-xs text-gray-500">Parceiro Poupe Energia</p>
                 </div>
               </div>
               <p className="text-xs text-gray-400 mt-1">(Só aparece se já existir vínculo)</p>
             </div>
           ) : (
             <div className="py-2 h-16 flex items-center">
-              <p className="text-xs text-gray-300 italic">Nenhum embaixador vinculado</p>
+              <p className="text-xs text-gray-300 italic">Nenhum parceiro vinculado</p>
             </div>
           )}
           <hr className="border-gray-200 my-2" />
@@ -257,7 +257,7 @@ const LeadCaptureDialog = ({
             </div>
             <div>
               <label className="text-sm text-brand-blue">
-                Código do embaixador (opcional)
+                Código do parceiro (opcional)
               </label>
               <Input
                 value={codigoEmbaixador}
