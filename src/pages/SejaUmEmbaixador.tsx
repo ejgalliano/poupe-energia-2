@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRateLimit } from "@/hooks/useRateLimit";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -159,6 +160,7 @@ export default function SejaUmEmbaixador() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const { blocked, secondsLeft, markSubmitted } = useRateLimit("programa-parceiros", 3600);
 
   const set = (field: string) => (value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
@@ -169,6 +171,7 @@ export default function SejaUmEmbaixador() {
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
+    if (blocked) { toast.error(`Aguarde ${secondsLeft}s antes de enviar novamente.`); return; }
     setSubmitting(true);
     try {
       const { error } = await (supabase as any)
@@ -189,6 +192,7 @@ export default function SejaUmEmbaixador() {
           }),
         });
       if (error) throw error;
+      markSubmitted();
       setDone(true);
     } catch {
       toast.error("Erro ao enviar cadastro. Tente novamente.");

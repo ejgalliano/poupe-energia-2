@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useRateLimit } from "@/hooks/useRateLimit";
 import { Link } from "react-router-dom";
 import {
   Zap, Calendar, User, Mail, Phone, CreditCard, Building2, Gift,
@@ -133,6 +134,7 @@ export default function AdesaoModal({
   const [distribuidoras, setDistribuidoras] = useState<Distribuidora[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const { blocked, secondsLeft, markSubmitted } = useRateLimit("adesao-modal", 1800);
 
   const [form, setForm] = useState({
     nome: "", cpf_cnpj: "", email: "", telefone: "",
@@ -201,6 +203,7 @@ export default function AdesaoModal({
     form.distribuidora_id && docFrente && docVerso && fatura && form.aceite_termos;
 
   const handleSubmit = async () => {
+    if (blocked) { toast.error(`Aguarde ${secondsLeft}s antes de enviar novamente.`); return; }
     if (!canSubmit) return;
     setSubmitting(true);
     try {
@@ -230,6 +233,7 @@ export default function AdesaoModal({
         ciente_parcela_unica: true, autoriza_validacao: true, status: "pendente",
       });
       if (error) throw error;
+      markSubmitted();
       setDone(true);
     } catch {
       toast.error("Erro ao enviar cadastro. Tente novamente.");

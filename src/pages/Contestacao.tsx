@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useRateLimit } from "@/hooks/useRateLimit";
 import { CheckCircle2, AlertCircle, Paperclip, Shield, FileSearch, Send, Clock, BarChart2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -70,6 +71,7 @@ export default function Contestacao() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [documento, setDocumento] = useState<File | null>(null);
+  const { blocked, secondsLeft, markSubmitted } = useRateLimit("contestacao", 300);
 
   const [form, setForm] = useState({
     nome_empresa: "",
@@ -91,6 +93,7 @@ export default function Contestacao() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) { toast.error("Preencha todos os campos obrigatórios."); return; }
+    if (blocked) { toast.error(`Aguarde ${secondsLeft}s antes de enviar novamente.`); return; }
     setSubmitting(true);
     try {
       let documento_url: string | null = null;
@@ -121,6 +124,7 @@ export default function Contestacao() {
         status: "pendente",
       });
       if (error) throw error;
+      markSubmitted();
       setDone(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {

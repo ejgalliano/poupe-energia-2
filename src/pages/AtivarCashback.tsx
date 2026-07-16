@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRateLimit } from "@/hooks/useRateLimit";
 import { Link } from "react-router-dom";
 import { User, Home, CreditCard, Shield, Phone, Mail, Zap, Building2, CheckCircle2, Loader2, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -81,6 +82,7 @@ export default function AtivarCashback() {
   const [empresasParceiras, setEmpresasParceiras] = useState<EmpresaParceira[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const { blocked, secondsLeft, markSubmitted } = useRateLimit("ativar-cashback", 1800);
 
   const [form, setForm] = useState({
     empresa_id: "",
@@ -138,6 +140,7 @@ export default function AtivarCashback() {
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
+    if (blocked) { toast.error(`Aguarde ${secondsLeft}s antes de enviar novamente.`); return; }
     setSubmitting(true);
     try {
       const { error } = await supabase.from("cashback_cadastros").insert({
@@ -165,6 +168,7 @@ export default function AtivarCashback() {
         }
         throw error;
       }
+      markSubmitted();
       setDone(true);
     } catch (e: unknown) {
       toast.error("Erro ao enviar cadastro. Tente novamente.");

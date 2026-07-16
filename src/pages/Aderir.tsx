@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useRateLimit } from "@/hooks/useRateLimit";
 import { Link, useSearchParams } from "react-router-dom";
 import * as pdfjsLib from "pdfjs-dist";
 import { supabase } from "@/integrations/supabase/client";
@@ -512,6 +513,7 @@ export default function Aderir() {
   const [extracted,     setExtracted]     = useState(false);
   const [submitting,    setSubmitting]    = useState(false);
   const [aceite,        setAceite]        = useState(true);
+  const { blocked, secondsLeft, markSubmitted } = useRateLimit("aderir", 1800);
 
   useEffect(() => {
     supabase.from("distribuidoras").select("id,nome").order("nome")
@@ -574,6 +576,7 @@ export default function Aderir() {
   // ── Submit ──
   const handleSubmit = async () => {
     if (!step2Valid) return;
+    if (blocked) { toast.error(`Aguarde ${secondsLeft}s antes de enviar novamente.`); return; }
     setSubmitting(true);
     try {
       const ts = Date.now();
@@ -630,6 +633,7 @@ export default function Aderir() {
       } as any);
 
       if (error) throw error;
+      markSubmitted();
       setStep(3);
     } catch {
       toast.error("Erro ao enviar cadastro. Tente novamente.");

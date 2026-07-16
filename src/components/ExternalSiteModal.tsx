@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRateLimit } from "@/hooks/useRateLimit";
 import { ExternalLink, X, CheckCircle2, AlertCircle } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Props {
   open: boolean;
@@ -30,6 +32,7 @@ const ExternalSiteModal = ({
 }: Props) => {
   const [view, setView] = useState<"main" | "form" | "success" | "error">("main");
   const [loading, setLoading] = useState(false);
+  const { blocked, secondsLeft, markSubmitted } = useRateLimit("solicitacao-parceria", 600);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -46,6 +49,7 @@ const ExternalSiteModal = ({
   };
 
   const handleSolicitar = async () => {
+    if (blocked) { toast.error(`Aguarde ${secondsLeft}s antes de enviar novamente.`); return; }
     setLoading(true);
     const { error } = await supabase.from("solicitacoes_parceria").insert({
       empresa_id: empresaId ?? null,
@@ -58,6 +62,7 @@ const ExternalSiteModal = ({
       cidade: cidade.trim() || null,
     });
     setLoading(false);
+    if (!error) markSubmitted();
     setView(error ? "error" : "success");
   };
 

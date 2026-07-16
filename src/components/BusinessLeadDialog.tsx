@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRateLimit } from "@/hooks/useRateLimit";
 import { z } from "zod";
 import { Upload, X, FileText, CheckCircle2, ArrowRight, Paperclip, ClipboardList, Trophy, Wallet } from "lucide-react";
 import {
@@ -47,6 +48,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const { blocked, secondsLeft, markSubmitted } = useRateLimit("lead-empresarial", 600);
 
   const [form, setForm] = useState({
     razao_social: "",
@@ -100,6 +102,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
       toast.error("Aceite a política de privacidade");
       return;
     }
+    if (blocked) { toast.error(`Aguarde ${secondsLeft}s antes de enviar novamente.`); return; }
     const parsed = schema.safeParse(form);
     if (!parsed.success) {
       toast.error(parsed.error.errors[0]?.message ?? "Verifique os campos");
@@ -143,6 +146,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
       });
 
       if (error) throw error;
+      markSubmitted();
       setSuccess(true);
     } catch (err: any) {
       console.error(err);
