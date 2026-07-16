@@ -5,10 +5,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import {
-  CheckCircle2, Loader2, User, Mail, Phone, ChevronDown,
-  Search, TrendingUp, Shield, DollarSign, BarChart3, Handshake,
-} from "lucide-react";
+import { CheckCircle2, Loader2, User, Mail, Phone } from "lucide-react";
 
 const INPUT = "w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white placeholder:text-gray-400";
 
@@ -25,18 +22,17 @@ function maskPhone(value: string) {
 }
 
 function RadioGroup({
-  label, value, onChange, options, cols = 2,
+  label, value, onChange, options,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
-  cols?: number;
 }) {
   return (
     <div>
       <p className="text-sm font-semibold text-gray-700 mb-2">{label}</p>
-      <div className={`grid gap-2 ${cols === 1 ? "grid-cols-1" : cols === 3 ? "grid-cols-3" : "grid-cols-2"} sm:grid-cols-${cols}`}>
+      <div className="grid grid-cols-2 gap-2">
         {options.map((o) => (
           <label
             key={o.value}
@@ -60,55 +56,54 @@ function RadioGroup({
   );
 }
 
-const PERFIS = [
-  { value: "contabilidade", label: "Escritório de Contabilidade" },
-  { value: "imobiliaria", label: "Imobiliária" },
-  { value: "condominio", label: "Administradora de Condomínio" },
-  { value: "solar", label: "Empresa de Energia Solar" },
-  { value: "seguros", label: "Corretor de Seguros" },
-  { value: "bancario", label: "Correspondente Bancário" },
-  { value: "consultor", label: "Consultor Empresarial" },
-  { value: "associacao", label: "Associação Comercial ou Cooperativa" },
-  { value: "outro", label: "Outro" },
-];
+type Benefit = {
+  emoji: string;
+  title: string;
+  desc: string;
+  list?: string[];
+  listSuffix?: string;
+};
 
-const QTD_CLIENTES = [
-  { value: "menos50", label: "Menos de 50" },
-  { value: "50a200", label: "50 a 200" },
-  { value: "200a500", label: "200 a 500" },
-  { value: "mais500", label: "Mais de 500" },
-];
-
-const benefits = [
+const benefits: Benefit[] = [
   {
     emoji: "🔎",
-    title: "Independência",
-    desc: "Ofereça uma solução completa que não é sua, sem precisar montar uma estrutura do zero.",
+    title: "Trabalhe com independência",
+    desc: "Você não fica preso a uma única comercializadora. Sempre terá acesso às melhores opções disponíveis para cada cliente.",
   },
   {
     emoji: "📈",
-    title: "Sempre atualizado",
-    desc: "Nossas cotações e rankings são atualizados em tempo real, automaticamente.",
+    title: "Nunca fique desatualizado",
+    desc: "O mercado muda constantemente. Novos descontos surgem. Contratos são alterados. Empresas mudam suas condições comerciais. Nossa equipe acompanha essas mudanças, reavalia os contratos e atualiza o Ranking continuamente para que você sempre tenha informações atualizadas.",
   },
   {
     emoji: "🛡️",
-    title: "Credibilidade",
-    desc: "Nossa metodologia independente reforça a confiança do seu cliente na indicação.",
+    title: "Sua credibilidade vale mais do que qualquer comissão",
+    desc: "Seus clientes confiarão na sua recomendação porque ela é baseada em critérios técnicos, jurídicos e de reputação, e não apenas na comissão paga por uma empresa específica. Você fortalece seu relacionamento e aumenta as oportunidades de novos negócios.",
   },
   {
     emoji: "💰",
-    title: "Nova receita",
-    desc: "Receba remuneração por cada cliente que aderir à plataforma através do seu credenciamento.",
+    title: "Gere uma nova fonte de receita",
+    desc: "Cada contrato realizado através da Plataforma Poupe Energia pode gerar remuneração para sua empresa, com transparência e acompanhamento pelo painel exclusivo.",
   },
   {
     emoji: "📊",
-    title: "Plataforma completa",
-    desc: "Acesso exclusivo ao portal do parceiro com: ranking de distribuidoras, comparativo de preços, histórico de contratos, gestão de leads, relatórios de economia, suporte técnico dedicado e painel de acompanhamento em tempo real.",
+    title: "Plataforma completa para parceiros",
+    desc: "Você terá acesso a:",
+    list: [
+      "Ranking atualizado das comercializadoras",
+      "Comparador inteligente",
+      "Simulador de economia",
+      "Painel de acompanhamento",
+      "Gestão de indicações",
+      "Controle de contratos",
+      "Histórico de comissões",
+    ],
+    listSuffix: "Tudo em um único ambiente.",
   },
   {
     emoji: "🤝",
-    title: "Suporte",
-    desc: "Time dedicado para apoiar você e seus clientes em cada etapa do processo.",
+    title: "Suporte comercial, técnico e jurídico",
+    desc: "Você nunca atende um cliente sozinho. Nossa equipe acompanha todo o processo, desde a análise até a contratação, oferecendo suporte sempre que necessário.",
   },
 ];
 
@@ -120,16 +115,36 @@ const quemPode = [
   "Corretores de Seguros",
   "Correspondentes Bancários",
   "Consultores Empresariais",
-  "Associações Comerciais e Cooperativas",
+  "Associações Comerciais",
+  "Cooperativas",
   "Empresas com carteira ativa de clientes",
 ];
 
 const steps = [
-  { n: "01", title: "Solicitar credenciamento", desc: "Preencha o formulário abaixo e aguarde nossa equipe entrar em contato." },
-  { n: "02", title: "Conhecer a plataforma", desc: "Nossa equipe apresenta a plataforma, funcionalidades e modelo de remuneração." },
-  { n: "03", title: "Acesso exclusivo", desc: "Você recebe seu acesso ao portal do parceiro e materiais de apoio." },
-  { n: "04", title: "Atender clientes", desc: "Indique a Poupe Energia para sua carteira e acompanhe cada oportunidade." },
-  { n: "05", title: "Receber remuneração", desc: "Receba sua comissão por cada cliente que aderir à plataforma." },
+  { n: "1", title: "Solicite seu credenciamento", desc: "Preencha seu cadastro gratuitamente." },
+  { n: "2", title: "Conheça a Plataforma", desc: "Nossa equipe apresentará todas as funcionalidades, metodologia e oportunidades comerciais." },
+  { n: "3", title: "Receba acesso exclusivo", desc: "Após a aprovação, você terá acesso ao ambiente exclusivo do Parceiro Oficial Poupe Energia." },
+  { n: "4", title: "Atenda seus clientes", desc: "Utilize o Ranking Poupe Energia para comparar empresas, apresentar as melhores alternativas e acompanhe todo o processo de contratação." },
+  { n: "5", title: "Receba sua remuneração", desc: "Acompanhe contratos, ativações e pagamentos diretamente pelo painel do parceiro." },
+];
+
+const PERFIS = [
+  { value: "contabilidade", label: "Escritório Contábil" },
+  { value: "imobiliaria", label: "Imobiliária" },
+  { value: "condominio", label: "Administradora de Condomínio" },
+  { value: "solar", label: "Empresa de Energia Solar" },
+  { value: "seguros", label: "Corretor de Seguros" },
+  { value: "consultor", label: "Consultor Empresarial" },
+  { value: "bancario", label: "Correspondente Bancário" },
+  { value: "associacao", label: "Associação Comercial" },
+  { value: "outro", label: "Outro" },
+];
+
+const QTD_CLIENTES = [
+  { value: "ate100", label: "Até 100" },
+  { value: "101a500", label: "101 a 500" },
+  { value: "501a2000", label: "501 a 2.000" },
+  { value: "acima2000", label: "Acima de 2.000" },
 ];
 
 export default function SejaUmEmbaixador() {
@@ -195,7 +210,7 @@ export default function SejaUmEmbaixador() {
             <h1 className="text-2xl font-extrabold text-brand-blue mb-3">Solicitação Enviada!</h1>
             <p className="text-gray-600 text-sm leading-relaxed mb-6">
               Recebemos sua solicitação de credenciamento ao Programa de Parceiros Oficiais
-              Poupe Energia. Nossa equipe entrará em contato em até <strong>2 dias úteis</strong>.
+              Poupe Energia. Nossa equipe entrará em contato em breve.
             </p>
             <Link
               to="/"
@@ -226,13 +241,22 @@ export default function SejaUmEmbaixador() {
             <div className="inline-flex items-center gap-2 bg-brand-yellow/20 text-brand-yellow px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6">
               ⚡ Programa de Parceiros Oficiais Poupe Energia
             </div>
-            <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight mb-5">
+            <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight mb-3">
               Torne-se um Parceiro Oficial<br />
               <span className="text-brand-yellow">da Poupe Energia</span>
             </h1>
-            <p className="text-white/80 text-lg max-w-2xl mx-auto leading-relaxed mb-8">
-              Ajude seus clientes a economizar com segurança. Ofereça a plataforma mais
-              completa de comparação de energia do Brasil e receba remuneração por cada adesão.
+            <p className="text-white/90 text-lg font-medium mb-4">
+              "Ajude seus clientes a economizar com segurança."
+            </p>
+            <p className="text-white/70 text-base max-w-3xl mx-auto leading-relaxed mb-3">
+              Transforme sua carteira de clientes em uma nova fonte de receita — com total independência.
+              A Poupe Energia é uma plataforma independente que compara empresas de energia por assinatura
+              e Mercado Livre, analisando descontos, segurança jurídica, reputação e condições comerciais.
+            </p>
+            <p className="text-white/70 text-base max-w-3xl mx-auto leading-relaxed mb-8">
+              Enquanto representantes tradicionais ficam limitados a uma única comercializadora,
+              nossos parceiros oferecem aos clientes a melhor opção disponível, com base em uma
+              metodologia técnica atualizada continuamente.
             </p>
             <a
               href="#credenciamento"
@@ -247,7 +271,7 @@ export default function SejaUmEmbaixador() {
         <section className="py-16 px-4 bg-gray-50">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-2xl font-extrabold text-brand-blue text-center mb-10">
-              Por que ser um Parceiro Oficial Poupe Energia?
+              Por que empresas escolhem a Poupe Energia?
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {benefits.map((b) => (
@@ -255,6 +279,21 @@ export default function SejaUmEmbaixador() {
                   <div className="text-3xl mb-3">{b.emoji}</div>
                   <h3 className="font-extrabold text-brand-blue mb-2">{b.title}</h3>
                   <p className="text-sm text-gray-500 leading-relaxed">{b.desc}</p>
+                  {b.list && (
+                    <>
+                      <ul className="mt-2 space-y-1">
+                        {b.list.map((item) => (
+                          <li key={item} className="flex items-start gap-2 text-sm text-gray-500">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-brand-blue shrink-0 mt-0.5" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      {b.listSuffix && (
+                        <p className="text-sm text-gray-500 mt-2 font-medium">{b.listSuffix}</p>
+                      )}
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -267,9 +306,11 @@ export default function SejaUmEmbaixador() {
             <h2 className="text-2xl font-extrabold text-brand-blue text-center mb-3">
               Quem pode ser Parceiro Oficial?
             </h2>
-            <p className="text-center text-gray-500 text-sm mb-10 max-w-xl mx-auto">
-              O programa é ideal para profissionais e empresas que já possuem uma carteira ativa de clientes.
+            <p className="text-center text-gray-500 text-sm mb-2 max-w-2xl mx-auto">
+              Este programa foi desenvolvido para empresas e profissionais que já possuem
+              relacionamento com clientes e desejam ampliar seu portfólio de soluções.
             </p>
+            <p className="text-center text-gray-600 text-sm font-semibold mb-8">Ideal para:</p>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {quemPode.map((item) => (
                 <div key={item} className="flex items-center gap-3 bg-brand-blue/5 border border-brand-blue/10 rounded-xl px-4 py-3">
@@ -290,7 +331,9 @@ export default function SejaUmEmbaixador() {
             <div className="grid sm:grid-cols-3 lg:grid-cols-5 gap-6">
               {steps.map((s) => (
                 <div key={s.n} className="text-center">
-                  <div className="text-4xl font-extrabold text-brand-yellow mb-3">{s.n}</div>
+                  <div className="h-12 w-12 rounded-full bg-brand-yellow flex items-center justify-center mx-auto mb-3">
+                    <span className="text-brand-blue font-extrabold text-lg">{s.n}</span>
+                  </div>
                   <h3 className="font-extrabold text-brand-blue mb-1 text-sm">{s.title}</h3>
                   <p className="text-xs text-gray-500 leading-relaxed">{s.desc}</p>
                 </div>
@@ -306,63 +349,61 @@ export default function SejaUmEmbaixador() {
               <h2 className="text-2xl font-extrabold text-brand-blue mb-2">
                 Solicite seu Credenciamento
               </h2>
-              <p className="text-gray-500 text-sm">
-                Gratuito e sem compromisso. Nossa equipe analisará seu perfil e entrará em contato.
+              <p className="text-gray-500 text-sm max-w-md mx-auto">
+                O cadastro é gratuito. Nossa equipe analisará seu perfil e entrará em contato
+                para apresentar o Programa de Parceiros Oficiais.
               </p>
             </div>
 
             <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8 space-y-6">
 
               {/* Dados de contato */}
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Seus dados</p>
-                <div className="space-y-4">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Nome completo <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Seu nome completo"
+                      value={form.nome}
+                      onChange={(e) => set("nome")(e.target.value)}
+                      className={INPUT}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Nome completo <span className="text-red-500">*</span>
+                      E-mail <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <input
-                        type="text"
-                        placeholder="Seu nome completo"
-                        value={form.nome}
-                        onChange={(e) => set("nome")(e.target.value)}
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={form.email}
+                        onChange={(e) => set("email")(e.target.value)}
                         className={INPUT}
                       />
                     </div>
                   </div>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        E-mail <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="email"
-                          placeholder="seu@email.com"
-                          value={form.email}
-                          onChange={(e) => set("email")(e.target.value)}
-                          className={INPUT}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        WhatsApp <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                          type="tel"
-                          placeholder="(00) 00000-0000"
-                          value={form.telefone}
-                          onChange={(e) => set("telefone")(maskPhone(e.target.value))}
-                          className={INPUT}
-                        />
-                      </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      WhatsApp <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="tel"
+                        placeholder="(00) 00000-0000"
+                        value={form.telefone}
+                        onChange={(e) => set("telefone")(maskPhone(e.target.value))}
+                        className={INPUT}
+                      />
                     </div>
                   </div>
                 </div>
@@ -370,78 +411,75 @@ export default function SejaUmEmbaixador() {
 
               <div className="border-t border-gray-100" />
 
-              {/* Perfil */}
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Seu perfil</p>
-                <div className="space-y-5">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">
-                      Qual é o seu perfil? <span className="text-red-500">*</span>
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {PERFIS.map((o) => (
-                        <label
-                          key={o.value}
-                          onClick={() => set("perfil")(o.value)}
-                          className={`flex items-center gap-2.5 cursor-pointer border rounded-xl px-3 py-2.5 text-sm transition ${
-                            form.perfil === o.value
-                              ? "border-brand-blue bg-brand-blue/5 text-brand-blue font-medium"
-                              : "border-gray-200 hover:border-brand-blue/40 text-gray-600"
-                          }`}
-                        >
-                          <div className={`h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                            form.perfil === o.value ? "border-brand-blue bg-brand-blue" : "border-gray-300"
-                          }`}>
-                            {form.perfil === o.value && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
-                          </div>
-                          {o.label}
-                        </label>
-                      ))}
-                    </div>
+              {/* Sobre sua empresa */}
+              <div className="space-y-5">
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Sobre sua empresa</p>
+
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    Qual melhor descreve seu perfil? <span className="text-red-500">*</span>
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {PERFIS.map((o) => (
+                      <label
+                        key={o.value}
+                        onClick={() => set("perfil")(o.value)}
+                        className={`flex items-center gap-2.5 cursor-pointer border rounded-xl px-3 py-2.5 text-sm transition ${
+                          form.perfil === o.value
+                            ? "border-brand-blue bg-brand-blue/5 text-brand-blue font-medium"
+                            : "border-gray-200 hover:border-brand-blue/40 text-gray-600"
+                        }`}
+                      >
+                        <div className={`h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                          form.perfil === o.value ? "border-brand-blue bg-brand-blue" : "border-gray-300"
+                        }`}>
+                          {form.perfil === o.value && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                        </div>
+                        {o.label}
+                      </label>
+                    ))}
                   </div>
-
-                  <RadioGroup
-                    label="Você possui carteira ativa de clientes? *"
-                    value={form.carteira_ativa}
-                    onChange={set("carteira_ativa")}
-                    options={[{ value: "sim", label: "Sim" }, { value: "nao", label: "Não" }]}
-                    cols={2}
-                  />
-
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">
-                      Quantos clientes você atende? <span className="text-red-500">*</span>
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {QTD_CLIENTES.map((o) => (
-                        <label
-                          key={o.value}
-                          onClick={() => set("qtd_clientes")(o.value)}
-                          className={`flex items-center gap-2.5 cursor-pointer border rounded-xl px-3 py-2.5 text-sm transition ${
-                            form.qtd_clientes === o.value
-                              ? "border-brand-blue bg-brand-blue/5 text-brand-blue font-medium"
-                              : "border-gray-200 hover:border-brand-blue/40 text-gray-600"
-                          }`}
-                        >
-                          <div className={`h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
-                            form.qtd_clientes === o.value ? "border-brand-blue bg-brand-blue" : "border-gray-300"
-                          }`}>
-                            {form.qtd_clientes === o.value && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
-                          </div>
-                          {o.label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <RadioGroup
-                    label="Possui equipe comercial? *"
-                    value={form.tem_equipe}
-                    onChange={set("tem_equipe")}
-                    options={[{ value: "sim", label: "Sim" }, { value: "nao", label: "Não" }]}
-                    cols={2}
-                  />
                 </div>
+
+                <RadioGroup
+                  label="Sua empresa possui carteira ativa de clientes? *"
+                  value={form.carteira_ativa}
+                  onChange={set("carteira_ativa")}
+                  options={[{ value: "sim", label: "Sim" }, { value: "nao", label: "Não" }]}
+                />
+
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    Quantidade aproximada de clientes atendidos <span className="text-red-500">*</span>
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {QTD_CLIENTES.map((o) => (
+                      <label
+                        key={o.value}
+                        onClick={() => set("qtd_clientes")(o.value)}
+                        className={`flex items-center gap-2.5 cursor-pointer border rounded-xl px-3 py-2.5 text-sm transition ${
+                          form.qtd_clientes === o.value
+                            ? "border-brand-blue bg-brand-blue/5 text-brand-blue font-medium"
+                            : "border-gray-200 hover:border-brand-blue/40 text-gray-600"
+                        }`}
+                      >
+                        <div className={`h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                          form.qtd_clientes === o.value ? "border-brand-blue bg-brand-blue" : "border-gray-300"
+                        }`}>
+                          {form.qtd_clientes === o.value && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                        </div>
+                        {o.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <RadioGroup
+                  label="Possui equipe comercial? *"
+                  value={form.tem_equipe}
+                  onChange={set("tem_equipe")}
+                  options={[{ value: "sim", label: "Sim" }, { value: "nao", label: "Não" }]}
+                />
               </div>
 
               {/* Botão */}
@@ -457,12 +495,13 @@ export default function SejaUmEmbaixador() {
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Enviando...</>
                 ) : (
-                  "Solicitar Credenciamento ⚡"
+                  "Solicitar Credenciamento →"
                 )}
               </button>
 
               <p className="text-xs text-gray-400 text-center">
-                Ao enviar, você concorda que nossa equipe entre em contato pelo WhatsApp ou e-mail informado.
+                Ao enviar este formulário, você autoriza a equipe da Poupe Energia a entrar em
+                contato para apresentar o Programa de Parceiros Oficiais.
               </p>
             </div>
           </div>
