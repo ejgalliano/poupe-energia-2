@@ -82,7 +82,8 @@ const App = () => (
           <Route path="/contestacao" element={<Contestacao />} />
           <Route path="/diretrizes-metodologicas" element={<DiretrizesMetodologicas />} />
           <Route path="/como-funciona" element={<ComoFunciona />} />
-          <Route path="/seja-um-embaixador" element={<SejaUmEmbaixador />} />
+          <Route path="/programa-de-parceiros" element={<SejaUmEmbaixador />} />
+          <Route path="/seja-um-embaixador" element={<Navigate to="/programa-de-parceiros" replace />} />
           <Route path="/gd-livre-empresas" element={<PoupeFacilEmpresas />} />
           <Route path="/poupe-facil-empresas" element={<PoupeFacilEmpresas />} />
           <Route path="/energia-por-assinatura" element={<EnergiaPorAssinatura />} />

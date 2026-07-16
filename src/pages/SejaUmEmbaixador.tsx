@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -6,17 +6,11 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import {
-  CheckCircle2, Loader2, DollarSign, Link2, BarChart3,
-  Users, User, Mail, Phone, MapPin, ChevronDown,
+  CheckCircle2, Loader2, User, Mail, Phone, ChevronDown,
+  Search, TrendingUp, Shield, DollarSign, BarChart3, Handshake,
 } from "lucide-react";
 
 const INPUT = "w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white placeholder:text-gray-400";
-const SELECT = "w-full pl-4 pr-10 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white appearance-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed";
-
-const ESTADOS = [
-  "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
-  "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO",
-];
 
 function maskPhone(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -31,30 +25,34 @@ function maskPhone(value: string) {
 }
 
 function RadioGroup({
-  label, value, onChange, options,
+  label, value, onChange, options, cols = 2,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
+  cols?: number;
 }) {
   return (
     <div>
-      <p className="text-sm font-medium text-gray-700 mb-2">{label}</p>
-      <div className="flex gap-4">
+      <p className="text-sm font-semibold text-gray-700 mb-2">{label}</p>
+      <div className={`grid gap-2 ${cols === 1 ? "grid-cols-1" : cols === 3 ? "grid-cols-3" : "grid-cols-2"} sm:grid-cols-${cols}`}>
         {options.map((o) => (
-          <label key={o.value} className="flex items-center gap-2 cursor-pointer">
-            <div
-              onClick={() => onChange(o.value)}
-              className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition cursor-pointer ${
-                value === o.value
-                  ? "border-brand-blue bg-brand-blue"
-                  : "border-gray-300 hover:border-brand-blue/50"
-              }`}
-            >
-              {value === o.value && <div className="h-2 w-2 rounded-full bg-white" />}
+          <label
+            key={o.value}
+            onClick={() => onChange(o.value)}
+            className={`flex items-center gap-2.5 cursor-pointer border rounded-xl px-3 py-2.5 text-sm transition ${
+              value === o.value
+                ? "border-brand-blue bg-brand-blue/5 text-brand-blue font-medium"
+                : "border-gray-200 hover:border-brand-blue/40 text-gray-600"
+            }`}
+          >
+            <div className={`h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
+              value === o.value ? "border-brand-blue bg-brand-blue" : "border-gray-300"
+            }`}>
+              {value === o.value && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
             </div>
-            <span className="text-sm text-gray-600">{o.label}</span>
+            {o.label}
           </label>
         ))}
       </div>
@@ -62,34 +60,76 @@ function RadioGroup({
   );
 }
 
+const PERFIS = [
+  { value: "contabilidade", label: "Escritório de Contabilidade" },
+  { value: "imobiliaria", label: "Imobiliária" },
+  { value: "condominio", label: "Administradora de Condomínio" },
+  { value: "solar", label: "Empresa de Energia Solar" },
+  { value: "seguros", label: "Corretor de Seguros" },
+  { value: "bancario", label: "Correspondente Bancário" },
+  { value: "consultor", label: "Consultor Empresarial" },
+  { value: "associacao", label: "Associação Comercial ou Cooperativa" },
+  { value: "outro", label: "Outro" },
+];
+
+const QTD_CLIENTES = [
+  { value: "menos50", label: "Menos de 50" },
+  { value: "50a200", label: "50 a 200" },
+  { value: "200a500", label: "200 a 500" },
+  { value: "mais500", label: "Mais de 500" },
+];
+
 const benefits = [
   {
-    icon: <DollarSign className="h-7 w-7 text-brand-blue" />,
-    title: "Comissão Atrativa",
-    desc: "Ganhe comissão por cada cliente que aderir ao mercado livre de energia através do seu link exclusivo.",
+    emoji: "🔎",
+    title: "Independência",
+    desc: "Ofereça uma solução completa que não é sua, sem precisar montar uma estrutura do zero.",
   },
   {
-    icon: <Link2 className="h-7 w-7 text-brand-blue" />,
-    title: "Link Personalizado",
-    desc: "Receba seu próprio link de indicação para compartilhar com clientes, amigos e na sua rede.",
+    emoji: "📈",
+    title: "Sempre atualizado",
+    desc: "Nossas cotações e rankings são atualizados em tempo real, automaticamente.",
   },
   {
-    icon: <BarChart3 className="h-7 w-7 text-brand-blue" />,
-    title: "Acompanhamento Completo",
-    desc: "Acesso ao painel para visualizar seus leads, status de cada indicação e suas comissões.",
+    emoji: "🛡️",
+    title: "Credibilidade",
+    desc: "Nossa metodologia independente reforça a confiança do seu cliente na indicação.",
   },
   {
-    icon: <Users className="h-7 w-7 text-brand-blue" />,
-    title: "Suporte Dedicado",
-    desc: "Nossa equipe te apoia com material de apoio, treinamento e suporte para você fechar mais negócios.",
+    emoji: "💰",
+    title: "Nova receita",
+    desc: "Receba remuneração por cada cliente que aderir à plataforma através do seu credenciamento.",
+  },
+  {
+    emoji: "📊",
+    title: "Plataforma completa",
+    desc: "Acesso exclusivo ao portal do parceiro com: ranking de distribuidoras, comparativo de preços, histórico de contratos, gestão de leads, relatórios de economia, suporte técnico dedicado e painel de acompanhamento em tempo real.",
+  },
+  {
+    emoji: "🤝",
+    title: "Suporte",
+    desc: "Time dedicado para apoiar você e seus clientes em cada etapa do processo.",
   },
 ];
 
+const quemPode = [
+  "Escritórios de Contabilidade",
+  "Imobiliárias",
+  "Administradoras de Condomínio",
+  "Empresas de Energia Solar",
+  "Corretores de Seguros",
+  "Correspondentes Bancários",
+  "Consultores Empresariais",
+  "Associações Comerciais e Cooperativas",
+  "Empresas com carteira ativa de clientes",
+];
+
 const steps = [
-  { n: "01", title: "Preencha o formulário", desc: "Cadastre-se gratuitamente com seus dados." },
-  { n: "02", title: "Análise pela equipe", desc: "Nossa equipe entrará em contato em até 2 dias úteis." },
-  { n: "03", title: "Receba seu link", desc: "Após aprovação, você recebe seu código e link exclusivo." },
-  { n: "04", title: "Comece a indicar", desc: "Compartilhe com clientes e comece a ganhar comissão." },
+  { n: "01", title: "Solicitar credenciamento", desc: "Preencha o formulário abaixo e aguarde nossa equipe entrar em contato." },
+  { n: "02", title: "Conhecer a plataforma", desc: "Nossa equipe apresenta a plataforma, funcionalidades e modelo de remuneração." },
+  { n: "03", title: "Acesso exclusivo", desc: "Você recebe seu acesso ao portal do parceiro e materiais de apoio." },
+  { n: "04", title: "Atender clientes", desc: "Indique a Poupe Energia para sua carteira e acompanhe cada oportunidade." },
+  { n: "05", title: "Receber remuneração", desc: "Receba sua comissão por cada cliente que aderir à plataforma." },
 ];
 
 export default function SejaUmEmbaixador() {
@@ -97,33 +137,20 @@ export default function SejaUmEmbaixador() {
     nome: "",
     email: "",
     telefone: "",
-    cidade: "",
-    uf: "",
-    is_mei: "",
+    perfil: "",
+    carteira_ativa: "",
+    qtd_clientes: "",
     tem_equipe: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
-  const [cidades, setCidades] = useState<string[]>([]);
-  const [loadingCidades, setLoadingCidades] = useState(false);
-
-  useEffect(() => {
-    if (!form.uf) { setCidades([]); return; }
-    setLoadingCidades(true);
-    set("cidade")("");
-    fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${form.uf}/municipios?orderBy=nome`)
-      .then((r) => r.json())
-      .then((data) => setCidades(data.map((m: { nome: string }) => m.nome)))
-      .catch(() => toast.error("Erro ao carregar cidades."))
-      .finally(() => setLoadingCidades(false));
-  }, [form.uf]);
 
   const set = (field: string) => (value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
 
   const canSubmit =
     form.nome && form.email && form.telefone &&
-    form.cidade && form.uf && form.is_mei && form.tem_equipe;
+    form.perfil && form.carteira_ativa && form.qtd_clientes && form.tem_equipe;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -135,11 +162,16 @@ export default function SejaUmEmbaixador() {
           nome: form.nome,
           email: form.email,
           telefone: form.telefone,
-          cidade: form.cidade,
-          uf: form.uf,
-          is_mei: form.is_mei === "sim",
+          cidade: null,
+          uf: null,
+          is_mei: null,
           tem_equipe: form.tem_equipe === "sim",
           status: "pendente",
+          observacoes: JSON.stringify({
+            perfil: form.perfil,
+            carteira_ativa: form.carteira_ativa === "sim",
+            qtd_clientes: form.qtd_clientes,
+          }),
         });
       if (error) throw error;
       setDone(true);
@@ -153,17 +185,17 @@ export default function SejaUmEmbaixador() {
   if (done) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
-        <SEO title="Cadastro Enviado! | Poupe Energia" description="Recebemos seu cadastro de embaixador." />
+        <SEO title="Solicitação Enviada! | Poupe Energia" description="Recebemos sua solicitação de credenciamento." />
         <Header />
         <main className="flex-1 flex items-center justify-center px-4 py-16">
           <div className="max-w-md w-full text-center bg-white rounded-2xl shadow-lg p-10 border border-gray-100">
             <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
-            <h1 className="text-2xl font-extrabold text-brand-blue mb-3">Cadastro Recebido!</h1>
+            <h1 className="text-2xl font-extrabold text-brand-blue mb-3">Solicitação Enviada!</h1>
             <p className="text-gray-600 text-sm leading-relaxed mb-6">
-              Obrigado pelo interesse em ser um Embaixador Poupe Energia! Nossa equipe
-              analisará seu cadastro e entrará em contato em até <strong>2 dias úteis</strong>.
+              Recebemos sua solicitação de credenciamento ao Programa de Parceiros Oficiais
+              Poupe Energia. Nossa equipe entrará em contato em até <strong>2 dias úteis</strong>.
             </p>
             <Link
               to="/"
@@ -181,8 +213,8 @@ export default function SejaUmEmbaixador() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <SEO
-        title="Seja um Embaixador | Poupe Energia"
-        description="Torne-se um Embaixador Poupe Energia e ganhe comissão indicando o melhor comparador de energia do Brasil."
+        title="Programa de Parceiros Oficiais | Poupe Energia"
+        description="Torne-se um Parceiro Oficial da Poupe Energia e ajude seus clientes a economizar com segurança."
       />
       <Header />
 
@@ -192,40 +224,57 @@ export default function SejaUmEmbaixador() {
         <section className="bg-brand-blue text-white py-16 px-4">
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-brand-yellow/20 text-brand-yellow px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-6">
-              ⚡ Programa de Embaixadores
+              ⚡ Programa de Parceiros Oficiais Poupe Energia
             </div>
             <h1 className="text-3xl sm:text-5xl font-extrabold leading-tight mb-5">
-              Seja um Embaixador<br />
-              <span className="text-brand-yellow">Poupe Energia</span>
+              Torne-se um Parceiro Oficial<br />
+              <span className="text-brand-yellow">da Poupe Energia</span>
             </h1>
             <p className="text-white/80 text-lg max-w-2xl mx-auto leading-relaxed mb-8">
-              Transforme sua rede de contatos em renda extra indicando o melhor
-              comparador de energia do Brasil. Modelo simples, comissionamento atrativo
-              e suporte dedicado.
+              Ajude seus clientes a economizar com segurança. Ofereça a plataforma mais
+              completa de comparação de energia do Brasil e receba remuneração por cada adesão.
             </p>
             <a
-              href="#formulario"
+              href="#credenciamento"
               className="inline-block bg-brand-yellow text-brand-blue font-extrabold px-8 py-4 rounded-xl text-sm hover:bg-brand-yellow/90 transition shadow-lg"
             >
-              Quero ser Embaixador →
+              Solicitar Credenciamento →
             </a>
           </div>
         </section>
 
         {/* Benefícios */}
         <section className="py-16 px-4 bg-gray-50">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <h2 className="text-2xl font-extrabold text-brand-blue text-center mb-10">
-              Por que ser um Embaixador Poupe Energia?
+              Por que ser um Parceiro Oficial Poupe Energia?
             </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {benefits.map((b) => (
-                <div key={b.title} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-center">
-                  <div className="h-14 w-14 rounded-full bg-brand-blue/10 flex items-center justify-center mx-auto mb-4">
-                    {b.icon}
-                  </div>
-                  <h3 className="font-extrabold text-brand-blue mb-2 text-sm">{b.title}</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">{b.desc}</p>
+                <div key={b.title} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                  <div className="text-3xl mb-3">{b.emoji}</div>
+                  <h3 className="font-extrabold text-brand-blue mb-2">{b.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{b.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Quem pode */}
+        <section className="py-16 px-4">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-extrabold text-brand-blue text-center mb-3">
+              Quem pode ser Parceiro Oficial?
+            </h2>
+            <p className="text-center text-gray-500 text-sm mb-10 max-w-xl mx-auto">
+              O programa é ideal para profissionais e empresas que já possuem uma carteira ativa de clientes.
+            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {quemPode.map((item) => (
+                <div key={item} className="flex items-center gap-3 bg-brand-blue/5 border border-brand-blue/10 rounded-xl px-4 py-3">
+                  <CheckCircle2 className="h-4 w-4 text-brand-blue shrink-0" />
+                  <span className="text-sm font-medium text-brand-blue">{item}</span>
                 </div>
               ))}
             </div>
@@ -233,12 +282,12 @@ export default function SejaUmEmbaixador() {
         </section>
 
         {/* Como funciona */}
-        <section className="py-16 px-4">
-          <div className="max-w-4xl mx-auto">
+        <section className="py-16 px-4 bg-gray-50">
+          <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl font-extrabold text-brand-blue text-center mb-10">
               Como funciona?
             </h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid sm:grid-cols-3 lg:grid-cols-5 gap-6">
               {steps.map((s) => (
                 <div key={s.n} className="text-center">
                   <div className="text-4xl font-extrabold text-brand-yellow mb-3">{s.n}</div>
@@ -251,129 +300,148 @@ export default function SejaUmEmbaixador() {
         </section>
 
         {/* Formulário */}
-        <section id="formulario" className="py-16 px-4 bg-gray-50">
+        <section id="credenciamento" className="py-16 px-4">
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-extrabold text-brand-blue mb-2">
-                Preencha seu cadastro
+                Solicite seu Credenciamento
               </h2>
               <p className="text-gray-500 text-sm">
-                Gratuito e sem compromisso. Nossa equipe analisará e entrará em contato.
+                Gratuito e sem compromisso. Nossa equipe analisará seu perfil e entrará em contato.
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8 space-y-5">
+            <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8 space-y-6">
 
-              {/* Nome */}
+              {/* Dados de contato */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Nome completo <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Seu nome completo"
-                    value={form.nome}
-                    onChange={(e) => set("nome")(e.target.value)}
-                    className={INPUT}
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Seus dados</p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Nome completo <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Seu nome completo"
+                        value={form.nome}
+                        onChange={(e) => set("nome")(e.target.value)}
+                        className={INPUT}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        E-mail <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                          type="email"
+                          placeholder="seu@email.com"
+                          value={form.email}
+                          onChange={(e) => set("email")(e.target.value)}
+                          className={INPUT}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        WhatsApp <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <input
+                          type="tel"
+                          placeholder="(00) 00000-0000"
+                          value={form.telefone}
+                          onChange={(e) => set("telefone")(maskPhone(e.target.value))}
+                          className={INPUT}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100" />
+
+              {/* Perfil */}
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Seu perfil</p>
+                <div className="space-y-5">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700 mb-2">
+                      Qual é o seu perfil? <span className="text-red-500">*</span>
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {PERFIS.map((o) => (
+                        <label
+                          key={o.value}
+                          onClick={() => set("perfil")(o.value)}
+                          className={`flex items-center gap-2.5 cursor-pointer border rounded-xl px-3 py-2.5 text-sm transition ${
+                            form.perfil === o.value
+                              ? "border-brand-blue bg-brand-blue/5 text-brand-blue font-medium"
+                              : "border-gray-200 hover:border-brand-blue/40 text-gray-600"
+                          }`}
+                        >
+                          <div className={`h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                            form.perfil === o.value ? "border-brand-blue bg-brand-blue" : "border-gray-300"
+                          }`}>
+                            {form.perfil === o.value && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                          </div>
+                          {o.label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <RadioGroup
+                    label="Você possui carteira ativa de clientes? *"
+                    value={form.carteira_ativa}
+                    onChange={set("carteira_ativa")}
+                    options={[{ value: "sim", label: "Sim" }, { value: "nao", label: "Não" }]}
+                    cols={2}
+                  />
+
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700 mb-2">
+                      Quantos clientes você atende? <span className="text-red-500">*</span>
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {QTD_CLIENTES.map((o) => (
+                        <label
+                          key={o.value}
+                          onClick={() => set("qtd_clientes")(o.value)}
+                          className={`flex items-center gap-2.5 cursor-pointer border rounded-xl px-3 py-2.5 text-sm transition ${
+                            form.qtd_clientes === o.value
+                              ? "border-brand-blue bg-brand-blue/5 text-brand-blue font-medium"
+                              : "border-gray-200 hover:border-brand-blue/40 text-gray-600"
+                          }`}
+                        >
+                          <div className={`h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                            form.qtd_clientes === o.value ? "border-brand-blue bg-brand-blue" : "border-gray-300"
+                          }`}>
+                            {form.qtd_clientes === o.value && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                          </div>
+                          {o.label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <RadioGroup
+                    label="Possui equipe comercial? *"
+                    value={form.tem_equipe}
+                    onChange={set("tem_equipe")}
+                    options={[{ value: "sim", label: "Sim" }, { value: "nao", label: "Não" }]}
+                    cols={2}
                   />
                 </div>
-              </div>
-
-              {/* Email + Telefone */}
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    E-mail <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={form.email}
-                      onChange={(e) => set("email")(e.target.value)}
-                      className={INPUT}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    WhatsApp <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="tel"
-                      placeholder="(00) 00000-0000"
-                      value={form.telefone}
-                      onChange={(e) => set("telefone")(maskPhone(e.target.value))}
-                      onBlur={(e) => set("telefone")(maskPhone(e.target.value))}
-                      className={INPUT}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Estado + Cidade */}
-              <div className="grid sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Estado <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={form.uf}
-                      onChange={(e) => set("uf")(e.target.value)}
-                      className={SELECT}
-                    >
-                      <option value="">UF</option>
-                      {ESTADOS.map((uf) => (
-                        <option key={uf} value={uf}>{uf}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Cidade <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
-                    <select
-                      value={form.cidade}
-                      onChange={(e) => set("cidade")(e.target.value)}
-                      disabled={!form.uf || loadingCidades}
-                      className={`${SELECT} pl-10`}
-                    >
-                      <option value="">
-                        {!form.uf ? "Selecione o estado primeiro" : loadingCidades ? "Carregando cidades..." : "Selecione sua cidade"}
-                      </option>
-                      {cidades.map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-              </div>
-
-              {/* MEI + Equipe */}
-              <div className="grid sm:grid-cols-2 gap-6 pt-1">
-                <RadioGroup
-                  label="Você é MEI?"
-                  value={form.is_mei}
-                  onChange={set("is_mei")}
-                  options={[{ value: "sim", label: "Sim" }, { value: "nao", label: "Não" }]}
-                />
-                <RadioGroup
-                  label="Possui equipe comercial?"
-                  value={form.tem_equipe}
-                  onChange={set("tem_equipe")}
-                  options={[{ value: "sim", label: "Sim" }, { value: "nao", label: "Não" }]}
-                />
               </div>
 
               {/* Botão */}
@@ -389,7 +457,7 @@ export default function SejaUmEmbaixador() {
                 {submitting ? (
                   <><Loader2 className="h-4 w-4 animate-spin" /> Enviando...</>
                 ) : (
-                  "Quero ser Embaixador ⚡"
+                  "Solicitar Credenciamento ⚡"
                 )}
               </button>
 

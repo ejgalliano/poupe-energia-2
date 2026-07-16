@@ -22,7 +22,7 @@ const col2 = [
   { label: "Cashback – Termos e Condições", href: "/termos-cashback" },
   { label: "Contestação e Revisão Técnica", href: "/contestacao" },
   { label: "Diretrizes Metodológicas", href: "/diretrizes-metodologicas" },
-  { label: "Seja um Embaixador", href: "/seja-um-embaixador" },
+  { label: "Programa de Parceiros", href: "/programa-de-parceiros" },
 ];
 
 const Footer = () => {
