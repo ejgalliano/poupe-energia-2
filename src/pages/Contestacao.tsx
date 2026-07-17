@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useRateLimit } from "@/hooks/useRateLimit";
+import { getSubmitErrorMessage } from "@/lib/submitError";
 import { CheckCircle2, AlertCircle, Paperclip, Shield, FileSearch, Send, Clock, BarChart2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -128,7 +129,7 @@ export default function Contestacao() {
       setDone(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      toast.error("Erro ao enviar contestação. Tente novamente.");
+      toast.error(getSubmitErrorMessage(err, "Erro ao enviar contestação. Tente novamente."));
       console.error(err);
     } finally {
       setSubmitting(false);

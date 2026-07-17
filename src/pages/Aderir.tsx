@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRateLimit } from "@/hooks/useRateLimit";
+import { getSubmitErrorMessage } from "@/lib/submitError";
 import { Link, useSearchParams } from "react-router-dom";
 import * as pdfjsLib from "pdfjs-dist";
 import { supabase } from "@/integrations/supabase/client";
@@ -635,8 +636,8 @@ export default function Aderir() {
       if (error) throw error;
       markSubmitted();
       setStep(3);
-    } catch {
-      toast.error("Erro ao enviar cadastro. Tente novamente.");
+    } catch (err) {
+      toast.error(getSubmitErrorMessage(err, "Erro ao enviar cadastro. Tente novamente."));
     } finally {
       setSubmitting(false);
     }

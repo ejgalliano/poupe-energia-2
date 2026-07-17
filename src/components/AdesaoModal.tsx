@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useRateLimit } from "@/hooks/useRateLimit";
+import { getSubmitErrorMessage } from "@/lib/submitError";
 import { Link } from "react-router-dom";
 import {
   Zap, Calendar, User, Mail, Phone, CreditCard, Building2, Gift,
@@ -235,8 +236,8 @@ export default function AdesaoModal({
       if (error) throw error;
       markSubmitted();
       setDone(true);
-    } catch {
-      toast.error("Erro ao enviar cadastro. Tente novamente.");
+    } catch (err) {
+      toast.error(getSubmitErrorMessage(err, "Erro ao enviar cadastro. Tente novamente."));
     } finally {
       setSubmitting(false);
     }

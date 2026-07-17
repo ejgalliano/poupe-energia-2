@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRateLimit } from "@/hooks/useRateLimit";
+import { getSubmitErrorMessage } from "@/lib/submitError";
 import { ExternalLink, X, CheckCircle2, AlertCircle } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -62,7 +63,11 @@ const ExternalSiteModal = ({
       cidade: cidade.trim() || null,
     });
     setLoading(false);
-    if (!error) markSubmitted();
+    if (error) {
+      toast.error(getSubmitErrorMessage(error, "Não conseguimos registrar seu interesse."));
+    } else {
+      markSubmitted();
+    }
     setView(error ? "error" : "success");
   };
 

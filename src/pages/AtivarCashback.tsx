@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRateLimit } from "@/hooks/useRateLimit";
+import { getSubmitErrorMessage } from "@/lib/submitError";
 import { Link } from "react-router-dom";
 import { User, Home, CreditCard, Shield, Phone, Mail, Zap, Building2, CheckCircle2, Loader2, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -171,7 +172,7 @@ export default function AtivarCashback() {
       markSubmitted();
       setDone(true);
     } catch (e: unknown) {
-      toast.error("Erro ao enviar cadastro. Tente novamente.");
+      toast.error(getSubmitErrorMessage(e, "Erro ao enviar cadastro. Tente novamente."));
       console.error(e);
     } finally {
       setSubmitting(false);

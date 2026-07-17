@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRateLimit } from "@/hooks/useRateLimit";
+import { getSubmitErrorMessage } from "@/lib/submitError";
 import { z } from "zod";
 import { Upload, X, FileText, CheckCircle2, ArrowRight, Paperclip, ClipboardList, Trophy, Wallet } from "lucide-react";
 import {
@@ -150,7 +151,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
       setSuccess(true);
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message ?? "Erro ao enviar solicitação");
+      toast.error(getSubmitErrorMessage(err, err.message ?? "Erro ao enviar solicitação"));
     } finally {
       setSubmitting(false);
     }
