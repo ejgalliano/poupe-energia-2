@@ -189,9 +189,12 @@ const EconomySimulator = ({
           {/* Resultados */}
           {valor > 0 && (
             <>
-              <p className="text-xs text-muted-foreground text-center">
-                Desconto aplicado: <span className="font-semibold text-brand-success">{descontoAtivo}%</span>
-              </p>
+              <div className="flex justify-center">
+                <span className="inline-flex items-center gap-1.5 bg-brand-success text-white font-extrabold text-lg sm:text-xl px-4 py-1.5 rounded-full shadow-sm">
+                  <Zap className="h-5 w-5" fill="currentColor" />
+                  {descontoAtivo}% de desconto
+                </span>
+              </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-muted/40 rounded-xl p-3 text-center">
