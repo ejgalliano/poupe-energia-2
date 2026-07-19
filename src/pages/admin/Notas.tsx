@@ -8,6 +8,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Plus, Trash2 } from "lucide-react";
+
+interface Faixa {
+  id?: string;
+  valor_min: number;
+  valor_max: number | null;
+  desconto_percentual: number;
+}
 
 const SJ_FIELDS = [
   ["conformidade_lei_14300", "Conformidade Lei 14.300/22"],
@@ -36,6 +44,9 @@ export default function Notas() {
   const [formulaCfg, setFormulaCfg] = useState({ peso_desconto: 0.4, peso_sj: 0.3, peso_ra: 0.2, peso_vm: 0.1, vm_melhor: 100, vm_pior: 1000 });
   const [saving, setSaving] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
+  const [politica, setPolitica] = useState<{ id?: string; bonificacao: string } | null>(null);
+  const [faixas, setFaixas] = useState<Faixa[]>([]);
+  const [savingPolitica, setSavingPolitica] = useState(false);
 
   useEffect(() => {
     supabase.from("empresas").select("id,nome,tipo_fornecedor").neq("tipo_fornecedor", "intermediador").order("nome").then(({ data }) => setEmpresas(data ?? []));
@@ -58,7 +69,11 @@ export default function Notas() {
   }, [distId]);
 
   useEffect(() => {
-    if (!empresaId || !distId) { setNota(null); setSjNota(0); return; }
+    if (!empresaId || !distId) {
+      setNota(null); setSjNota(0);
+      setPolitica(null); setFaixas([]);
+      return;
+    }
     (async () => {
       const { data } = await supabase
         .from("notas_empresas")
@@ -80,6 +95,39 @@ export default function Notas() {
         const count = SJ_FIELDS.reduce((acc, [k]) => acc + (sc2[k] ? 1 : 0), 0);
         if (count > 0) setSjNota(count);
       } else setScore({});
+
+      // Política de desconto por faixa [Empresa + Distribuidora]
+      const { data: pol } = await supabase
+        .from("politicas_desconto" as any)
+        .select("*")
+        .eq("empresa_id", empresaId).eq("distribuidora_id", distId).maybeSingle();
+      if (pol) {
+        const polAny = pol as any;
+        setPolitica({ id: polAny.id, bonificacao: polAny.bonificacao ?? "" });
+        const { data: faixasData } = await supabase
+          .from("politicas_desconto_faixas" as any)
+          .select("*")
+          .eq("politica_id", polAny.id)
+          .order("ordem");
+        setFaixas(
+          ((faixasData ?? []) as any[]).map((f) => ({
+            id: f.id,
+            valor_min: Number(f.valor_min),
+            valor_max: f.valor_max == null ? null : Number(f.valor_max),
+            desconto_percentual: Number(f.desconto_percentual),
+          }))
+        );
+      } else {
+        // Política nova: pré-preenche com o desconto que já está no ranking,
+        // repetido em todas as faixas — o sócio ajusta depois.
+        setPolitica({ bonificacao: "" });
+        const descontoBase = Number(base.desconto_percentual) || 0;
+        setFaixas([
+          { valor_min: 0, valor_max: 500, desconto_percentual: descontoBase },
+          { valor_min: 500.01, valor_max: 1000, desconto_percentual: descontoBase },
+          { valor_min: 1000.01, valor_max: null, desconto_percentual: descontoBase },
+        ]);
+      }
     })();
   }, [empresaId, distId]);
 
@@ -110,6 +158,77 @@ export default function Notas() {
     const raw = ds * formulaCfg.peso_desconto + sj * formulaCfg.peso_sj + ra * formulaCfg.peso_ra + nvm * formulaCfg.peso_vm;
     return Math.min(10, Math.max(0, raw));
   }, [nota, sjNota, maiorDesconto, formulaCfg]);
+
+  const faixasValidas = useMemo(() => {
+    if (faixas.length === 0) return true;
+    for (const f of faixas) {
+      if (f.valor_min == null || f.valor_min < 0) return false;
+      if (f.desconto_percentual == null || f.desconto_percentual < 0 || f.desconto_percentual > 100) return false;
+      if (f.valor_max != null && f.valor_max <= f.valor_min) return false;
+    }
+    const ordenadas = [...faixas].sort((a, b) => a.valor_min - b.valor_min);
+    for (let i = 1; i < ordenadas.length; i++) {
+      const maxAnterior = ordenadas[i - 1].valor_max;
+      // faixa anterior sem teto não pode ter outra faixa depois dela; e não pode haver sobreposição
+      if (maxAnterior == null || ordenadas[i].valor_min < maxAnterior) return false;
+    }
+    return true;
+  }, [faixas]);
+
+  const addFaixa = () => {
+    const ultima = faixas[faixas.length - 1];
+    setFaixas([
+      ...faixas,
+      { valor_min: ultima ? (ultima.valor_max ?? ultima.valor_min) : 0, valor_max: null, desconto_percentual: ultima?.desconto_percentual ?? 0 },
+    ]);
+  };
+
+  const removeFaixa = (idx: number) => setFaixas(faixas.filter((_, i) => i !== idx));
+
+  const updateFaixa = (idx: number, patch: Partial<Faixa>) =>
+    setFaixas(faixas.map((f, i) => (i === idx ? { ...f, ...patch } : f)));
+
+  const savePolitica = async () => {
+    if (!empresaId || !distId || !politica) return;
+    if (!faixasValidas) {
+      toast.error("Confira as faixas: mínimo/máximo, desconto entre 0–100% e sem sobreposição.");
+      return;
+    }
+    setSavingPolitica(true);
+    try {
+      const { data: upserted, error } = await supabase
+        .from("politicas_desconto" as any)
+        .upsert(
+          { empresa_id: empresaId, distribuidora_id: distId, bonificacao: politica.bonificacao || null },
+          { onConflict: "empresa_id,distribuidora_id" }
+        )
+        .select("id")
+        .single();
+      if (error) throw error;
+      const politicaId = (upserted as any).id;
+
+      await supabase.from("politicas_desconto_faixas" as any).delete().eq("politica_id", politicaId);
+      if (faixas.length > 0) {
+        const rows = faixas
+          .sort((a, b) => a.valor_min - b.valor_min)
+          .map((f, i) => ({
+            politica_id: politicaId,
+            ordem: i,
+            valor_min: f.valor_min,
+            valor_max: f.valor_max,
+            desconto_percentual: f.desconto_percentual,
+          }));
+        const { error: insErr } = await supabase.from("politicas_desconto_faixas" as any).insert(rows);
+        if (insErr) throw insErr;
+      }
+      setPolitica((p) => (p ? { ...p, id: politicaId } : p));
+      toast.success("Política de desconto salva!");
+    } catch (e: any) {
+      toast.error("Erro ao salvar política: " + (e?.message ?? String(e)));
+    } finally {
+      setSavingPolitica(false);
+    }
+  };
 
   const save = async () => {
     if (!nota) return;
@@ -210,6 +329,70 @@ export default function Notas() {
                   </SelectContent>
                 </Select>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Política de Desconto por Faixa</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Usado pelo simulador de economia do site. O cliente só digita o valor da fatura — o sistema acha a faixa automaticamente. Acima da maior faixa, aplica o desconto dela.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                {faixas.map((f, i) => (
+                  <div key={i} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end">
+                    <div>
+                      {i === 0 && <Label className="text-xs">Valor Mínimo (R$)</Label>}
+                      <Input
+                        type="number" min="0" step="0.01"
+                        value={f.valor_min}
+                        onChange={(e) => updateFaixa(i, { valor_min: +e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      {i === 0 && <Label className="text-xs">Valor Máximo (R$) — vazio = sem teto</Label>}
+                      <Input
+                        type="number" min="0" step="0.01"
+                        value={f.valor_max ?? ""}
+                        placeholder="sem teto"
+                        onChange={(e) => updateFaixa(i, { valor_max: e.target.value === "" ? null : +e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      {i === 0 && <Label className="text-xs">Desconto (%)</Label>}
+                      <Input
+                        type="number" min="0" max="100" step="0.1"
+                        value={f.desconto_percentual}
+                        onChange={(e) => updateFaixa(i, { desconto_percentual: +e.target.value })}
+                      />
+                    </div>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeFaixa(i)} title="Remover faixa">
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+                {!faixasValidas && (
+                  <p className="text-xs text-destructive">
+                    Confira as faixas: mínimo/máximo, desconto entre 0–100% e sem sobreposição entre faixas.
+                  </p>
+                )}
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={addFaixa}>
+                <Plus className="h-4 w-4 mr-1" /> Adicionar faixa
+              </Button>
+              <div>
+                <Label>Bonificação / Observações de Benefício</Label>
+                <Input
+                  value={politica?.bonificacao ?? ""}
+                  placeholder='Ex: "12ª parcela isenta"'
+                  onChange={(e) => setPolitica((p) => ({ ...(p ?? { bonificacao: "" }), bonificacao: e.target.value }))}
+                />
+              </div>
+              <Button onClick={savePolitica} disabled={savingPolitica || !faixasValidas}>
+                {savingPolitica ? "Salvando..." : "Salvar política de desconto"}
+              </Button>
             </CardContent>
           </Card>
 

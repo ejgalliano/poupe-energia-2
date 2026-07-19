@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Zap, ArrowRight, ExternalLink } from "lucide-react";
+import { Zap, ArrowRight, ExternalLink, Gift } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -11,16 +11,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import AdesaoModal from "@/components/AdesaoModal";
 
+interface Faixa {
+  valor_min: number;
+  valor_max: number | null;
+  desconto_percentual: number;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   companyName: string;
-  /** Desconto fallback quando faixas individuais não estão preenchidas */
+  /** Desconto fallback quando a empresa ainda não tem política de faixas cadastrada para esta distribuidora */
   discountPercent: number;
-  descontoAte1mwh?: number | null;
-  desconto1a3mwh?: number | null;
-  desconto3a5mwh?: number | null;
-  descontoAcima5mwh?: number | null;
   empresaId?: string;
   distribuidoraId?: string | null;
   distribuidoraNome?: string | null;
@@ -52,22 +54,11 @@ const formatMoneyInput = (value: number) =>
         minimumFractionDigits: 2,
       }).format(value);
 
-const FAIXAS = [
-  { label: "< 1 MWh",  range: "Até 1 MWh" },
-  { label: "1-3 MWh",  range: "1 a 3 MWh" },
-  { label: "3-5 MWh",  range: "3 a 5 MWh" },
-  { label: "> 5 MWh",  range: "Acima de 5 MWh" },
-];
-
 const EconomySimulator = ({
   open,
   onOpenChange,
   companyName,
   discountPercent,
-  descontoAte1mwh,
-  desconto1a3mwh,
-  desconto3a5mwh,
-  descontoAcima5mwh,
   empresaId,
   distribuidoraId,
   distribuidoraNome,
@@ -76,9 +67,10 @@ const EconomySimulator = ({
   siteUrl,
 }: Props) => {
   const [valor, setValor] = useState(0);
-  const [selectedFaixaIdx, setSelectedFaixaIdx] = useState(0);
   const [adesaoOpen, setAdesaoOpen] = useState(false);
   const [coeficiente, setCoeficiente] = useState(0.83);
+  const [faixas, setFaixas] = useState<Faixa[] | null>(null);
+  const [bonificacao, setBonificacao] = useState<string | null>(null);
 
   useEffect(() => {
     supabase
@@ -91,14 +83,55 @@ const EconomySimulator = ({
       });
   }, []);
 
-  const descontosPorFaixa = [
-    descontoAte1mwh   ?? discountPercent,
-    desconto1a3mwh    ?? discountPercent,
-    desconto3a5mwh    ?? discountPercent,
-    descontoAcima5mwh ?? discountPercent,
-  ];
+  // Política de desconto por faixa de valor de fatura, para [Empresa + Distribuidora].
+  // Se a empresa ainda não tiver política cadastrada, cai no discountPercent (fallback).
+  useEffect(() => {
+    if (!empresaId || !distribuidoraId) {
+      setFaixas(null);
+      setBonificacao(null);
+      return;
+    }
+    (async () => {
+      const { data: pol } = await supabase
+        .from("politicas_desconto" as any)
+        .select("*")
+        .eq("empresa_id", empresaId)
+        .eq("distribuidora_id", distribuidoraId)
+        .maybeSingle();
+      if (!pol) {
+        setFaixas(null);
+        setBonificacao(null);
+        return;
+      }
+      const polAny = pol as any;
+      setBonificacao(polAny.bonificacao || null);
+      const { data: faixasData } = await supabase
+        .from("politicas_desconto_faixas" as any)
+        .select("*")
+        .eq("politica_id", polAny.id)
+        .order("valor_min");
+      setFaixas(
+        ((faixasData ?? []) as any[]).map((f) => ({
+          valor_min: Number(f.valor_min),
+          valor_max: f.valor_max == null ? null : Number(f.valor_max),
+          desconto_percentual: Number(f.desconto_percentual),
+        }))
+      );
+    })();
+  }, [empresaId, distribuidoraId]);
 
-  const descontoAtivo = descontosPorFaixa[selectedFaixaIdx];
+  // Acha a faixa cujo valor_min é o maior possível ainda <= valor digitado.
+  // Isso cobre automaticamente o caso "acima da maior faixa": o desconto da
+  // faixa mais alta continua sendo aplicado, sem precisar de caso especial.
+  const descontoAtivo = useMemo(() => {
+    if (faixas && faixas.length > 0) {
+      const elegiveis = faixas.filter((f) => f.valor_min <= valor);
+      if (elegiveis.length > 0) {
+        return elegiveis.reduce((maior, f) => (f.valor_min > maior.valor_min ? f : maior)).desconto_percentual;
+      }
+    }
+    return discountPercent;
+  }, [faixas, valor, discountPercent]);
 
   const economia = useMemo(() => {
     const base = valor * coeficiente;
@@ -134,43 +167,10 @@ const EconomySimulator = ({
         </DialogHeader>
 
         <div className="space-y-4 pt-1">
-          {/* Faixas de desconto — selecionáveis */}
-          <div className="rounded-xl bg-muted/40 p-3">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              1. Selecione sua faixa de consumo mensal
-            </p>
-            <div className="grid grid-cols-4 gap-2">
-              {FAIXAS.map((f, i) => {
-                const pct = descontosPorFaixa[i];
-                const isSelected = selectedFaixaIdx === i;
-                return (
-                  <button
-                    key={f.label}
-                    type="button"
-                    onClick={() => setSelectedFaixaIdx(i)}
-                    className={`rounded-lg px-1 py-2 text-center shadow-sm transition-all cursor-pointer border-2 ${
-                      isSelected
-                        ? "bg-brand-success/10 border-brand-success"
-                        : "bg-background border-transparent hover:border-brand-success/40"
-                    }`}
-                  >
-                    <div className="text-[10px] sm:text-xs text-muted-foreground">{f.label}</div>
-                    <div className={`text-sm sm:text-base font-bold ${isSelected ? "text-brand-success" : "text-foreground"}`}>
-                      {pct != null ? `${pct}%` : "—"}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-2">
-              Faixa selecionada: <span className="font-semibold text-brand-blue">{FAIXAS[selectedFaixaIdx].range}</span> — desconto de <span className="font-semibold text-brand-success">{descontoAtivo}%</span>
-            </p>
-          </div>
-
           {/* Input valor */}
           <div>
             <label className="block text-sm sm:text-base font-bold text-foreground mb-1.5">
-              2. Qual é o valor da sua conta de luz?
+              Qual é o valor da sua conta de luz?
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base sm:text-lg font-semibold text-muted-foreground">
@@ -189,6 +189,10 @@ const EconomySimulator = ({
           {/* Resultados */}
           {valor > 0 && (
             <>
+              <p className="text-xs text-muted-foreground text-center">
+                Desconto aplicado: <span className="font-semibold text-brand-success">{descontoAtivo}%</span>
+              </p>
+
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-muted/40 rounded-xl p-3 text-center">
                   <div className="text-xs sm:text-sm text-muted-foreground">Sua conta atual</div>
@@ -214,6 +218,15 @@ const EconomySimulator = ({
                   {formatBRL(economia.mensal)} por mês
                 </div>
               </div>
+
+              {bonificacao && (
+                <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-800">
+                  <Gift className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Parabéns! Este plano inclui:</strong> {bonificacao}
+                  </span>
+                </div>
+              )}
             </>
           )}
 
