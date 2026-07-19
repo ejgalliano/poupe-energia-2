@@ -31,12 +31,23 @@ const faqs: { q: string; a: string }[] = [
   { q: "Como escolher a melhor empresa?", a: "Avalie 4 pontos: Desconto inicial, Segurança do contrato, Reputação e Facilidade de adesão. É exatamente isso que o Ranking Poupe Energia faz para você." },
 ];
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
 const DuvidasFrequentes = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
         title="Dúvidas Frequentes | Poupe Energia"
         description="Respostas para as principais dúvidas sobre energia por assinatura e o Ranking Poupe Energia."
+        jsonLd={faqJsonLd}
       />
       <Header />
 
