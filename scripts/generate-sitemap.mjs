@@ -10,7 +10,7 @@ import path from "node:path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
-const SITE_URL = "https://poupeenergia.com.br";
+const SITE_URL = "https://www.poupeenergia.com.br";
 
 function loadEnv() {
   // Na Vercel as variaveis ja vem prontas em process.env (nao ha .env no build).
