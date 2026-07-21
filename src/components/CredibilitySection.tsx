@@ -76,6 +76,25 @@ const CredibilitySection = () => {
               alt="Procon"
               className="h-16 w-auto object-contain"
             />
+            {/* Selo Reclame Aqui */}
+            <a
+              href="https://www.reclameaqui.com.br/empresa/poupe-energia/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-16 flex items-center gap-2"
+              title="Selo RA Verificada"
+            >
+              <img
+                src="https://s3.amazonaws.com/raichu-beta/ra-verified/assets/images/verified.svg"
+                alt="Selo RA Verificada"
+                className="h-8 w-8"
+              />
+              <img
+                src="https://s3.amazonaws.com/raichu-beta/ra-verified/assets/images/ra-logo.svg"
+                alt="Reclame Aqui"
+                className="h-5 w-auto"
+              />
+            </a>
           </div>
         </div>
       </div>
