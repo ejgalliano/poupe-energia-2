@@ -76,24 +76,28 @@ const CredibilitySection = () => {
               alt="Procon"
               className="h-16 w-auto object-contain"
             />
-            {/* Selo Reclame Aqui */}
+            {/* Selo Reclame Aqui — reproduz o mesmo layout/medidas do widget oficial do rodapé
+                (que não pode ser carregado 2x na mesma página) */}
             <a
-              href="https://www.reclameaqui.com.br/empresa/poupe-energia/"
+              href="https://www.reclameaqui.com.br/empresa/poupe-energia/?utm_source=rav&utm_medium=embed&utm_campaign=horizontal_1"
               target="_blank"
               rel="noopener noreferrer"
-              className="h-16 flex items-center gap-2"
               title="Selo RA Verificada"
+              className="flex items-center gap-1.5 bg-white rounded-lg p-1.5"
             >
               <img
                 src="https://s3.amazonaws.com/raichu-beta/ra-verified/assets/images/verified.svg"
                 alt="Selo RA Verificada"
-                className="h-8 w-8"
+                className="h-6 w-6 shrink-0"
               />
-              <img
-                src="https://s3.amazonaws.com/raichu-beta/ra-verified/assets/images/ra-logo.svg"
-                alt="Reclame Aqui"
-                className="h-5 w-auto"
-              />
+              <div className="flex flex-col items-start gap-0.5">
+                <span className="text-xs leading-none text-[#0F172B]">Verificada por</span>
+                <img
+                  src="https://s3.amazonaws.com/raichu-beta/ra-verified/assets/images/ra-logo.svg"
+                  alt="Reclame Aqui"
+                  className="w-[92px] h-4"
+                />
+              </div>
             </a>
           </div>
         </div>
