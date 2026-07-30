@@ -65,7 +65,7 @@ type LeadEmb = {
   embaixadores?: { codigo: string; nome: string; comissao_percentual: number; chave_pix: string | null } | null;
 };
 
-const PUBLIC_BASE = "https://poupe-energia-2.lovable.app";
+const PUBLIC_BASE = "https://www.poupeenergia.com.br";
 
 const STATUS_COLORS: Record<string, string> = {
   pendente: "bg-blue-100 text-blue-700 hover:bg-blue-100",
