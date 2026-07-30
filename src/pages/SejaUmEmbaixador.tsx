@@ -7,9 +7,11 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { CheckCircle2, Loader2, User, Mail, Phone } from "lucide-react";
+import { CheckCircle2, Loader2, User, Mail, Phone, MapPin } from "lucide-react";
+import { STATES } from "@/data/states";
 
 const INPUT = "w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white placeholder:text-gray-400";
+const SELECT = "w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white appearance-none";
 
 function maskPhone(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -154,6 +156,8 @@ export default function SejaUmEmbaixador() {
     nome: "",
     email: "",
     telefone: "",
+    cidade: "",
+    uf: "",
     perfil: "",
     carteira_ativa: "",
     qtd_clientes: "",
@@ -167,7 +171,7 @@ export default function SejaUmEmbaixador() {
     setForm((f) => ({ ...f, [field]: value }));
 
   const canSubmit =
-    form.nome && form.email && form.telefone &&
+    form.nome && form.email && form.telefone && form.cidade && form.uf &&
     form.perfil && form.carteira_ativa && form.qtd_clientes && form.tem_equipe;
 
   const handleSubmit = async () => {
@@ -181,8 +185,8 @@ export default function SejaUmEmbaixador() {
           nome: form.nome,
           email: form.email,
           telefone: form.telefone,
-          cidade: null,
-          uf: null,
+          cidade: form.cidade,
+          uf: form.uf,
           is_mei: null,
           tem_equipe: form.tem_equipe === "sim",
           status: "pendente",
@@ -409,6 +413,42 @@ export default function SejaUmEmbaixador() {
                         onChange={(e) => set("telefone")(maskPhone(e.target.value))}
                         className={INPUT}
                       />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Cidade <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Sua cidade"
+                        value={form.cidade}
+                        onChange={(e) => set("cidade")(e.target.value)}
+                        className={INPUT}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Estado <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      <select
+                        value={form.uf}
+                        onChange={(e) => set("uf")(e.target.value)}
+                        className={SELECT}
+                      >
+                        <option value="">Selecione</option>
+                        {STATES.map((s) => (
+                          <option key={s.uf} value={s.uf}>{s.name}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>
