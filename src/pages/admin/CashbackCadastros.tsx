@@ -118,7 +118,7 @@ export default function CashbackCadastros() {
 
   // ── Export CSV ──
   const exportCSV = () => {
-    const header = ["Data", "Nome", "CPF/CNPJ", "Telefone", "Email", "Distribuidora", "Empresa", "UC", "Consumo kWh", "Valor Conta", "Classe", "Cód Parceiro", "Valor Cashback", "Status", "Data Pagamento"];
+    const header = ["Data", "Nome", "CPF/CNPJ", "Telefone", "Email", "Distribuidora", "Fornecedora", "UC", "Consumo kWh", "Valor Conta", "Classe", "Cód Parceiro", "Valor Cashback", "Status", "Data Pagamento"];
     const rows = filtrados.map((c) => [
       new Date(c.created_at).toLocaleString("pt-BR"),
       c.nome, c.cpf_cnpj, c.telefone ?? c.whatsapp, c.email,
@@ -214,7 +214,7 @@ export default function CashbackCadastros() {
                 <TableHead>CPF/CNPJ</TableHead>
                 <TableHead>Contato</TableHead>
                 <TableHead>Distribuidora</TableHead>
-                <TableHead>Empresa</TableHead>
+                <TableHead>Fornecedora</TableHead>
                 <TableHead>Fatura</TableHead>
                 <TableHead>Docs</TableHead>
                 <TableHead>Status</TableHead>

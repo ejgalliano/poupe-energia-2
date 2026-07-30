@@ -88,11 +88,11 @@ const STATUS_OPTIONS = [...STATUS_FLOW, "cancelado"];
 
 const CHECKLIST_ITEMS: { key: keyof Checklist; label: string }[] = [
   { key: "docs_conferidos",     label: "Documentos conferidos" },
-  { key: "dados_validados",     label: "Dados do cliente validados" },
-  { key: "cadastrado_parceiro", label: "Cadastrado na comercializadora" },
+  { key: "dados_validados",     label: "Dados do consumidor validados" },
+  { key: "cadastrado_parceiro", label: "Cadastrado na fornecedora" },
   { key: "contrato_emitido",    label: "Contrato gerado/emitido" },
-  { key: "contrato_enviado",    label: "Contrato enviado ao cliente" },
-  { key: "contrato_assinado",   label: "Contrato assinado pelo cliente" },
+  { key: "contrato_enviado",    label: "Contrato enviado ao consumidor" },
+  { key: "contrato_assinado",   label: "Contrato assinado pelo consumidor" },
 ];
 
 // ─── Utilitários ──────────────────────────────────────────────────────────────
@@ -243,7 +243,7 @@ export default function CashbackDetalhe() {
               <InfoRow label="Telefone / WhatsApp" value={fone} />
               <div className="col-span-2"><InfoRow label="E-mail" value={rec.email} /></div>
               {rec.codigo_embaixador && (
-                <div className="col-span-2"><InfoRow label="Código do Parceiro" value={rec.codigo_embaixador} /></div>
+                <div className="col-span-2"><InfoRow label="Código do Parceiro Comercial" value={rec.codigo_embaixador} /></div>
               )}
             </div>
           </Card>
@@ -253,7 +253,7 @@ export default function CashbackDetalhe() {
             <CardTitle icon={<Zap className="h-3.5 w-3.5" />} label="Dados da energia" />
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               <InfoRow label="Distribuidora" value={rec.distribuidora_nome} />
-              <InfoRow label="Comercializadora" value={
+              <InfoRow label="Fornecedora" value={
                 rec.empresa_nome
                   ? <span>{rec.empresa_nome}{rec.cashback_percentual != null && rec.cashback_percentual > 0 && <span className="ml-2 text-brand-blue font-bold">⚡ {rec.cashback_percentual}%</span>}</span>
                   : null
@@ -304,7 +304,7 @@ export default function CashbackDetalhe() {
 
           {/* Confirmações */}
           <Card>
-            <CardTitle icon={<CheckCircle2 className="h-3.5 w-3.5" />} label="Confirmações do cliente" />
+            <CardTitle icon={<CheckCircle2 className="h-3.5 w-3.5" />} label="Confirmações do consumidor" />
             <div className="space-y-2">
               {[
                 { label: "Aceite dos Termos",       val: rec.aceite_termos },

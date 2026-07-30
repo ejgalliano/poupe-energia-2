@@ -190,7 +190,7 @@ export default function Embaixadores() {
   }, [leads, dataIni, dataFim, filterEmb, filterStatus, filterEmpresa]);
 
   const exportCSV = () => {
-    const header = ["Data", "Cliente", "Email", "Telefone", "Empresa", "Parceiro", "Comissão %", "Valor", "Status", "Data adesão", "Data pagamento"];
+    const header = ["Data", "Consumidor", "Email", "Telefone", "Fornecedora", "Parceiro Comercial", "Comissão %", "Valor", "Status", "Data adesão", "Data pagamento"];
     const rows = leadsFiltrados.map((l) => [
       new Date(l.created_at).toLocaleString("pt-BR"),
       l.leads?.nome ?? "",
@@ -292,7 +292,7 @@ export default function Embaixadores() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Parceiros</h1>
+      <h1 className="text-2xl font-bold">Parceiros Comerciais</h1>
 
       <Tabs defaultValue="candidatos">
         <TabsList>
@@ -304,8 +304,8 @@ export default function Embaixadores() {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="cadastro">Parceiros</TabsTrigger>
-          <TabsTrigger value="leads">Leads por Parceiro</TabsTrigger>
+          <TabsTrigger value="cadastro">Parceiros Comerciais</TabsTrigger>
+          <TabsTrigger value="leads">Leads por Parceiro Comercial</TabsTrigger>
           <TabsTrigger value="financeiro">Resumo Financeiro</TabsTrigger>
         </TabsList>
 
@@ -384,7 +384,7 @@ export default function Embaixadores() {
         {/* CADASTRO */}
         <TabsContent value="cadastro" className="space-y-4">
           <div className="flex justify-end">
-            <Button onClick={startNew}><Plus className="h-4 w-4 mr-1" /> Novo Parceiro</Button>
+            <Button onClick={startNew}><Plus className="h-4 w-4 mr-1" /> Novo Parceiro Comercial</Button>
           </div>
           <Card>
             <CardContent className="p-0">
@@ -450,7 +450,7 @@ export default function Embaixadores() {
                 <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
               </div>
               <div>
-                <label className="text-xs font-bold">Parceiro</label>
+                <label className="text-xs font-bold">Parceiro Comercial</label>
                 <Select value={filterEmb} onValueChange={setFilterEmb}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -475,7 +475,7 @@ export default function Embaixadores() {
                 </Select>
               </div>
               <div>
-                <label className="text-xs font-bold">Empresa</label>
+                <label className="text-xs font-bold">Fornecedora</label>
                 <Select value={filterEmpresa} onValueChange={setFilterEmpresa}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -501,9 +501,9 @@ export default function Embaixadores() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Data</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Empresa</TableHead>
-                    <TableHead>Parceiro</TableHead>
+                    <TableHead>Consumidor</TableHead>
+                    <TableHead>Fornecedora</TableHead>
+                    <TableHead>Parceiro Comercial</TableHead>
                     <TableHead>Comissão</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Adesão</TableHead>
@@ -571,7 +571,7 @@ export default function Embaixadores() {
               </Card>
             ))}
             {resumoPorEmb.length === 0 && (
-              <p className="text-muted-foreground text-sm">Nenhum parceiro.</p>
+              <p className="text-muted-foreground text-sm">Nenhum parceiro comercial.</p>
             )}
           </div>
         </TabsContent>
@@ -580,7 +580,7 @@ export default function Embaixadores() {
       {/* Form Sheet */}
       <Sheet open={openForm} onOpenChange={setOpenForm}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-          <SheetHeader><SheetTitle>{editing?.id ? "Editar" : "Novo"} parceiro</SheetTitle></SheetHeader>
+          <SheetHeader><SheetTitle>{editing?.id ? "Editar" : "Novo"} Parceiro Comercial</SheetTitle></SheetHeader>
           {editing && (
             <div className="space-y-3 mt-4">
               <div>
@@ -659,11 +659,11 @@ export default function Embaixadores() {
           {selLead && (
             <div className="space-y-4 mt-4 text-sm">
               <div className="space-y-1">
-                <div><span className="text-muted-foreground">Cliente: </span>{selLead.leads?.nome ?? "—"}</div>
+                <div><span className="text-muted-foreground">Consumidor: </span>{selLead.leads?.nome ?? "—"}</div>
                 <div><span className="text-muted-foreground">Email: </span>{selLead.leads?.email ?? "—"}</div>
                 <div><span className="text-muted-foreground">Telefone: </span>{selLead.leads?.telefone ?? "—"}</div>
-                <div><span className="text-muted-foreground">Empresa: </span>{selLead.empresas?.nome}</div>
-                <div><span className="text-muted-foreground">Parceiro: </span>{selLead.embaixadores?.codigo} — {selLead.embaixadores?.nome}</div>
+                <div><span className="text-muted-foreground">Fornecedora: </span>{selLead.empresas?.nome}</div>
+                <div><span className="text-muted-foreground">Parceiro Comercial: </span>{selLead.embaixadores?.codigo} — {selLead.embaixadores?.nome}</div>
               </div>
 
               <div>

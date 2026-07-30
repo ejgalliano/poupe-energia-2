@@ -15,7 +15,7 @@ const steps = [
     n: 1,
     icon: Search,
     title: "Acesse o Ranking",
-    desc: "Selecione seu estado e distribuidora. Em segundos você vê todas as comercializadoras disponíveis para a sua região, ordenadas da melhor para a pior.",
+    desc: "Selecione seu estado e distribuidora. Em segundos você vê todas as fornecedoras disponíveis para a sua região, ordenadas da melhor para a pior.",
   },
   {
     n: 2,
@@ -76,11 +76,11 @@ const naoMuda = [
 ];
 
 const cashbackSteps = [
-  "Ativação da unidade consumidora na comercializadora",
+  "Ativação da unidade consumidora na fornecedora",
   "Injeção ou compensação de créditos de energia",
   "Emissão da 1ª fatura do novo plano",
   "Pagamento integral da 1ª fatura pelo consumidor",
-  "Validação pela comercializadora parceira e aprovação pela Poupe",
+  "Validação pela fornecedora parceira e aprovação pela Poupe",
 ];
 
 const faqs = [
@@ -98,7 +98,7 @@ const faqs = [
   },
   {
     q: "Pessoa jurídica também pode usar?",
-    a: "Sim. Comércios, indústrias e empresas de qualquer porte podem acessar o mercado livre de energia. Cada comercializadora tem um valor mínimo de fatura para adesão.",
+    a: "Sim. Comércios, indústrias e empresas de qualquer porte podem acessar o mercado livre de energia. Cada fornecedora tem um valor mínimo de fatura para adesão.",
   },
   {
     q: "E se eu escolher uma empresa não parceira da Poupe?",
@@ -111,7 +111,7 @@ const ComoFunciona = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
         title="Como Funciona | Poupe Energia"
-        description="Entenda como a Poupe Energia ajuda você a comparar comercializadoras de energia, economizar na conta de luz e ainda receber cashback na adesão."
+        description="Entenda como a Poupe Energia ajuda você a comparar fornecedoras de energia, economizar na conta de luz e ainda receber cashback na adesão."
       />
       <Header />
 
@@ -123,7 +123,7 @@ const ComoFunciona = () => {
             Como funciona a <span className="text-brand-yellow">Poupe Energia</span>
           </h1>
           <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-2xl mx-auto">
-            Compare comercializadoras de energia, escolha com segurança e ainda receba cashback — tudo de graça, sem instalar nada.
+            Compare fornecedoras de energia, escolha com segurança e ainda receba cashback — tudo de graça, sem instalar nada.
           </p>
         </div>
       </section>
@@ -172,7 +172,7 @@ const ComoFunciona = () => {
             </div>
           </div>
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Cada comercializadora exige um valor mínimo de fatura para adesão — isso aparece no ranking para você comparar antes de decidir.
+            Cada fornecedora exige um valor mínimo de fatura para adesão — isso aparece no ranking para você comparar antes de decidir.
           </p>
         </section>
 
@@ -268,7 +268,7 @@ const ComoFunciona = () => {
                   <div>
                     <p className="font-extrabold text-brand-blue text-sm mb-1">Ative antes de contratar</p>
                     <p className="text-sm text-foreground/75 leading-relaxed">
-                      O cadastro em "Ativar Cashback" precisa ser feito <strong>antes</strong> de assinar com a comercializadora. Quem não ativa antecipadamente perde o direito ao benefício.
+                      O cadastro em "Ativar Cashback" precisa ser feito <strong>antes</strong> de assinar com a fornecedora. Quem não ativa antecipadamente perde o direito ao benefício.
                     </p>
                   </div>
                 </div>
@@ -303,7 +303,7 @@ const ComoFunciona = () => {
             O que <span className="text-brand-success">não muda</span> para você
           </h2>
           <p className="text-center text-muted-foreground mb-10">
-            Mudar de comercializadora é mais simples do que parece.
+            Mudar de fornecedora é mais simples do que parece.
           </p>
           <div className="grid sm:grid-cols-2 gap-4">
             {naoMuda.map((item) => {

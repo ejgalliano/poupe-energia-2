@@ -400,7 +400,7 @@ export default function AdesaoModal({
                       <span className="text-white text-[9px] font-bold leading-none">i</span>
                     </div>
                     <p className="text-xs text-gray-500 leading-relaxed">
-                      Preencha apenas se um parceiro ou vendedor estiver te atendendo pessoalmente.
+                      Preencha apenas se um Parceiro Comercial estiver te atendendo pessoalmente.
                     </p>
                   </div>
                 </div>
@@ -518,7 +518,7 @@ export default function AdesaoModal({
                   <Link to="/termos-cashback" className="text-brand-blue font-semibold underline" target="_blank">
                     Termos e Condições
                   </Link>{" "}
-                  e autorizo a validação dos meus dados junto à comercializadora parceira.
+                  e autorizo a validação dos meus dados junto à fornecedora parceira.
                 </span>
               </label>
 

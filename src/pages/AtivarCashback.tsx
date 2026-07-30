@@ -248,7 +248,7 @@ export default function AtivarCashback() {
                 <span className="font-bold text-brand-blue">Poupe Energia</span>.
               </p>
               <p className="text-xs text-gray-400 mt-2">
-                Importante: realize este cadastro <span className="font-semibold text-gray-500">antes</span> de assinar com a comercializadora. Ativações após a adesão não serão válidas.
+                Importante: realize este cadastro <span className="font-semibold text-gray-500">antes</span> de assinar com a fornecedora. Ativações após a adesão não serão válidas.
               </p>
             </div>
 
@@ -258,7 +258,7 @@ export default function AtivarCashback() {
               <div>
                 <SectionHeader icon={<Building2 className="h-5 w-5" />} label="Empresa Parceira" />
                 <Field
-                  label="Comercializadora escolhida"
+                  label="Fornecedora escolhida"
                   required
                   hint="Selecione a empresa com a qual você vai aderir ao plano de energia."
                 >
@@ -409,7 +409,7 @@ export default function AtivarCashback() {
                     Estou ciente de que o cashback é promocional, pago em parcela única e não recorrente.
                   </Checkbox>
                   <Checkbox checked={form.autoriza_validacao} onChange={(v) => set("autoriza_validacao")(v)}>
-                    Autorizo a validação dos meus dados junto à comercializadora parceira.
+                    Autorizo a validação dos meus dados junto à fornecedora parceira.
                   </Checkbox>
                 </div>
               </div>
@@ -442,7 +442,7 @@ export default function AtivarCashback() {
                 <p className="text-xs text-gray-500 leading-relaxed">
                   O cashback será liberado após a ativação da conta de energia,
                   compensação dos créditos (quando aplicável) e pagamento da primeira
-                  fatura validada pela comercializadora parceira e pela{" "}
+                  fatura validada pela fornecedora parceira e pela{" "}
                   <span className="font-bold text-brand-blue">Poupe Energia</span>.
                   O prazo de pagamento é de até 60 dias após a conclusão das etapas.
                 </p>

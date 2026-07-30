@@ -207,8 +207,8 @@ const RankingNacional = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
-        title="Ranking Nacional de Comercializadoras | Poupe Energia"
-        description="Ranking nacional consolidado de todas as comercializadoras de energia avaliadas pela Poupe Energia."
+        title="Ranking Nacional de Fornecedoras | Poupe Energia"
+        description="Ranking nacional consolidado de todas as fornecedoras de energia avaliadas pela Poupe Energia."
       />
       <Header />
 
@@ -216,7 +216,7 @@ const RankingNacional = () => {
         <section className="container mx-auto px-4 pt-8 pb-16">
           <header className="max-w-3xl mx-auto text-center mb-6">
             <h1 className="text-2xl md:text-3xl font-bold text-brand-blue leading-tight">
-              Ranking Nacional de Comercializadoras
+              Ranking Nacional de Fornecedoras
             </h1>
             <p className="mt-1 text-base md:text-xl font-normal text-gray-500">
               Todas as empresas avaliadas pela Poupe Energia
@@ -228,7 +228,7 @@ const RankingNacional = () => {
             <div className="flex gap-3 bg-blue-50 border border-blue-200 text-brand-blue rounded-xl p-4 text-sm">
               <Info className="h-5 w-5 shrink-0 mt-0.5" />
               <p>
-                A nota exibida é a média das notas obtidas pela comercializadora
+                A nota exibida é a média das notas obtidas pela fornecedora
                 em todas as distribuidoras onde atua. Para ver o ranking
                 específico da sua distribuidora,{" "}
                 <a href="/" className="font-semibold underline">
@@ -276,7 +276,7 @@ const RankingNacional = () => {
             </div>
           ) : sortedCompanies.length === 0 ? (
             <p className="text-center text-muted-foreground py-12">
-              Nenhuma comercializadora avaliada ainda.
+              Nenhuma fornecedora avaliada ainda.
             </p>
           ) : (
             <div className="max-w-4xl mx-auto space-y-5">

@@ -164,7 +164,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
       {/* Cabeçalho */}
       <div className="flex flex-wrap justify-between items-center gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{empresa ? "Editar" : "Nova"} empresa</h1>
+          <h1 className="text-2xl font-bold">{empresa ? "Editar" : "Nova"} fornecedora</h1>
           {fichaUrl && (
             <a
               href={fichaUrl}

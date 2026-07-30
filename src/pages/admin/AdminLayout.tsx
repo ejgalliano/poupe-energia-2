@@ -35,7 +35,7 @@ const groups: NavGroup[] = [
   {
     title: "Ranking",
     items: [
-      { to: "/admin/empresas",        label: "Empresas",           icon: Building2,   section: "empresas" },
+      { to: "/admin/empresas",        label: "Fornecedoras",       icon: Building2,   section: "empresas" },
       { to: "/admin/notas",           label: "Notas",              icon: Star,        section: "notas" },
       { to: "/admin/formula",         label: "Fórmula do Ranking", icon: FlaskConical,section: "formula" },
       { to: "/admin/distribuidoras",  label: "Distribuidoras",     icon: MapPin,      section: "distribuidoras" },
@@ -45,11 +45,11 @@ const groups: NavGroup[] = [
   {
     title: "Comercial",
     items: [
-      { to: "/admin/parceiros",           label: "Parceiros & Leads",  icon: Handshake, section: "parceiros" },
+      { to: "/admin/parceiros",           label: "Fornecedoras Parceiras",  icon: Handshake, section: "parceiros" },
       { to: "/admin/leads-empresariais",  label: "Leads Empresariais", icon: Briefcase, section: "leads-empresariais" },
-      { to: "/admin/embaixadores",        label: "Parceiros",          icon: Award,     section: "embaixadores" },
+      { to: "/admin/embaixadores",        label: "Parceiros Comerciais",    icon: Award,     section: "embaixadores" },
       { to: "/admin/cashback",            label: "Adesões / Cashback",     icon: Gift,     section: "cashback" },
-      { to: "/admin/solicitacoes-parceria", label: "Solicitações de Parceria", icon: UserPlus, section: "parceiros" },
+      { to: "/admin/solicitacoes-parceria", label: "Solicitações de Fornecedora", icon: UserPlus, section: "parceiros" },
     ],
   },
   {

@@ -260,7 +260,7 @@ const Ranking = () => {
         });
         const mapped: Company[] = rows.map((row, idx) => ({
           rank: idx + 1,
-          name: row.empresas?.nome ?? "Empresa",
+          name: row.empresas?.nome ?? "Fornecedora",
           discount: `${Number(row.desconto_percentual)}%`,
           legalSecurity: Number(row.seguranca_juridica)
             .toFixed(1)
@@ -325,7 +325,7 @@ const Ranking = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
         title={seoTitle}
-        description="Ranking transparente das melhores comercializadoras de energia para sua distribuidora."
+        description="Ranking transparente das melhores fornecedoras de energia para sua distribuidora."
       />
       <Header />
 

@@ -156,7 +156,7 @@ export default function Parceiros() {
   const exportCSV = () => {
     const header = [
       "Data/hora",
-      "Empresa",
+      "Fornecedora",
       "Estado",
       "Distribuidora",
       "Evento",
@@ -197,11 +197,11 @@ export default function Parceiros() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Parceiros & Leads</h1>
+      <h1 className="text-2xl font-bold">Fornecedoras Parceiras & Leads</h1>
 
       <Tabs defaultValue="config">
         <TabsList>
-          <TabsTrigger value="config">Configuração de Parceiros</TabsTrigger>
+          <TabsTrigger value="config">Configuração de Fornecedoras Parceiras</TabsTrigger>
           <TabsTrigger value="leads">Relatório de Leads</TabsTrigger>
         </TabsList>
 
@@ -209,12 +209,12 @@ export default function Parceiros() {
         <TabsContent value="config" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Empresas parceiras</CardTitle>
+              <CardTitle>Fornecedoras parceiras</CardTitle>
             </CardHeader>
             <CardContent>
               {empresasParceiras.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Nenhuma empresa marcada como parceira ainda.
+                  Nenhuma fornecedora marcada como parceira ainda.
                 </p>
               )}
               <div className="space-y-3">
@@ -259,20 +259,20 @@ export default function Parceiros() {
                               URL de Redirecionamento para Venda
                             </label>
                             <Input
-                              placeholder="https://parceiro.com.br/indicacao?ref=poupe"
+                              placeholder="https://fornecedora.com.br/indicacao?ref=poupe"
                               value={form.url_afiliado ?? ""}
                               onChange={(e) =>
                                 setForm({ ...form, url_afiliado: e.target.value })
                               }
                             />
                             <p className="text-xs text-muted-foreground mt-1">
-                              Este é o link para onde o cliente será direcionado ao clicar em
-                              "Ver plano e Aderir". Use o link de afiliado fornecido pelo parceiro.
+                              Este é o link para onde o consumidor será direcionado ao clicar em
+                              "Ver plano e Aderir". Use o link de afiliado fornecido pela fornecedora.
                             </p>
                           </div>
                           <div>
                             <label className="text-xs font-bold">
-                              Nome do contato no parceiro
+                              Nome do contato na fornecedora
                             </label>
                             <Input
                               placeholder="Ex: João Silva"
@@ -284,11 +284,11 @@ export default function Parceiros() {
                           </div>
                           <div>
                             <label className="text-xs font-bold">
-                              Email do contato no parceiro
+                              Email do contato na fornecedora
                             </label>
                             <Input
                               type="email"
-                              placeholder="contato@parceiro.com.br"
+                              placeholder="contato@fornecedora.com.br"
                               value={form.contato_email ?? ""}
                               onChange={(e) =>
                                 setForm({ ...form, contato_email: e.target.value })
@@ -384,7 +384,7 @@ export default function Parceiros() {
                   <Input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-xs font-bold">Empresa</label>
+                  <label className="text-xs font-bold">Fornecedora</label>
                   <Select value={filterEmpresa} onValueChange={setFilterEmpresa}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -507,7 +507,7 @@ export default function Parceiros() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Data/hora</TableHead>
-                    <TableHead>Empresa</TableHead>
+                    <TableHead>Fornecedora</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Distribuidora</TableHead>
                     <TableHead>Evento</TableHead>

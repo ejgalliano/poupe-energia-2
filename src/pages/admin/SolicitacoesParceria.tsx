@@ -109,7 +109,7 @@ export default function SolicitacoesParceria() {
 
   const exportCsv = () => {
     const rows = [
-      ["Nome", "Email", "Telefone", "Cidade", "Estado", "Empresa", "Data"],
+      ["Nome", "Email", "Telefone", "Cidade", "Estado", "Fornecedora", "Data"],
       ...filteredLeads.map(l => [
         l.nome_usuario ?? "",
         l.email ?? "",
@@ -134,7 +134,7 @@ export default function SolicitacoesParceria() {
     <div className="space-y-6 max-w-6xl">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold">Solicitações de Parceria</h1>
+          <h1 className="text-2xl font-bold">Solicitações de Fornecedora</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Pessoas que querem contratar via Poupe Energia — use para abordar empresas não-parceiras.
           </p>
@@ -166,7 +166,7 @@ export default function SolicitacoesParceria() {
         </Card>
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-5 pb-4">
-            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Empresas únicas</p>
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Fornecedoras únicas</p>
             <p className="text-3xl font-extrabold mt-1 text-brand-blue">{empresasUnicas.length}</p>
           </CardContent>
         </Card>
@@ -198,7 +198,7 @@ export default function SolicitacoesParceria() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nome, email, cidade ou empresa…"
+                  placeholder="Buscar por nome, email, cidade ou fornecedora…"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   className="pl-9 h-9"
@@ -206,10 +206,10 @@ export default function SolicitacoesParceria() {
               </div>
               <Select value={filterEmpresa} onValueChange={setFilterEmpresa}>
                 <SelectTrigger className="w-full sm:w-56 h-9">
-                  <SelectValue placeholder="Filtrar por empresa" />
+                  <SelectValue placeholder="Filtrar por fornecedora" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as empresas</SelectItem>
+                  <SelectItem value="all">Todas as fornecedoras</SelectItem>
                   {empresasUnicas.map(e => (
                     <SelectItem key={e} value={e}>{e}</SelectItem>
                   ))}
@@ -231,7 +231,7 @@ export default function SolicitacoesParceria() {
                       <th className="text-left px-4 py-2.5 text-xs text-muted-foreground font-medium">Nome</th>
                       <th className="text-left px-4 py-2.5 text-xs text-muted-foreground font-medium">Contato</th>
                       <th className="text-left px-4 py-2.5 text-xs text-muted-foreground font-medium">Localização</th>
-                      <th className="text-left px-4 py-2.5 text-xs text-muted-foreground font-medium">Empresa desejada</th>
+                      <th className="text-left px-4 py-2.5 text-xs text-muted-foreground font-medium">Fornecedora desejada</th>
                       <th className="text-left px-4 py-2.5 text-xs text-muted-foreground font-medium">Data</th>
                       <th className="px-4 py-2.5" />
                     </tr>

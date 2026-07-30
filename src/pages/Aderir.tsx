@@ -945,7 +945,7 @@ export default function Aderir() {
                 <Link to="/termos-cashback" className="text-brand-blue font-semibold underline" target="_blank">
                   Termos e Condições
                 </Link>{" "}
-                e autorizo o uso dos meus dados para processamento da adesão junto à comercializadora parceira.
+                e autorizo o uso dos meus dados para processamento da adesão junto à fornecedora parceira.
               </span>
             </label>
 

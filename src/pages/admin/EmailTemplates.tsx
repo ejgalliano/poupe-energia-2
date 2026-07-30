@@ -34,7 +34,7 @@ const STATUS_COLORS: Record<string, string> = {
 const VARIAVEIS = [
   { key: "{{nome}}",          desc: "Primeiro nome do cliente" },
   { key: "{{nome_completo}}", desc: "Nome completo" },
-  { key: "{{empresa}}",       desc: "Nome da comercializadora" },
+  { key: "{{empresa}}",       desc: "Nome da fornecedora" },
   { key: "{{distribuidora}}", desc: "Nome da distribuidora" },
   { key: "{{percentual}}",    desc: "% de cashback (ex: 5%)" },
   { key: "{{valor_cashback}}",desc: "Valor pago (ex: R$ 120,00)" },

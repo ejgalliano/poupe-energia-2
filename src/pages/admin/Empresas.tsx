@@ -58,7 +58,7 @@ export default function Empresas() {
     <div className="space-y-4">
       <Dialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle>Excluir empresa?</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Excluir fornecedora?</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
             Tem certeza que deseja excluir <strong>{confirmDelete?.nome}</strong>? Esta ação é <strong>irreversível</strong> — todos os dados e notas serão apagados permanentemente.
           </p>
@@ -72,8 +72,8 @@ export default function Empresas() {
       </Dialog>
 
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Empresas</h1>
-        <Button onClick={() => setCreating(true)}>Nova empresa</Button>
+        <h1 className="text-2xl font-bold">Fornecedoras</h1>
+        <Button onClick={() => setCreating(true)}>Nova fornecedora</Button>
       </div>
       <Input placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-sm" />
       <Card>

@@ -84,7 +84,7 @@ interface Step {
 }
 
 const steps: Step[] = [
-  { n: 1, illu: <Illu1 />, title: "Veja o ranking", text: "Acesse o ranking atualizado das melhores comercializadoras de energia do mercado." },
+  { n: 1, illu: <Illu1 />, title: "Veja o ranking", text: "Acesse o ranking atualizado das melhores fornecedoras de energia do mercado." },
   { n: 2, illu: <Illu2 />, title: "Compare as empresas", text: "Analise descontos, Segurança jurídica, Reputação da empresa e Acessibilidade para fazer a escolha certa." },
   { n: 3, illu: <Illu3 />, title: "Simule sua economia", text: "Descubra quanto você pode economizar com o plano ideal para o seu consumo." },
   { n: 4, illu: <Illu4 />, title: "Aderir ao plano", text: "Adesão 100% digital e sem burocracia. Comece a economizar agora!" },

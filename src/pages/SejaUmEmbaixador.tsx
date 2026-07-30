@@ -70,7 +70,7 @@ const benefits: Benefit[] = [
   {
     emoji: "🔎",
     title: "Trabalhe com independência",
-    desc: "Você não fica preso a uma única comercializadora. Sempre terá acesso às melhores opções disponíveis para cada cliente.",
+    desc: "Você não fica preso a uma única fornecedora. Sempre terá acesso às melhores opções disponíveis para cada cliente.",
   },
   {
     emoji: "📈",
@@ -92,7 +92,7 @@ const benefits: Benefit[] = [
     title: "Plataforma completa para parceiros",
     desc: "Você terá acesso a:",
     list: [
-      "Ranking atualizado das comercializadoras",
+      "Ranking atualizado das fornecedoras",
       "Comparador inteligente",
       "Simulador de economia",
       "Painel de acompanhamento",
@@ -259,7 +259,7 @@ export default function SejaUmEmbaixador() {
               e Mercado Livre, analisando descontos, segurança jurídica, reputação e condições comerciais.
             </p>
             <p className="text-white/70 text-base max-w-3xl mx-auto leading-relaxed mb-8">
-              Enquanto representantes tradicionais ficam limitados a uma única comercializadora,
+              Enquanto representantes tradicionais ficam limitados a uma única fornecedora,
               nossos parceiros oferecem aos clientes a melhor opção disponível, com base em uma
               metodologia técnica atualizada continuamente.
             </p>

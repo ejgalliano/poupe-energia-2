@@ -9,14 +9,14 @@ const TermosCashback = () => {
     >
       <p>
         Estes Termos e Condições regulam o programa de <strong>Cashback e Benefícios</strong>{" "}
-        oferecido pela Poupe Energia aos usuários que aderirem a planos de comercializadoras
+        oferecido pela Poupe Energia aos usuários que aderirem a planos de fornecedoras
         parceiras por meio da plataforma.
       </p>
 
       <LegalSection number={1} title="Do Objeto">
         <p>
           O programa de Cashback consiste no <strong>retorno financeiro</strong> ao usuário
-          que efetivar a adesão a uma comercializadora de energia parceira da Poupe Energia,
+          que efetivar a adesão a uma fornecedora de energia parceira da Poupe Energia,
           observadas as condições previstas nestes Termos.
         </p>
         <p>
@@ -30,10 +30,10 @@ const TermosCashback = () => {
         <p>São elegíveis ao cashback os usuários que:</p>
         <LegalList>
           <li>
-            Tenham realizado a adesão a uma comercializadora{" "}
+            Tenham realizado a adesão a uma fornecedora{" "}
             <strong>por meio do link disponibilizado na plataforma</strong> Poupe Energia;
           </li>
-          <li>Tenham cumprido todas as exigências cadastrais e contratuais da comercializadora;</li>
+          <li>Tenham cumprido todas as exigências cadastrais e contratuais da fornecedora;</li>
           <li>
             Estejam com o contrato <strong>ativo e adimplente</strong> no momento da apuração
             e do pagamento;
@@ -51,7 +51,7 @@ const TermosCashback = () => {
         <p>
           A ausência da ativação do cashback pelo usuário na plataforma poderá{" "}
           <strong>impedir a liberação do benefício</strong>, ainda que a adesão ao plano
-          tenha sido concluída junto à comercializadora parceira.
+          tenha sido concluída junto à fornecedora parceira.
         </p>
         <p>
           A vigência do programa é por prazo indeterminado, podendo ser alterada, suspensa
@@ -64,20 +64,20 @@ const TermosCashback = () => {
           O cashback concedido pela Poupe Energia possui <strong>natureza promocional e
           comercial</strong>, sendo devido ao usuário apenas{" "}
           <strong>uma única vez por unidade consumidora</strong> cadastrada e vinculada à
-          adesão realizada junto à comercializadora parceira.
+          adesão realizada junto à fornecedora parceira.
         </p>
         <p>
           O benefício <strong>não possui caráter recorrente, mensal, vitalício ou
-          continuado</strong>, ainda que o consumidor permaneça ativo na comercializadora
+          continuado</strong>, ainda que o consumidor permaneça ativo na fornecedora
           parceira após a adesão.
         </p>
         <p>O direito ao recebimento do cashback será adquirido somente após:</p>
         <LegalList>
-          <li>A efetiva ativação da unidade consumidora na comercializadora parceira;</li>
+          <li>A efetiva ativação da unidade consumidora na fornecedora parceira;</li>
           <li>A compensação/injeção dos créditos de energia, quando aplicável ao modelo contratado;</li>
           <li>A emissão da primeira fatura vinculada ao novo plano contratado;</li>
           <li>A confirmação do pagamento integral da primeira fatura pelo consumidor;</li>
-          <li>A validação das informações pela comercializadora parceira e pela Poupe Energia.</li>
+          <li>A validação das informações pela fornecedora parceira e pela Poupe Energia.</li>
         </LegalList>
         <p>
           Após o pagamento do cashback referente à adesão validada, considerar-se-á{" "}
@@ -89,7 +89,7 @@ const TermosCashback = () => {
       <LegalSection number={4} title="Da Base de Cálculo do Cashback">
         <p>
           O cashback corresponde a um <strong>percentual promocional</strong> previamente
-          divulgado na plataforma da Poupe Energia para cada comercializadora parceira
+          divulgado na plataforma da Poupe Energia para cada fornecedora parceira
           participante.
         </p>
         <p>
@@ -114,7 +114,7 @@ const TermosCashback = () => {
       <LegalSection number={5} title="Da Referência de Consumo e Auditoria">
         <p>
           Para validação do benefício, poderá ser considerada a fatura emitida pela
-          comercializadora parceira, pela distribuidora local ou quaisquer documentos
+          fornecedora parceira, pela distribuidora local ou quaisquer documentos
           comprobatórios relacionados à ativação e utilização do serviço contratado.
         </p>
         <p>
@@ -146,7 +146,7 @@ const TermosCashback = () => {
           <li>Ativação da unidade consumidora;</li>
           <li>Injeção/compensação dos créditos de energia, quando aplicável;</li>
           <li>Pagamento da primeira fatura pelo consumidor;</li>
-          <li>Recebimento e validação das informações pela comercializadora parceira;</li>
+          <li>Recebimento e validação das informações pela fornecedora parceira;</li>
           <li>Aprovação cadastral e operacional pela Poupe Energia.</li>
         </LegalList>
       </LegalSection>
@@ -180,8 +180,8 @@ const TermosCashback = () => {
       <LegalSection number={9} title="Do Cancelamento e Perda do Direito">
         <p>O usuário perderá o direito ao cashback nas seguintes hipóteses:</p>
         <LegalList>
-          <li>Cancelamento do contrato junto à comercializadora parceira antes da validação final;</li>
-          <li>Inadimplência junto à comercializadora ou distribuidora;</li>
+          <li>Cancelamento do contrato junto à fornecedora parceira antes da validação final;</li>
+          <li>Inadimplência junto à fornecedora ou distribuidora;</li>
           <li>Não ativação do cadastro no botão <strong>"Entrar – Ativar Cashback"</strong>;</li>
           <li>Informações cadastrais incompletas ou inconsistentes;</li>
           <li>Constatação de fraude, simulação ou má-fé;</li>
@@ -245,7 +245,7 @@ const TermosCashback = () => {
               <li>E-mail e telefone;</li>
               <li>Dados bancários (banco, agência, conta ou chave Pix);</li>
               <li>Cópias de faturas e comprovantes de pagamento;</li>
-              <li>Dados de adesão e relacionamento com a comercializadora parceira;</li>
+              <li>Dados de adesão e relacionamento com a fornecedora parceira;</li>
               <li>
                 Informações de ativação e validação do cadastro no sistema da Poupe Energia.
               </li>
@@ -272,7 +272,7 @@ const TermosCashback = () => {
               Os dados poderão ser compartilhados com:
             </p>
             <LegalList>
-              <li>Comercializadoras parceiras;</li>
+              <li>Fornecedoras parceiras;</li>
               <li>Instituições financeiras responsáveis pelos pagamentos;</li>
               <li>Prestadores de serviços tecnológicos vinculados ao programa;</li>
               <li>Autoridades públicas, quando exigido por lei.</li>

@@ -18,7 +18,7 @@ const PoliticaDePrivacidade = () => {
       <LegalSection number={1} title="Quem Somos">
         <p>
           A <strong>Poupe Energia</strong> é uma plataforma digital que organiza e
-          compara comercializadoras de energia elétrica do mercado livre e da geração
+          compara fornecedoras de energia elétrica do mercado livre e da geração
           distribuída no Brasil, com foco em transparência, economia e segurança jurídica.
         </p>
         <p>
@@ -53,7 +53,7 @@ const PoliticaDePrivacidade = () => {
       <LegalSection number={3} title="Como Utilizamos os Dados">
         <p>Os dados coletados são utilizados para:</p>
         <LegalList>
-          <li>Permitir a comparação personalizada entre comercializadoras de energia;</li>
+          <li>Permitir a comparação personalizada entre fornecedoras de energia;</li>
           <li>Encaminhar o usuário às empresas parceiras escolhidas;</li>
           <li>Realizar contato comercial e suporte sobre a adesão;</li>
           <li>Cumprir obrigações legais e regulatórias;</li>
@@ -66,7 +66,7 @@ const PoliticaDePrivacidade = () => {
         <p>A Poupe Energia <strong>não vende</strong> dados pessoais. Compartilhamos informações apenas:</p>
         <LegalList>
           <li>
-            Com a <strong>comercializadora parceira escolhida pelo usuário</strong>, exclusivamente
+            Com a <strong>fornecedora parceira escolhida pelo usuário</strong>, exclusivamente
             para viabilizar a proposta de adesão;
           </li>
           <li>Com prestadores de serviço (hospedagem, e-mail, analytics) sob obrigação contratual de sigilo;</li>

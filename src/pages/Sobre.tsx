@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 const oQueFazemos = [
   {
     icon: "📊",
-    title: "Comparador de Comercializadoras",
+    title: "Comparador de Fornecedoras",
     desc: "Apresentamos um ranking estruturado com base em critérios objetivos, permitindo a comparação real entre empresas.",
   },
   {
@@ -35,7 +35,7 @@ const pilares = [
 
 const numeros = [
   { value: "23", label: "Estados + DF" },
-  { value: "100+", label: "Comercializadoras avaliadas" },
+  { value: "100+", label: "Fornecedoras avaliadas" },
   { value: "40+", label: "Distribuidoras cobertas" },
   { value: "4", label: "Pilares de análise" },
 ];
@@ -45,7 +45,7 @@ const Sobre = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
         title="Sobre a Poupe Energia | Comparador de Energia"
-        description="O primeiro comparador independente de comercializadoras de energia elétrica do Brasil."
+        description="O primeiro comparador independente de fornecedoras de energia elétrica do Brasil."
       />
       <Header />
 
@@ -56,7 +56,7 @@ const Sobre = () => {
             Sobre a <span className="text-brand-yellow">Poupe Energia</span>
           </h1>
           <p className="text-lg md:text-xl text-white/85 leading-relaxed">
-            O primeiro comparador independente de comercializadoras de energia elétrica do Brasil.
+            O primeiro comparador independente de fornecedoras de energia elétrica do Brasil.
           </p>
         </div>
       </section>
@@ -69,7 +69,7 @@ const Sobre = () => {
               Nossa plataforma foi criada para trazer clareza a um mercado historicamente complexo,
               permitindo que consumidores e empresas encontrem, comparem e escolham as melhores opções
               de energia com segurança. Atuamos como um hub de inteligência e conexão, reunindo em um só
-              lugar as principais comercializadoras do país e organizando suas ofertas de forma transparente,
+              lugar as principais fornecedoras do país e organizando suas ofertas de forma transparente,
               padronizada e acessível.
             </p>
           </div>

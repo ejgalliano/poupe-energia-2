@@ -18,7 +18,7 @@ const TermosDeUso = () => {
       <LegalSection number={1} title="Objeto">
         <p>
           A Poupe Energia é uma <strong>plataforma independente de comparação</strong> de
-          comercializadoras de energia elétrica, com foco em geração distribuída e mercado
+          fornecedoras de energia elétrica, com foco em geração distribuída e mercado
           livre. A plataforma fornece informações, rankings e ferramentas para auxiliar o
           usuário na escolha da melhor opção, intermediando o contato com empresas parceiras.
         </p>
@@ -49,7 +49,7 @@ const TermosDeUso = () => {
       <LegalSection number={4} title="Uso Permitido">
         <p>O usuário poderá utilizar a plataforma para:</p>
         <LegalList>
-          <li>Consultar rankings e fichas técnicas das comercializadoras;</li>
+          <li>Consultar rankings e fichas técnicas das fornecedoras;</li>
           <li>Comparar propostas residenciais e empresariais;</li>
           <li>Solicitar contato com empresas parceiras;</li>
           <li>Acessar conteúdos institucionais e educativos sobre o mercado de energia.</li>
@@ -80,17 +80,17 @@ const TermosDeUso = () => {
       <LegalSection number={7} title="Intermediação de Propostas">
         <p>
           A Poupe Energia atua exclusivamente como <strong>intermediadora</strong> entre o
-          usuário e as comercializadoras parceiras, não sendo parte na relação contratual
+          usuário e as fornecedoras parceiras, não sendo parte na relação contratual
           estabelecida entre eles. A contratação, faturamento, fornecimento de energia,
           atendimento, cancelamento e quaisquer obrigações decorrentes são de responsabilidade
-          exclusiva da comercializadora escolhida.
+          exclusiva da fornecedora escolhida.
         </p>
       </LegalSection>
 
       <LegalSection number={8} title="Limitação de Responsabilidade">
         <p>A Poupe Energia não se responsabiliza por:</p>
         <LegalList>
-          <li>Atos, omissões ou descumprimento contratual praticados pelas comercializadoras parceiras;</li>
+          <li>Atos, omissões ou descumprimento contratual praticados pelas fornecedoras parceiras;</li>
           <li>Variações nos descontos, tarifas ou condições oferecidas pelas empresas após o contato inicial;</li>
           <li>Indisponibilidades temporárias da plataforma decorrentes de manutenção, falhas de terceiros ou caso fortuito/força maior;</li>
           <li>Dados informados incorretamente pelo próprio usuário.</li>

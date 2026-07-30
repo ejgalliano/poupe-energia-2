@@ -275,7 +275,7 @@ export default function Notas() {
       <Card>
         <CardContent className="grid md:grid-cols-2 gap-4 pt-6">
           <div>
-            <Label>Empresa</Label>
+            <Label>Fornecedora</Label>
             <Select value={empresaId} onValueChange={setEmpresaId}>
               <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
               <SelectContent>{empresas.map((e) => <SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>)}</SelectContent>

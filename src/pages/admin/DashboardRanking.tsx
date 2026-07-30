@@ -161,10 +161,10 @@ export default function DashboardRanking() {
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Empresas", value: totais.empresas, icon: Building2, color: "text-brand-blue", bg: "bg-brand-blue/10" },
+          { label: "Fornecedoras", value: totais.empresas, icon: Building2, color: "text-brand-blue", bg: "bg-brand-blue/10" },
           { label: "Distribuidoras", value: totais.distribuidoras, icon: MapPin, color: "text-purple-600", bg: "bg-purple-100" },
           { label: "Estados cobertos", value: totais.estados, icon: Globe, color: "text-green-600", bg: "bg-green-100" },
-          { label: "Empresas parceiras", value: totais.parceiras, icon: Star, color: "text-brand-yellow", bg: "bg-brand-yellow/20" },
+          { label: "Fornecedoras parceiras", value: totais.parceiras, icon: Star, color: "text-brand-yellow", bg: "bg-brand-yellow/20" },
         ].map(({ label, value, icon: Icon, color, bg }) => (
           <Card key={label} className="border-0 shadow-sm">
             <CardContent className="pt-5 pb-4 flex items-start justify-between">
@@ -240,7 +240,7 @@ export default function DashboardRanking() {
               <thead className="bg-muted/40">
                 <tr>
                   <th className="text-left px-4 py-2 text-xs text-muted-foreground font-medium w-8">#</th>
-                  <th className="text-left px-3 py-2 text-xs text-muted-foreground font-medium">Empresa</th>
+                  <th className="text-left px-3 py-2 text-xs text-muted-foreground font-medium">Fornecedora</th>
                   <th className="text-left px-3 py-2 text-xs text-muted-foreground font-medium">Distribuidora</th>
                   <th className="text-center px-3 py-2 text-xs text-muted-foreground font-medium">UF</th>
                   <th className="text-right px-4 py-2 text-xs text-muted-foreground font-medium">Nota</th>

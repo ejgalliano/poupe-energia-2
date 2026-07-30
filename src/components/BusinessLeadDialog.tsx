@@ -203,7 +203,7 @@ const BusinessLeadDialog = ({ open, onOpenChange }: Props) => {
                   {
                     icon: Trophy,
                     title: "Mesa competitiva",
-                    desc: "Consultamos as principais comercializadoras e negociamos para você.",
+                    desc: "Consultamos as principais fornecedoras e negociamos para você.",
                   },
                   {
                     icon: Wallet,

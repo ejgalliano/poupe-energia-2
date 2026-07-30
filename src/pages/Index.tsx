@@ -10,8 +10,8 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <SEO
-        title="Poupe Energia — Compare comercializadoras de energia e economize na conta de luz"
-        description="O primeiro comparador independente de comercializadoras de energia do Brasil. Ranking transparente, cashback de 10% e economia real."
+        title="Poupe Energia — Compare fornecedoras de energia e economize na conta de luz"
+        description="O primeiro comparador independente de fornecedoras de energia do Brasil. Ranking transparente, cashback de 10% e economia real."
       />
       <Header />
       <main className="flex-1">
