@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Copy, Download, Pencil, Plus, Save, X, CheckCircle2, XCircle } from "lucide-react";
+import { Copy, Download, Pencil, Plus, Save, X, CheckCircle2, XCircle, Eye } from "lucide-react";
 
 type Embaixador = {
   id?: string;
@@ -77,6 +77,27 @@ const STATUS_COLORS: Record<string, string> = {
 const fmtBRL = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+// Rotulos usados no formulario publico (/programa-de-parceiros) para decodificar
+// os valores salvos em embaixadores_candidatos.observacoes (JSON).
+const PERFIL_LABELS: Record<string, string> = {
+  contabilidade: "Escritório Contábil",
+  imobiliaria: "Imobiliária",
+  condominio: "Administradora de Condomínio",
+  solar: "Empresa de Energia Solar",
+  seguros: "Corretor de Seguros",
+  consultor: "Consultor Empresarial",
+  bancario: "Correspondente Bancário",
+  associacao: "Associação Comercial",
+  outro: "Outro",
+};
+
+const QTD_CLIENTES_LABELS: Record<string, string> = {
+  ate100: "Até 100",
+  "101a500": "101 a 500",
+  "501a2000": "501 a 2.000",
+  acima2000: "Acima de 2.000",
+};
+
 const nextCodigo = (existing: string[]) => {
   const nums = existing
     .map((c) => /^PPO(\d+)$/i.exec(c)?.[1])
@@ -106,6 +127,7 @@ export default function Embaixadores() {
   const [filterEmpresa, setFilterEmpresa] = useState("all");
 
   const [selLead, setSelLead] = useState<LeadEmb | null>(null);
+  const [selCandidato, setSelCandidato] = useState<Candidato | null>(null);
 
   const load = async () => {
     const [e, l, emp, cand] = await Promise.all([
@@ -350,6 +372,9 @@ export default function Embaixadores() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right space-x-1">
+                        <Button size="sm" variant="outline" onClick={() => setSelCandidato(c)}>
+                          <Eye className="h-3 w-3 mr-1" /> Ver ficha
+                        </Button>
                         {c.status === "pendente" && (
                           <>
                             <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => aprovarCandidato(c)}>
@@ -649,6 +674,65 @@ export default function Embaixadores() {
               </div>
             </div>
           )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Candidato Detail Sheet */}
+      <Sheet open={!!selCandidato} onOpenChange={(o) => !o && setSelCandidato(null)}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader><SheetTitle>Ficha do candidato</SheetTitle></SheetHeader>
+          {selCandidato && (() => {
+            let obs: { perfil?: string; carteira_ativa?: boolean; qtd_clientes?: string } = {};
+            try { obs = selCandidato.observacoes ? JSON.parse(selCandidato.observacoes) : {}; } catch { /* observacoes invalido, ignora */ }
+            return (
+              <div className="space-y-4 mt-4 text-sm">
+                <div className="space-y-1">
+                  <div><span className="text-muted-foreground">Nome: </span>{selCandidato.nome}</div>
+                  <div><span className="text-muted-foreground">Email: </span>{selCandidato.email}</div>
+                  <div><span className="text-muted-foreground">Telefone: </span>{selCandidato.telefone}</div>
+                  <div><span className="text-muted-foreground">Cidade/UF: </span>{selCandidato.cidade}/{selCandidato.uf}</div>
+                  <div><span className="text-muted-foreground">Data de cadastro: </span>{new Date(selCandidato.created_at).toLocaleString("pt-BR")}</div>
+                </div>
+                <div className="border-t pt-3 space-y-1">
+                  <div><span className="text-muted-foreground">Perfil: </span>{obs.perfil ? (PERFIL_LABELS[obs.perfil] ?? obs.perfil) : "—"}</div>
+                  <div><span className="text-muted-foreground">Carteira ativa de clientes: </span>{obs.carteira_ativa == null ? "—" : obs.carteira_ativa ? "Sim" : "Não"}</div>
+                  <div><span className="text-muted-foreground">Quantidade de clientes: </span>{obs.qtd_clientes ? (QTD_CLIENTES_LABELS[obs.qtd_clientes] ?? obs.qtd_clientes) : "—"}</div>
+                  <div><span className="text-muted-foreground">Possui equipe comercial: </span>{selCandidato.tem_equipe ? "Sim" : "Não"}</div>
+                  <div><span className="text-muted-foreground">É MEI: </span>{selCandidato.is_mei ? "Sim" : "Não"}</div>
+                </div>
+                <div className="border-t pt-3">
+                  <Badge className={
+                    selCandidato.status === "pendente"   ? "bg-yellow-100 text-yellow-800" :
+                    selCandidato.status === "aprovado"   ? "bg-green-100 text-green-700"  :
+                                                            "bg-red-100 text-red-700"
+                  }>
+                    {selCandidato.status === "pendente" ? "Pendente" : selCandidato.status === "aprovado" ? "Aprovado" : "Rejeitado"}
+                  </Badge>
+                  {selCandidato.aprovado_em && (
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      em {new Date(selCandidato.aprovado_em).toLocaleDateString("pt-BR")}
+                    </span>
+                  )}
+                </div>
+                {selCandidato.status === "pendente" && (
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                      onClick={() => { aprovarCandidato(selCandidato); setSelCandidato(null); }}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-1" /> Aprovar
+                    </Button>
+                    <Button
+                      variant="outline" className="text-red-600 border-red-200 flex-1"
+                      onClick={() => { rejeitarCandidato(selCandidato.id); setSelCandidato(null); }}
+                    >
+                      <XCircle className="h-4 w-4 mr-1" /> Rejeitar
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </SheetContent>
       </Sheet>
 
