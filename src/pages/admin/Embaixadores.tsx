@@ -37,10 +37,13 @@ type Candidato = {
   id: string;
   created_at: string;
   nome: string;
+  cpf: string | null;
   email: string;
   telefone: string;
   cidade: string;
   uf: string;
+  razao_social: string | null;
+  cnpj: string | null;
   is_mei: boolean;
   tem_equipe: boolean;
   status: "pendente" | "aprovado" | "rejeitado";
@@ -256,11 +259,11 @@ export default function Embaixadores() {
       .from("embaixadores")
       .insert({
         codigo,
-        nome: cand.nome,
+        nome: cand.razao_social || cand.nome,
         email: cand.email,
         telefone: cand.telefone,
-        tipo: "pessoa_fisica",
-        cpf_cnpj: null,
+        tipo: cand.cnpj ? "pessoa_juridica" : "pessoa_fisica",
+        cpf_cnpj: cand.cnpj || cand.cpf || null,
         comissao_percentual: 5,
         chave_pix: null,
         ativo: true,
@@ -688,10 +691,15 @@ export default function Embaixadores() {
               <div className="space-y-4 mt-4 text-sm">
                 <div className="space-y-1">
                   <div><span className="text-muted-foreground">Nome: </span>{selCandidato.nome}</div>
+                  <div><span className="text-muted-foreground">CPF: </span>{selCandidato.cpf || "—"}</div>
                   <div><span className="text-muted-foreground">Email: </span>{selCandidato.email}</div>
                   <div><span className="text-muted-foreground">Telefone: </span>{selCandidato.telefone}</div>
                   <div><span className="text-muted-foreground">Cidade/UF: </span>{selCandidato.cidade}/{selCandidato.uf}</div>
                   <div><span className="text-muted-foreground">Data de cadastro: </span>{new Date(selCandidato.created_at).toLocaleString("pt-BR")}</div>
+                </div>
+                <div className="border-t pt-3 space-y-1">
+                  <div><span className="text-muted-foreground">Razão Social: </span>{selCandidato.razao_social || "—"}</div>
+                  <div><span className="text-muted-foreground">CNPJ: </span>{selCandidato.cnpj || "—"}</div>
                 </div>
                 <div className="border-t pt-3 space-y-1">
                   <div><span className="text-muted-foreground">Perfil: </span>{obs.perfil ? (PERFIL_LABELS[obs.perfil] ?? obs.perfil) : "—"}</div>

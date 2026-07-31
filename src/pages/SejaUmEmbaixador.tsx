@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
-import { CheckCircle2, Loader2, User, Mail, Phone, MapPin } from "lucide-react";
+import { CheckCircle2, Loader2, User, Mail, Phone, MapPin, IdCard, Building2 } from "lucide-react";
 import { STATES } from "@/data/states";
 
 const INPUT = "w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition bg-white placeholder:text-gray-400";
@@ -23,6 +23,23 @@ function maskPhone(value: string) {
   return digits
     .replace(/^(\d{2})(\d)/, "($1) $2")
     .replace(/(\d{5})(\d)/, "$1-$2");
+}
+
+function maskCpf(value: string) {
+  const d = value.replace(/\D/g, "").slice(0, 11);
+  return d
+    .replace(/^(\d{3})(\d)/, "$1.$2")
+    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1-$2");
+}
+
+function maskCnpj(value: string) {
+  const d = value.replace(/\D/g, "").slice(0, 14);
+  return d
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
 }
 
 function RadioGroup({
@@ -154,10 +171,13 @@ const QTD_CLIENTES = [
 export default function SejaUmEmbaixador() {
   const [form, setForm] = useState({
     nome: "",
+    cpf: "",
     email: "",
     telefone: "",
     cidade: "",
     uf: "",
+    razao_social: "",
+    cnpj: "",
     perfil: "",
     carteira_ativa: "",
     qtd_clientes: "",
@@ -171,7 +191,7 @@ export default function SejaUmEmbaixador() {
     setForm((f) => ({ ...f, [field]: value }));
 
   const canSubmit =
-    form.nome && form.email && form.telefone && form.cidade && form.uf &&
+    form.nome && form.cpf && form.email && form.telefone && form.cidade && form.uf &&
     form.perfil && form.carteira_ativa && form.qtd_clientes && form.tem_equipe;
 
   const handleSubmit = async () => {
@@ -183,10 +203,13 @@ export default function SejaUmEmbaixador() {
         .from("embaixadores_candidatos")
         .insert({
           nome: form.nome,
+          cpf: form.cpf,
           email: form.email,
           telefone: form.telefone,
           cidade: form.cidade,
           uf: form.uf,
+          razao_social: form.razao_social || null,
+          cnpj: form.cnpj || null,
           is_mei: null,
           tem_equipe: form.tem_equipe === "sim",
           status: "pendente",
@@ -368,19 +391,37 @@ export default function SejaUmEmbaixador() {
 
               {/* Dados de contato */}
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Nome completo <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Seu nome completo"
-                      value={form.nome}
-                      onChange={(e) => set("nome")(e.target.value)}
-                      className={INPUT}
-                    />
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Nome completo <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Seu nome completo"
+                        value={form.nome}
+                        onChange={(e) => set("nome")(e.target.value)}
+                        className={INPUT}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      CPF <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="000.000.000-00"
+                        value={form.cpf}
+                        onChange={(e) => set("cpf")(maskCpf(e.target.value))}
+                        className={INPUT}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -459,6 +500,40 @@ export default function SejaUmEmbaixador() {
               {/* Sobre sua empresa */}
               <div className="space-y-5">
                 <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Sobre sua empresa</p>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Razão Social <span className="text-gray-400 font-normal">(se possuir empresa)</span>
+                    </label>
+                    <div className="relative">
+                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        placeholder="Nome da sua empresa"
+                        value={form.razao_social}
+                        onChange={(e) => set("razao_social")(e.target.value)}
+                        className={INPUT}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      CNPJ <span className="text-gray-400 font-normal">(se possuir empresa)</span>
+                    </label>
+                    <div className="relative">
+                      <IdCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="00.000.000/0000-00"
+                        value={form.cnpj}
+                        onChange={(e) => set("cnpj")(maskCnpj(e.target.value))}
+                        className={INPUT}
+                      />
+                    </div>
+                  </div>
+                </div>
 
                 <div>
                   <p className="text-sm font-semibold text-gray-700 mb-2">
