@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Facebook, Instagram, Linkedin, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -26,19 +25,6 @@ const col2 = [
 ];
 
 const Footer = () => {
-  useEffect(() => {
-    const container = document.getElementById("ra-verified-seal");
-    if (!container || container.querySelector("script")) return;
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.id = "ra-embed-verified-seal";
-    script.src = "https://s3.amazonaws.com/raichu-beta/ra-verified/bundle.js";
-    script.dataset.id = "TTE0V3ZHTXNHOTZxS3FRZTpwb3VwZS1lbmVyZ2lh";
-    script.dataset.target = "ra-verified-seal";
-    script.dataset.model = "horizontal_1";
-    container.appendChild(script);
-  }, []);
-
   return (
     <footer className="bg-brand-blue text-white">
       <div className="container mx-auto px-4 py-14">
@@ -69,7 +55,27 @@ const Footer = () => {
               ))}
             </div>
             {/* Selo Reclame Aqui */}
-            <div id="ra-verified-seal" />
+            <a
+              href="https://www.reclameaqui.com.br/empresa/poupe-energia/"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Selo RA Verificada"
+              className="inline-flex items-center gap-1.5 bg-white rounded-lg p-1.5"
+            >
+              <img
+                src="https://s3.amazonaws.com/raichu-beta/ra-verified/assets/images/verified.svg"
+                alt="Selo RA Verificada"
+                className="h-6 w-6 shrink-0"
+              />
+              <div className="flex flex-col items-start gap-0.5">
+                <span className="text-xs leading-none text-[#0F172B]">Verificada por</span>
+                <img
+                  src="https://s3.amazonaws.com/raichu-beta/ra-verified/assets/images/ra-logo.svg"
+                  alt="Reclame Aqui"
+                  className="w-[92px] h-4"
+                />
+              </div>
+            </a>
           </div>
 
           {/* Col 1 */}
