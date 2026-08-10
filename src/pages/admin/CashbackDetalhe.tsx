@@ -287,18 +287,23 @@ export default function CashbackDetalhe() {
     if (error) { toast.error(error.message); setSavingFatura(false); return; }
     setFatura(data as FaturaDetalhamento);
 
-    // Atualiza a comissão do parceiro vinculado, se houver (Grupo B só — Grupo A vem do
-    // lançamento mensal por fornecedora, não desta fatura).
-    if (vinculo && fatura.grupo_tarifario === "B" && comissaoSugerida != null) {
+    // Atualiza o vínculo com o parceiro, se houver: grupo tarifário sempre (usado nos
+    // relatórios), e a comissão de verdade só pro Grupo B (Grupo A vem do lançamento
+    // mensal por fornecedora, não desta fatura).
+    if (vinculo) {
+      const vincPatch: { grupo_tarifario: "A" | "B"; valor_comissao?: number; commission_policy_id?: string | null } = {
+        grupo_tarifario: fatura.grupo_tarifario,
+      };
+      if (fatura.grupo_tarifario === "B" && comissaoSugerida != null) {
+        vincPatch.valor_comissao = comissaoSugerida;
+        vincPatch.commission_policy_id = policyB?.id ?? null;
+      }
       const { error: vincErr } = await supabase
         .from("leads_embaixadores")
-        .update({
-          valor_comissao: comissaoSugerida,
-          commission_policy_id: policyB?.id ?? null,
-        })
+        .update(vincPatch)
         .eq("id", vinculo.id);
-      if (vincErr) toast.error("Fatura salva, mas falhou ao atualizar a comissão do parceiro: " + vincErr.message);
-      else setVinculo({ ...vinculo, valor_comissao: comissaoSugerida });
+      if (vincErr) toast.error("Fatura salva, mas falhou ao atualizar o vínculo do parceiro: " + vincErr.message);
+      else setVinculo({ ...vinculo, valor_comissao: vincPatch.valor_comissao ?? vinculo.valor_comissao });
     }
 
     setSavingFatura(false);

@@ -65,18 +65,32 @@ type CommissionPolicy = {
 
 type LeadEmb = {
   id: string;
-  lead_id: string;
+  lead_id: string | null;
+  cashback_cadastro_id: string | null;
   embaixador_id: string;
   empresa_id: string;
   status_comissao: "pendente" | "validado" | "pago" | "cancelado";
   valor_comissao: number;
+  grupo_tarifario: "A" | "B" | null;
+  mes_referencia: string | null;
   data_adesao: string | null;
   data_pagamento: string | null;
   observacoes: string | null;
   created_at: string;
   leads?: { nome: string | null; email: string | null; telefone: string | null; created_at: string } | null;
+  cashback_cadastros?: { nome: string | null; email: string | null; telefone: string | null } | null;
   empresas?: { nome: string } | null;
   embaixadores?: { codigo: string; nome: string; comissao_percentual: number | null; chave_pix: string | null } | null;
+};
+
+const ORIGEM_LABELS: Record<string, string> = {
+  cashback: "Adesão (Cashback)",
+  parceria: "Solicitação de Parceria",
+};
+
+const GRUPO_LABELS: Record<string, string> = {
+  A: "Grupo A (recorrente)",
+  B: "Grupo B (único)",
 };
 
 const PUBLIC_BASE = "https://www.poupeenergia.com.br";
@@ -90,6 +104,13 @@ const STATUS_COLORS: Record<string, string> = {
 
 const fmtBRL = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const origemLead = (l: LeadEmb): "cashback" | "parceria" =>
+  l.cashback_cadastro_id ? "cashback" : "parceria";
+
+const consumidorNome = (l: LeadEmb) => l.leads?.nome ?? l.cashback_cadastros?.nome ?? "—";
+const consumidorEmail = (l: LeadEmb) => l.leads?.email ?? l.cashback_cadastros?.email ?? "";
+const consumidorTelefone = (l: LeadEmb) => l.leads?.telefone ?? l.cashback_cadastros?.telefone ?? "";
 
 // Rotulos usados no formulario publico (/programa-de-parceiros) para decodificar
 // os valores salvos em embaixadores_candidatos.observacoes (JSON).
@@ -162,7 +183,7 @@ export default function Embaixadores() {
       supabase.from("embaixadores").select("*").order("codigo"),
       supabase
         .from("leads_embaixadores")
-        .select("*, leads(nome,email,telefone,created_at), empresas(nome), embaixadores(codigo,nome,comissao_percentual,chave_pix)")
+        .select("*, leads(nome,email,telefone,created_at), cashback_cadastros(nome,email,telefone), empresas(nome), embaixadores(codigo,nome,comissao_percentual,chave_pix)")
         .order("created_at", { ascending: false })
         .limit(2000),
       supabase.from("empresas").select("id, nome").order("nome"),
@@ -269,14 +290,17 @@ export default function Embaixadores() {
   }, [leads, dataIni, dataFim, filterEmb, filterStatus, filterEmpresa]);
 
   const exportCSV = () => {
-    const header = ["Data", "Consumidor", "Email", "Telefone", "Fornecedora", "Parceiro Comercial", "Comissão %", "Valor", "Status", "Data adesão", "Data pagamento"];
+    const header = ["Data", "Origem", "Consumidor", "Email", "Telefone", "Fornecedora", "Parceiro Comercial", "Grupo tarifário", "Mês referência", "Comissão %", "Valor", "Status", "Data adesão", "Data pagamento"];
     const rows = leadsFiltrados.map((l) => [
       new Date(l.created_at).toLocaleString("pt-BR"),
-      l.leads?.nome ?? "",
-      l.leads?.email ?? "",
-      l.leads?.telefone ?? "",
+      ORIGEM_LABELS[origemLead(l)],
+      consumidorNome(l),
+      consumidorEmail(l),
+      consumidorTelefone(l),
       l.empresas?.nome ?? "",
       `${l.embaixadores?.codigo ?? ""} - ${l.embaixadores?.nome ?? ""}`,
+      l.grupo_tarifario ? GRUPO_LABELS[l.grupo_tarifario] : "pendente",
+      l.mes_referencia ?? "",
       l.embaixadores?.comissao_percentual != null ? String(l.embaixadores.comissao_percentual) : "política padrão",
       String(l.valor_comissao ?? 0),
       l.status_comissao,
@@ -588,9 +612,11 @@ export default function Embaixadores() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Data</TableHead>
+                    <TableHead>Origem</TableHead>
                     <TableHead>Consumidor</TableHead>
                     <TableHead>Fornecedora</TableHead>
                     <TableHead>Parceiro Comercial</TableHead>
+                    <TableHead>Grupo</TableHead>
                     <TableHead>Comissão</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Adesão</TableHead>
@@ -601,14 +627,33 @@ export default function Embaixadores() {
                   {leadsFiltrados.map((l) => (
                     <TableRow key={l.id} className="cursor-pointer" onClick={() => setSelLead(l)}>
                       <TableCell className="text-xs">{new Date(l.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                      <TableCell className="text-xs">
+                        <Badge variant="outline" className="text-[10px] font-normal">
+                          {ORIGEM_LABELS[origemLead(l)]}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
-                        <div className="text-sm">{l.leads?.nome ?? "—"}</div>
-                        <div className="text-xs text-muted-foreground">{l.leads?.email ?? ""}</div>
+                        <div className="text-sm">{consumidorNome(l)}</div>
+                        <div className="text-xs text-muted-foreground">{consumidorEmail(l)}</div>
                       </TableCell>
                       <TableCell className="text-sm">{l.empresas?.nome ?? "—"}</TableCell>
                       <TableCell className="text-xs">
                         <div className="font-mono">{l.embaixadores?.codigo}</div>
                         <div>{l.embaixadores?.nome}</div>
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {l.grupo_tarifario ? (
+                          <>
+                            {GRUPO_LABELS[l.grupo_tarifario]}
+                            {l.mes_referencia && (
+                              <div className="text-muted-foreground">
+                                ref. {new Date(l.mes_referencia + "T00:00:00").toLocaleDateString("pt-BR", { month: "short", year: "numeric" })}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-gray-300">pendente</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-xs">
                         {fmtBRL(Number(l.valor_comissao) || 0)}
@@ -623,7 +668,7 @@ export default function Embaixadores() {
                     </TableRow>
                   ))}
                   {leadsFiltrados.length === 0 && (
-                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Nenhum lead.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-6">Nenhum lead.</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
@@ -920,11 +965,17 @@ export default function Embaixadores() {
           {selLead && (
             <div className="space-y-4 mt-4 text-sm">
               <div className="space-y-1">
-                <div><span className="text-muted-foreground">Consumidor: </span>{selLead.leads?.nome ?? "—"}</div>
-                <div><span className="text-muted-foreground">Email: </span>{selLead.leads?.email ?? "—"}</div>
-                <div><span className="text-muted-foreground">Telefone: </span>{selLead.leads?.telefone ?? "—"}</div>
+                <div><span className="text-muted-foreground">Origem: </span>{ORIGEM_LABELS[origemLead(selLead)]}</div>
+                <div><span className="text-muted-foreground">Consumidor: </span>{consumidorNome(selLead)}</div>
+                <div><span className="text-muted-foreground">Email: </span>{consumidorEmail(selLead) || "—"}</div>
+                <div><span className="text-muted-foreground">Telefone: </span>{consumidorTelefone(selLead) || "—"}</div>
                 <div><span className="text-muted-foreground">Fornecedora: </span>{selLead.empresas?.nome}</div>
                 <div><span className="text-muted-foreground">Parceiro Comercial: </span>{selLead.embaixadores?.codigo} — {selLead.embaixadores?.nome}</div>
+                <div>
+                  <span className="text-muted-foreground">Grupo tarifário: </span>
+                  {selLead.grupo_tarifario ? GRUPO_LABELS[selLead.grupo_tarifario] : "Pendente (falta lançar o detalhamento da fatura)"}
+                  {selLead.mes_referencia && ` — ref. ${new Date(selLead.mes_referencia + "T00:00:00").toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}`}
+                </div>
               </div>
 
               <div>
