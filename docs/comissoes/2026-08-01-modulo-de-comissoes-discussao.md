@@ -1,8 +1,9 @@
 # Módulo de Comissões — discussão de design e implementação
 
-> Status em 10/08/2026: **Fase 1 (Fundação) implementada, commit `3ebe763`.** Plano completo
-> de 4 fases em `C:\Users\Usuario\.claude\plans\rustling-tumbling-pie.md`. Fase 2 aguarda
-> confirmação do usuário antes de começar (fases são gate-por-gate, não sequência automática).
+> Status em 10/08/2026: **Fase 1 e Fase 2 implementadas** (commits `3ebe763`, `cc380b6`).
+> Plano completo de 4 fases em `C:\Users\Usuario\.claude\plans\rustling-tumbling-pie.md`.
+> Fase 3 aguarda confirmação do usuário antes de começar (fases são gate-por-gate, não
+> sequência automática — Fase 3 mexe em fluxo público de verdade, é a mais sensível).
 > Documento original do sócio: `COMERCIAL/PARCERIA DE NEGOCIOS/POUPE ENERGIA/COMISSOES/Módulo de Comissões – Sistema Poupe Energia.docx`
 
 ## Fase 1 — Fundação (implementada 10/08/2026, commit `3ebe763`)
@@ -26,6 +27,34 @@
 - **Zero mudança de comportamento público** — só schema novo (aditivo) e uma tela de admin.
 - Verificado: `tsc --noEmit` limpo, `eslint` sem novos erros (baseline de 9 erros
   pré-existentes de `any` mantido), `vite build` de produção passou.
+
+## Fase 2 — Captura de dados manuais (implementada 10/08/2026, commit `cc380b6`)
+
+- Migration `supabase/migrations/20260810122500_fatura_detalhamento_e_comissao_mensal.sql`
+  (usuário ainda precisa rodar no Supabase SQL Editor):
+  - Tabela nova `fatura_detalhamento`: 1 linha por `cashback_cadastro_id` (unique), com os
+    10 itens não comissionáveis do doc do sócio (CIP, juros, multa, bandeira, uso de rede,
+    tributos, parcelamentos, terceiros, extraordinários, outros), `grupo_tarifario`
+    ('A'/'B'), e `valor_elegivel`/`fcp_value`/`comissao_sugerida` calculados no app e
+    guardados pra auditoria (não geram comissão de verdade ainda — isso é Fase 3). RLS
+    igual à de `commission_policy` (só gestor+).
+  - Tabela nova `fornecedora_comissao_mensal`: ledger mensal por `empresa_id` +
+    `mes_referencia` (unique juntos), com valor recebido/tributos/líquido — alimenta o
+    cálculo recorrente do Grupo A na Fase 3. Mesma RLS.
+- Tela nova dentro de `/admin/cashback/:id` (`CashbackDetalhe.tsx`) — card "Detalhamento da
+  fatura e comissão": a equipe olha o arquivo da fatura (já linkado ali mesmo) e lança os
+  itens + Grupo A/B; valor elegível/FCP/comissão sugerida do Grupo B aparecem calculados em
+  tempo real usando a política ativa. Pro Grupo A, mostra aviso de que o cálculo vem do
+  lançamento mensal por fornecedora, não desta tela.
+- Aba nova "Comissão Recebida" em `/admin/parceiros` (`Parceiros.tsx`) — formulário pra
+  lançar mês a mês quanto cada fornecedora pagou de comissão, com histórico em tabela.
+- **Nenhuma das duas telas gera comissão pro parceiro automaticamente ainda** — só captura
+  e guarda os dados-base, exatamente como o plano previu pra esta fase.
+- Verificado: `tsc --noEmit` limpo, `eslint` sem novos erros (baseline mantido nos dois
+  arquivos), `vite build` de produção passou. Não foi possível testar visualmente no
+  navegador nesta sessão por um bug de tooling não relacionado (ver
+  `project_poupe_energia_repo.md` na memória do Claude — o preview local serve o projeto
+  errado por causa do cwd).
 
 Usuário foi explícito: **"desenvolvimento pesado, importante e de risco, precisamos ser
 assertivos"** — combinado não implementar nada até o design estar redondo.
