@@ -51,6 +51,29 @@ type ComissaoMensal = {
   observacoes: string | null;
 };
 
+// Item do detalhamento por cliente/UC de um lançamento de comissão mensal (Grupo A) — a
+// fornecedora manda o valor total (ComissaoMensal) e um relatório por UC; a equipe lança
+// aqui pra gerar a comissão de cada parceiro automaticamente.
+type ComissaoMensalItemForm = {
+  numeroUc: string;
+  comissaoGerada: string;
+  status: "idle" | "loading" | "found" | "not_found" | "sem_vinculo";
+  cashbackCadastroId?: string;
+  clienteNome?: string;
+  embaixadorId?: string;
+  embaixadorCodigo?: string;
+  embaixadorNome?: string;
+  embaixadorOverride?: number | null;
+};
+
+const ITEM_VAZIO: ComissaoMensalItemForm = {
+  numeroUc: "",
+  comissaoGerada: "",
+  status: "idle",
+};
+
+type CommissionPolicyA = { id: string; representative_percent: number };
+
 type Lead = {
   id: string;
   empresa_id: string;
@@ -103,15 +126,20 @@ export default function Parceiros() {
     valor_liquido: 0,
     observacoes: "",
   });
+  const [itens, setItens] = useState<ComissaoMensalItemForm[]>([]);
+  const [itemAtual, setItemAtual] = useState<ComissaoMensalItemForm>(ITEM_VAZIO);
+  const [policyA, setPolicyA] = useState<CommissionPolicyA | null>(null);
+  const [savingComissao, setSavingComissao] = useState(false);
 
   const loadAll = async () => {
-    const [e, p, l, es, d, cm] = await Promise.all([
+    const [e, p, l, es, d, cm, pol] = await Promise.all([
       supabase.from("empresas").select("id, nome, parceira").order("nome"),
       supabase.from("parceiros_config").select("*"),
       supabase.from("leads").select("*").order("created_at", { ascending: false }).limit(2000),
       supabase.from("estados").select("*").order("sigla"),
       supabase.from("distribuidoras").select("*").order("nome"),
       supabase.from("fornecedora_comissao_mensal").select("*").order("mes_referencia", { ascending: false }),
+      supabase.from("commission_policy").select("id, representative_percent").eq("service_type", "GD_A").eq("ativo", true).maybeSingle(),
     ]);
     setEmpresas((e.data ?? []) as Empresa[]);
     const map: Record<string, Parceiro> = {};
@@ -121,6 +149,7 @@ export default function Parceiros() {
     setEstados((es.data ?? []) as Estado[]);
     setDistribuidoras((d.data ?? []) as Distribuidora[]);
     setComissoesMensais((cm.data ?? []) as ComissaoMensal[]);
+    setPolicyA((pol.data ?? null) as CommissionPolicyA | null);
   };
 
   useEffect(() => {
@@ -164,19 +193,127 @@ export default function Parceiros() {
     loadAll();
   };
 
+  // Busca a adesão pela UC (dentro da fornecedora selecionada) e o parceiro já vinculado
+  // a ela (criado na Fase 3, quando a adesão foi cadastrada com um código válido).
+  const buscarUc = async () => {
+    const uc = itemAtual.numeroUc.trim();
+    if (!uc) { toast.error("Informe o número da UC."); return; }
+    if (!comissaoForm.empresa_id) { toast.error("Selecione a fornecedora primeiro."); return; }
+    setItemAtual((it) => ({ ...it, status: "loading" }));
+    const { data: cadastro } = await supabase
+      .from("cashback_cadastros")
+      .select("id, nome")
+      .eq("empresa_id", comissaoForm.empresa_id)
+      .eq("numero_uc", uc)
+      .maybeSingle();
+    if (!cadastro) {
+      setItemAtual((it) => ({ ...it, status: "not_found" }));
+      return;
+    }
+    const { data: vinc } = await supabase
+      .from("leads_embaixadores")
+      .select("embaixador_id, embaixadores(codigo,nome,comissao_percentual)")
+      .eq("cashback_cadastro_id", cadastro.id)
+      .limit(1)
+      .maybeSingle();
+    if (!vinc) {
+      setItemAtual((it) => ({
+        ...it, status: "sem_vinculo",
+        cashbackCadastroId: cadastro.id, clienteNome: cadastro.nome,
+      }));
+      return;
+    }
+    const emb = vinc.embaixadores;
+    setItemAtual((it) => ({
+      ...it,
+      status: "found",
+      cashbackCadastroId: cadastro.id,
+      clienteNome: cadastro.nome,
+      embaixadorId: vinc.embaixador_id,
+      embaixadorCodigo: emb?.codigo,
+      embaixadorNome: emb?.nome,
+      embaixadorOverride: emb?.comissao_percentual ?? null,
+    }));
+  };
+
+  const adicionarItem = () => {
+    if (itemAtual.status !== "found" || !itemAtual.cashbackCadastroId || !itemAtual.embaixadorId) {
+      toast.error("Busque uma UC válida, com parceiro vinculado, antes de adicionar.");
+      return;
+    }
+    const valor = parseFloat(itemAtual.comissaoGerada.replace(",", "."));
+    if (!valor || valor <= 0) { toast.error("Informe o valor da comissão gerada pra esse cliente."); return; }
+    if (itens.some((it) => it.cashbackCadastroId === itemAtual.cashbackCadastroId)) {
+      toast.error("Essa UC já foi adicionada nesse lançamento.");
+      return;
+    }
+    setItens((arr) => [...arr, { ...itemAtual }]);
+    setItemAtual(ITEM_VAZIO);
+  };
+
+  const removerItem = (idx: number) => setItens((arr) => arr.filter((_, i) => i !== idx));
+
+  const totalItens = itens.reduce((acc, it) => acc + (parseFloat(it.comissaoGerada.replace(",", ".")) || 0), 0);
+
   const saveComissaoMensal = async () => {
     if (!comissaoForm.empresa_id) { toast.error("Selecione a fornecedora."); return; }
+    setSavingComissao(true);
+    const mesRef = comissaoForm.mes_referencia.length === 7 ? `${comissaoForm.mes_referencia}-01` : comissaoForm.mes_referencia;
     const valorLiquido = Number(comissaoForm.valor_recebido) - Number(comissaoForm.tributos);
-    const payload = {
-      ...comissaoForm,
-      mes_referencia: comissaoForm.mes_referencia.length === 7 ? `${comissaoForm.mes_referencia}-01` : comissaoForm.mes_referencia,
-      valor_liquido: valorLiquido,
-    };
-    const { error } = await supabase
+    const payload = { ...comissaoForm, mes_referencia: mesRef, valor_liquido: valorLiquido };
+    const { data: header, error } = await supabase
       .from("fornecedora_comissao_mensal")
-      .upsert(payload, { onConflict: "empresa_id,mes_referencia" });
-    if (error) { toast.error(error.message); return; }
-    toast.success("Comissão recebida lançada!");
+      .upsert(payload, { onConflict: "empresa_id,mes_referencia" })
+      .select()
+      .single();
+    if (error) { toast.error(error.message); setSavingComissao(false); return; }
+
+    for (const it of itens) {
+      const valor = parseFloat(it.comissaoGerada.replace(",", "."));
+      await supabase.from("fornecedora_comissao_mensal_itens").insert({
+        fornecedora_comissao_mensal_id: header.id,
+        cashback_cadastro_id: it.cashbackCadastroId,
+        numero_uc: it.numeroUc.trim(),
+        comissao_gerada: valor,
+      });
+
+      // FCP do Grupo A = valor gerado (já líquido, confirmado com o sócio em 10/08/2026).
+      const efetivoPercent = it.embaixadorOverride != null ? Number(it.embaixadorOverride) / 100 : (policyA ? Number(policyA.representative_percent) : null);
+      const comissaoParceiro = efetivoPercent != null ? valor * efetivoPercent : null;
+
+      const { data: existente } = await supabase
+        .from("leads_embaixadores")
+        .select("id, status_comissao")
+        .eq("cashback_cadastro_id", it.cashbackCadastroId!)
+        .eq("mes_referencia", mesRef)
+        .maybeSingle();
+
+      if (existente) {
+        const jaConfirmado = existente.status_comissao === "validado" || existente.status_comissao === "pago";
+        if (!jaConfirmado) {
+          await supabase.from("leads_embaixadores").update({
+            valor_comissao: comissaoParceiro ?? 0,
+            commission_policy_id: policyA?.id ?? null,
+            grupo_tarifario: "A",
+          }).eq("id", existente.id);
+        } else {
+          toast.info(`UC ${it.numeroUc}: comissão do mês já está "${existente.status_comissao}" — não foi recalculada.`);
+        }
+      } else {
+        await supabase.from("leads_embaixadores").insert({
+          cashback_cadastro_id: it.cashbackCadastroId,
+          embaixador_id: it.embaixadorId,
+          empresa_id: comissaoForm.empresa_id,
+          mes_referencia: mesRef,
+          grupo_tarifario: "A",
+          commission_policy_id: policyA?.id ?? null,
+          status_comissao: "pendente",
+          valor_comissao: comissaoParceiro ?? 0,
+        });
+      }
+    }
+
+    toast.success(`Comissão recebida lançada! ${itens.length} parcela(s) de parceiro gerada(s).`);
     setComissaoForm({
       empresa_id: "",
       mes_referencia: mesAtual,
@@ -185,6 +322,9 @@ export default function Parceiros() {
       valor_liquido: 0,
       observacoes: "",
     });
+    setItens([]);
+    setItemAtual(ITEM_VAZIO);
+    setSavingComissao(false);
     loadAll();
   };
 
@@ -669,11 +809,109 @@ export default function Parceiros() {
                       {fmtBRL(Number(comissaoForm.valor_recebido) - Number(comissaoForm.tributos))}
                     </span>
                   </div>
-                  <Button onClick={saveComissaoMensal}>
-                    <Save className="h-3 w-3 mr-1" /> Lançar
-                  </Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Detalhamento por cliente/UC</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                A fornecedora manda, junto com o pagamento, um relatório com o valor gerado
+                por cliente/UC (já líquido — não precisa descontar mais nada). Lance cada
+                linha aqui buscando pela UC: o sistema encontra automaticamente o parceiro
+                vinculado a essa adesão e calcula a comissão dele.
+              </p>
+              <div className="grid md:grid-cols-4 gap-3 items-end">
+                <div>
+                  <label className="text-xs font-bold">Número da UC</label>
+                  <Input
+                    value={itemAtual.numeroUc}
+                    onChange={(e) => setItemAtual({ ...ITEM_VAZIO, numeroUc: e.target.value })}
+                    onKeyDown={(e) => e.key === "Enter" && buscarUc()}
+                    placeholder="Número da unidade consumidora"
+                  />
+                </div>
+                <div>
+                  <Button variant="outline" onClick={buscarUc} disabled={itemAtual.status === "loading"}>
+                    {itemAtual.status === "loading" ? "Buscando..." : "Buscar UC"}
+                  </Button>
+                </div>
+                <div className="md:col-span-2">
+                  {itemAtual.status === "found" && (
+                    <p className="text-xs text-green-700">
+                      ✓ {itemAtual.clienteNome} — parceiro <span className="font-mono">{itemAtual.embaixadorCodigo}</span> ({itemAtual.embaixadorNome})
+                    </p>
+                  )}
+                  {itemAtual.status === "sem_vinculo" && (
+                    <p className="text-xs text-amber-600">
+                      Cliente "{itemAtual.clienteNome}" encontrado, mas sem parceiro comercial vinculado a essa adesão — não há comissão a gerar.
+                    </p>
+                  )}
+                  {itemAtual.status === "not_found" && (
+                    <p className="text-xs text-red-600">UC não encontrada pra essa fornecedora.</p>
+                  )}
+                </div>
+              </div>
+              {itemAtual.status === "found" && (
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <label className="text-xs font-bold">Comissão gerada pra esse cliente (R$)</label>
+                    <Input
+                      type="number" min="0" step="0.01"
+                      value={itemAtual.comissaoGerada}
+                      onChange={(e) => setItemAtual({ ...itemAtual, comissaoGerada: e.target.value })}
+                    />
+                  </div>
+                  <Button onClick={adicionarItem}>Adicionar</Button>
+                </div>
+              )}
+
+              {itens.length > 0 && (
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>UC</TableHead>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Parceiro</TableHead>
+                        <TableHead>Comissão gerada</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {itens.map((it, i) => (
+                        <TableRow key={i}>
+                          <TableCell className="font-mono text-xs">{it.numeroUc}</TableCell>
+                          <TableCell className="text-sm">{it.clienteNome}</TableCell>
+                          <TableCell className="text-xs">{it.embaixadorCodigo} — {it.embaixadorNome}</TableCell>
+                          <TableCell className="text-sm">{fmtBRL(parseFloat(it.comissaoGerada.replace(",", ".")) || 0)}</TableCell>
+                          <TableCell>
+                            <Button size="sm" variant="ghost" onClick={() => removerItem(i)}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <div className="p-2 text-xs text-right border-t">
+                    Total dos itens: <span className="font-semibold">{fmtBRL(totalItens)}</span>
+                    {comissaoForm.valor_recebido > 0 && Math.abs(totalItens - Number(comissaoForm.valor_recebido)) > 0.01 && (
+                      <span className="text-amber-600 ml-2">
+                        (difere do valor recebido em {fmtBRL(Math.abs(totalItens - Number(comissaoForm.valor_recebido)))})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <Button onClick={saveComissaoMensal} disabled={savingComissao} className="w-full">
+                <Save className="h-3 w-3 mr-1" /> {savingComissao ? "Salvando..." : "Salvar lançamento e gerar comissões"}
+              </Button>
             </CardContent>
           </Card>
 
