@@ -1,7 +1,31 @@
-# Módulo de Comissões — discussão de design — 01/08/2026
+# Módulo de Comissões — discussão de design e implementação
 
-> Status: **EM DISCUSSÃO, pausada para retomar depois.** Nada foi implementado ainda.
+> Status em 10/08/2026: **Fase 1 (Fundação) implementada, commit `3ebe763`.** Plano completo
+> de 4 fases em `C:\Users\Usuario\.claude\plans\rustling-tumbling-pie.md`. Fase 2 aguarda
+> confirmação do usuário antes de começar (fases são gate-por-gate, não sequência automática).
 > Documento original do sócio: `COMERCIAL/PARCERIA DE NEGOCIOS/POUPE ENERGIA/COMISSOES/Módulo de Comissões – Sistema Poupe Energia.docx`
+
+## Fase 1 — Fundação (implementada 10/08/2026, commit `3ebe763`)
+
+- Migration `supabase/migrations/20260810113403_commission_policy.sql` (usuário ainda
+  precisa rodar no Supabase SQL Editor — sem token de acesso ao banco):
+  - Tabela nova `commission_policy`: versionada por `service_type` ('GD_A'/'GD_B'), com
+    `fcp_percent`, `representative_percent`, `recurring`, `trigger_event`,
+    `vigente_desde`/`ativo`. Só uma linha ativa por `service_type` (índice único parcial).
+    Seed: GD_B (fcp=48%, rep=50%, único, no primeiro pagamento) e GD_A (fcp=null, rep=50%,
+    recorrente, a cada recebimento mensal). RLS: só `gestor`+ enxerga/edita, zero acesso
+    público (não tem uso no site).
+  - `leads_embaixadores` estendida: `lead_id` agora opcional, + `cashback_cadastro_id`
+    (FK pra `cashback_cadastros`), `commission_policy_id`, `mes_referencia` (parcelas
+    mensais do Grupo A), `grupo_tarifario`. Constraint exige pelo menos uma origem
+    (`lead_id` ou `cashback_cadastro_id`).
+- Aba nova "Política de Comissão" em `/admin/embaixadores`
+  (`src/pages/admin/Embaixadores.tsx`) — mostra as 2 políticas ativas, editar abre um
+  formulário que salva como **versão nova** (desativa a antiga, insere uma nova com
+  `vigente_desde = agora`), nunca sobrescreve em cima.
+- **Zero mudança de comportamento público** — só schema novo (aditivo) e uma tela de admin.
+- Verificado: `tsc --noEmit` limpo, `eslint` sem novos erros (baseline de 9 erros
+  pré-existentes de `any` mantido), `vite build` de produção passou.
 
 Usuário foi explícito: **"desenvolvimento pesado, importante e de risco, precisamos ser
 assertivos"** — combinado não implementar nada até o design estar redondo.
