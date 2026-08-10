@@ -28,7 +28,7 @@ type Embaixador = {
   telefone: string | null;
   tipo: "pessoa_fisica" | "pessoa_juridica";
   cpf_cnpj: string | null;
-  comissao_percentual: number;
+  comissao_percentual: number | null;
   chave_pix: string | null;
   ativo: boolean;
 };
@@ -76,7 +76,7 @@ type LeadEmb = {
   created_at: string;
   leads?: { nome: string | null; email: string | null; telefone: string | null; created_at: string } | null;
   empresas?: { nome: string } | null;
-  embaixadores?: { codigo: string; nome: string; comissao_percentual: number; chave_pix: string | null } | null;
+  embaixadores?: { codigo: string; nome: string; comissao_percentual: number | null; chave_pix: string | null } | null;
 };
 
 const PUBLIC_BASE = "https://www.poupeenergia.com.br";
@@ -186,7 +186,7 @@ export default function Embaixadores() {
       telefone: "",
       tipo: "pessoa_fisica",
       cpf_cnpj: "",
-      comissao_percentual: 5,
+      comissao_percentual: null,
       chave_pix: "",
       ativo: true,
     });
@@ -277,7 +277,7 @@ export default function Embaixadores() {
       l.leads?.telefone ?? "",
       l.empresas?.nome ?? "",
       `${l.embaixadores?.codigo ?? ""} - ${l.embaixadores?.nome ?? ""}`,
-      String(l.embaixadores?.comissao_percentual ?? 0),
+      l.embaixadores?.comissao_percentual != null ? String(l.embaixadores.comissao_percentual) : "política padrão",
       String(l.valor_comissao ?? 0),
       l.status_comissao,
       l.data_adesao ?? "",
@@ -318,7 +318,7 @@ export default function Embaixadores() {
         telefone: cand.telefone,
         tipo: cand.cnpj ? "pessoa_juridica" : "pessoa_fisica",
         cpf_cnpj: cand.cnpj || cand.cpf || null,
-        comissao_percentual: 5,
+        comissao_percentual: null,
         chave_pix: null,
         ativo: true,
       } as any)
@@ -477,7 +477,7 @@ export default function Embaixadores() {
                     <TableHead>Código</TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead>Comissão %</TableHead>
+                    <TableHead>Comissão</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Link</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
@@ -489,7 +489,11 @@ export default function Embaixadores() {
                       <TableCell className="font-mono">{e.codigo}</TableCell>
                       <TableCell>{e.nome}</TableCell>
                       <TableCell className="text-xs">{e.tipo === "pessoa_fisica" ? "PF" : "PJ"}</TableCell>
-                      <TableCell>{Number(e.comissao_percentual).toFixed(2)}%</TableCell>
+                      <TableCell className="text-xs">
+                        {e.comissao_percentual != null
+                          ? <span className="font-semibold">{Number(e.comissao_percentual).toFixed(2)}% <span className="text-muted-foreground font-normal">(override)</span></span>
+                          : <span className="text-muted-foreground">Política padrão</span>}
+                      </TableCell>
                       <TableCell>
                         {e.ativo
                           ? <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Ativo</Badge>
@@ -607,7 +611,7 @@ export default function Embaixadores() {
                         <div>{l.embaixadores?.nome}</div>
                       </TableCell>
                       <TableCell className="text-xs">
-                        {l.embaixadores?.comissao_percentual ?? 0}% · {fmtBRL(Number(l.valor_comissao) || 0)}
+                        {fmtBRL(Number(l.valor_comissao) || 0)}
                       </TableCell>
                       <TableCell>
                         <Badge className={STATUS_COLORS[l.status_comissao]}>
@@ -751,8 +755,17 @@ export default function Embaixadores() {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold">Comissão %</label>
-                <Input type="number" step="0.01" value={editing.comissao_percentual} onChange={(e) => setEditing({ ...editing, comissao_percentual: Number(e.target.value) })} />
+                <label className="text-xs font-bold">Override de comissão % (opcional)</label>
+                <Input
+                  type="number" step="0.01"
+                  placeholder="Deixe vazio pra usar a política padrão"
+                  value={editing.comissao_percentual ?? ""}
+                  onChange={(e) => setEditing({ ...editing, comissao_percentual: e.target.value === "" ? null : Number(e.target.value) })}
+                />
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Só preencha se este parceiro tiver um % diferente do padrão da Política de
+                  Comissão (aba própria). Vazio = usa o padrão.
+                </p>
               </div>
               <div>
                 <label className="text-xs font-bold">Chave PIX</label>

@@ -6,7 +6,7 @@ import * as pdfjsLib from "pdfjs-dist";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  Zap, Upload, CheckCircle2, AlertCircle, Loader2, X,
+  Zap, Upload, CheckCircle2, XCircle, AlertCircle, Loader2, X,
   FileText, User, Phone, Mail, CreditCard, Bolt,
   ChevronRight, ChevronLeft, Building2,
 } from "lucide-react";
@@ -475,6 +475,12 @@ const EMPTY_FORM: Form = {
   classe_consumo: "", nome_titular: "", endereco_instalacao: "",
 };
 
+type EmbValidation =
+  | { state: "idle" }
+  | { state: "loading" }
+  | { state: "valid"; id: string; nome: string }
+  | { state: "invalid" };
+
 const CLASSES = ["Residencial", "Comercial", "Rural", "Industrial"];
 const ACCEPT_IMG = "image/jpeg,image/png,image/webp,application/pdf";
 const ACCEPT_PDF = "image/jpeg,image/png,image/webp,application/pdf";
@@ -515,11 +521,32 @@ export default function Aderir() {
   const [submitting,    setSubmitting]    = useState(false);
   const [aceite,        setAceite]        = useState(true);
   const { blocked, secondsLeft, markSubmitted } = useRateLimit("aderir", 1800);
+  const [embValidation, setEmbValidation] = useState<EmbValidation>({ state: "idle" });
 
   useEffect(() => {
     supabase.from("distribuidoras").select("id,nome").order("nome")
       .then(({ data }) => setDistribuidoras(data ?? []));
   }, []);
+
+  // Validação debounced do código do parceiro
+  useEffect(() => {
+    const code = form.codigo_embaixador.trim();
+    if (!code) { setEmbValidation({ state: "idle" }); return; }
+    setEmbValidation({ state: "loading" });
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("embaixadores")
+        .select("id, nome, ativo")
+        .ilike("codigo", code)
+        .maybeSingle();
+      if (data && data.ativo !== false) {
+        setEmbValidation({ state: "valid", id: data.id, nome: data.nome });
+      } else {
+        setEmbValidation({ state: "invalid" });
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [form.codigo_embaixador]);
 
   const set = (field: keyof Form) => (value: string) =>
     setForm((f) => ({ ...f, [field]: value }));
@@ -604,7 +631,7 @@ export default function Aderir() {
         return;
       }
 
-      const { error } = await supabase.from("cashback_cadastros" as any).insert({
+      const { data: novaAdesao, error } = await supabase.from("cashback_cadastros" as any).insert({
         nome:              form.nome,
         cpf_cnpj:          form.cpf_cnpj,
         email:             form.email,
@@ -631,9 +658,21 @@ export default function Aderir() {
         ciente_parcela_unica: true,
         autoriza_validacao: true,
         status: "pendente",
-      } as any);
+      } as any).select("id").single();
 
       if (error) throw error;
+
+      // Vínculo com o Parceiro Comercial, se o código informado for válido
+      if (embValidation.state === "valid" && form.empresa_id && novaAdesao) {
+        await supabase.from("leads_embaixadores").insert({
+          cashback_cadastro_id: novaAdesao.id,
+          embaixador_id: embValidation.id,
+          empresa_id: form.empresa_id,
+          status_comissao: "pendente",
+          valor_comissao: 0,
+        });
+      }
+
       markSubmitted();
       setStep(3);
     } catch (err) {
@@ -888,6 +927,21 @@ export default function Aderir() {
                   <input type="text" placeholder="Código do parceiro, se tiver"
                     value={form.codigo_embaixador} onChange={(e) => set("codigo_embaixador")(e.target.value)}
                     className={INPUT} />
+                  {embValidation.state === "loading" && (
+                    <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Validando...
+                    </p>
+                  )}
+                  {embValidation.state === "valid" && (
+                    <p className="text-[11px] text-green-600 mt-1 flex items-center gap-1 font-medium">
+                      <CheckCircle2 className="h-3 w-3" /> {embValidation.nome}
+                    </p>
+                  )}
+                  {embValidation.state === "invalid" && (
+                    <p className="text-[11px] text-red-600 mt-1 flex items-center gap-1 font-medium">
+                      <XCircle className="h-3 w-3" /> Código não encontrado
+                    </p>
+                  )}
                 </Field>
               </div>
             </div>

@@ -68,6 +68,14 @@ type CommissionPolicy = {
   representative_percent: number;
 };
 
+type VinculoParceiro = {
+  id: string;
+  embaixador_id: string;
+  status_comissao: string;
+  valor_comissao: number;
+  embaixadores: { codigo: string; nome: string; comissao_percentual: number | null } | null;
+};
+
 type FaturaDetalhamento = {
   id?: string;
   cashback_cadastro_id: string;
@@ -202,6 +210,7 @@ export default function CashbackDetalhe() {
   const [policies, setPolicies] = useState<CommissionPolicy[]>([]);
   const [fatura, setFatura] = useState<FaturaDetalhamento | null>(null);
   const [savingFatura, setSavingFatura] = useState(false);
+  const [vinculo, setVinculo] = useState<VinculoParceiro | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -232,6 +241,13 @@ export default function CashbackDetalhe() {
       .then(({ data }) => {
         setFatura(data ? (data as FaturaDetalhamento) : FATURA_VAZIA(id));
       });
+
+    supabase
+      .from("leads_embaixadores")
+      .select("id, embaixador_id, status_comissao, valor_comissao, embaixadores(codigo,nome,comissao_percentual)")
+      .eq("cashback_cadastro_id", id)
+      .maybeSingle()
+      .then(({ data }) => setVinculo(data as unknown as VinculoParceiro | null));
   }, [id]);
 
   const somaItens = fatura
@@ -242,8 +258,14 @@ export default function CashbackDetalhe() {
   const fcpValue = policyB && fatura?.grupo_tarifario === "B"
     ? valorElegivel * Number(policyB.fcp_percent ?? 0)
     : null;
-  const comissaoSugerida = fcpValue != null && policyB
-    ? fcpValue * Number(policyB.representative_percent)
+  // O override do parceiro (embaixadores.comissao_percentual) é salvo em "pontos
+  // percentuais" (ex: 50 = 50%), enquanto a política usa fração (0.50) — converte antes de comparar.
+  const overridePercent = vinculo?.embaixadores?.comissao_percentual;
+  const representativeFraction = overridePercent != null
+    ? Number(overridePercent) / 100
+    : policyB ? Number(policyB.representative_percent) : null;
+  const comissaoSugerida = fcpValue != null && representativeFraction != null
+    ? fcpValue * representativeFraction
     : null;
 
   const saveFatura = async () => {
@@ -262,9 +284,24 @@ export default function CashbackDetalhe() {
       .upsert(payload, { onConflict: "cashback_cadastro_id" })
       .select()
       .single();
-    setSavingFatura(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(error.message); setSavingFatura(false); return; }
     setFatura(data as FaturaDetalhamento);
+
+    // Atualiza a comissão do parceiro vinculado, se houver (Grupo B só — Grupo A vem do
+    // lançamento mensal por fornecedora, não desta fatura).
+    if (vinculo && fatura.grupo_tarifario === "B" && comissaoSugerida != null) {
+      const { error: vincErr } = await supabase
+        .from("leads_embaixadores")
+        .update({
+          valor_comissao: comissaoSugerida,
+          commission_policy_id: policyB?.id ?? null,
+        })
+        .eq("id", vinculo.id);
+      if (vincErr) toast.error("Fatura salva, mas falhou ao atualizar a comissão do parceiro: " + vincErr.message);
+      else setVinculo({ ...vinculo, valor_comissao: comissaoSugerida });
+    }
+
+    setSavingFatura(false);
     toast.success("Detalhamento da fatura salvo!");
   };
 
@@ -556,6 +593,18 @@ export default function CashbackDetalhe() {
           {/* Detalhamento da fatura / comissão */}
           <Card>
             <CardTitle icon={<Calculator className="h-3.5 w-3.5" />} label="Detalhamento da fatura e comissão" />
+            {vinculo ? (
+              <div className="text-xs bg-brand-blue/5 border border-brand-blue/20 rounded-md p-2">
+                Parceiro vinculado: <span className="font-mono font-semibold">{vinculo.embaixadores?.codigo}</span> — {vinculo.embaixadores?.nome}
+                {vinculo.embaixadores?.comissao_percentual != null && (
+                  <span className="text-muted-foreground"> (override: {vinculo.embaixadores.comissao_percentual}%)</span>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Nenhum parceiro comercial vinculado a esta adesão.
+              </p>
+            )}
             {fatura && (
               <>
                 <div>
@@ -616,10 +665,20 @@ export default function CashbackDetalhe() {
                         <span>FCP ({(Number(policyB.fcp_percent) * 100).toFixed(0)}%)</span>
                         <span>{fmtBRL(fcpValue ?? 0)}</span>
                       </div>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>% do parceiro {overridePercent != null ? "(override)" : "(política padrão)"}</span>
+                        <span>{representativeFraction != null ? (representativeFraction * 100).toFixed(0) : "—"}%</span>
+                      </div>
                       <div className="flex justify-between font-bold text-brand-blue border-t pt-1 mt-1">
                         <span>Comissão sugerida ao parceiro</span>
                         <span>{fmtBRL(comissaoSugerida ?? 0)}</span>
                       </div>
+                      {vinculo && (
+                        <p className="text-[11px] text-muted-foreground pt-1">
+                          Ao salvar, este valor atualiza automaticamente a comissão do
+                          parceiro vinculado (status continua "pendente" até vocês validarem).
+                        </p>
+                      )}
                     </>
                   )}
                   {fatura.grupo_tarifario === "B" && !policyB && (
@@ -641,8 +700,9 @@ export default function CashbackDetalhe() {
                   {savingFatura ? "Salvando..." : "Salvar detalhamento"}
                 </Button>
                 <p className="text-[11px] text-muted-foreground">
-                  Isso ainda não gera comissão para o parceiro automaticamente — só guarda o
-                  cálculo. A geração de comissão rastreável é uma etapa futura.
+                  {vinculo
+                    ? "Salvar atualiza a comissão do parceiro vinculado (Grupo B). O pagamento continua sendo uma ação manual em Parceiros Comerciais."
+                    : "Não há parceiro vinculado a esta adesão — o cálculo é só pra registro."}
                 </p>
               </>
             )}

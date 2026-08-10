@@ -4,7 +4,7 @@ import { getSubmitErrorMessage } from "@/lib/submitError";
 import { Link } from "react-router-dom";
 import {
   Zap, Calendar, User, Mail, Phone, CreditCard, Building2, Gift,
-  FileText, Paperclip, CheckCircle2, AlertCircle, Loader2, X,
+  FileText, Paperclip, CheckCircle2, XCircle, AlertCircle, Loader2, X,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogTitle,
@@ -122,6 +122,12 @@ function maskTelefone(v: string) {
     .replace(/(\d{5})(\d)/, "$1-$2");
 }
 
+type EmbValidation =
+  | { state: "idle" }
+  | { state: "loading" }
+  | { state: "valid"; id: string; nome: string }
+  | { state: "invalid" };
+
 const MONTHS = [
   "janeiro","fevereiro","março","abril","maio","junho",
   "julho","agosto","setembro","outubro","novembro","dezembro",
@@ -150,6 +156,27 @@ export default function AdesaoModal({
   const [docFrente, setDocFrente] = useState<File | null>(null);
   const [docVerso, setDocVerso] = useState<File | null>(null);
   const [fatura, setFatura] = useState<File | null>(null);
+  const [embValidation, setEmbValidation] = useState<EmbValidation>({ state: "idle" });
+
+  // Validação debounced do código do parceiro
+  useEffect(() => {
+    const code = form.codigo_embaixador.trim();
+    if (!code) { setEmbValidation({ state: "idle" }); return; }
+    setEmbValidation({ state: "loading" });
+    const t = setTimeout(async () => {
+      const { data } = await supabase
+        .from("embaixadores")
+        .select("id, nome, ativo")
+        .ilike("codigo", code)
+        .maybeSingle();
+      if (data && data.ativo !== false) {
+        setEmbValidation({ state: "valid", id: data.id, nome: data.nome });
+      } else {
+        setEmbValidation({ state: "invalid" });
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [form.codigo_embaixador]);
 
   useEffect(() => {
     setForm((f) => ({
@@ -181,6 +208,7 @@ export default function AdesaoModal({
         nome: "", cpf_cnpj: "", email: "", telefone: "",
         codigo_embaixador: "", aceite_termos: true,
       }));
+      setEmbValidation({ state: "idle" });
     }
   }, [open]);
 
@@ -220,7 +248,7 @@ export default function AdesaoModal({
         setSubmitting(false);
         return;
       }
-      const { error } = await supabase.from("cashback_cadastros").insert({
+      const { data: novaAdesao, error } = await supabase.from("cashback_cadastros").insert({
         nome: form.nome, cpf_cnpj: form.cpf_cnpj, email: form.email,
         telefone: form.telefone, whatsapp: form.telefone,
         distribuidora_id: form.distribuidora_id || null,
@@ -232,8 +260,20 @@ export default function AdesaoModal({
         doc_frente_url: frente, doc_verso_url: verso, fatura_url: fat,
         aceite_termos: form.aceite_termos,
         ciente_parcela_unica: true, autoriza_validacao: true, status: "pendente",
-      });
+      }).select("id").single();
       if (error) throw error;
+
+      // Vínculo com o Parceiro Comercial, se o código informado for válido
+      if (embValidation.state === "valid" && form.empresa_id && novaAdesao) {
+        await supabase.from("leads_embaixadores").insert({
+          cashback_cadastro_id: novaAdesao.id,
+          embaixador_id: embValidation.id,
+          empresa_id: form.empresa_id,
+          status_comissao: "pendente",
+          valor_comissao: 0,
+        });
+      }
+
       markSubmitted();
       setDone(true);
     } catch (err) {
@@ -394,6 +434,21 @@ export default function AdesaoModal({
                         className={INPUT}
                       />
                     </div>
+                    {embValidation.state === "loading" && (
+                      <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Validando...
+                      </p>
+                    )}
+                    {embValidation.state === "valid" && (
+                      <p className="text-[11px] text-green-600 mt-1 flex items-center gap-1 font-medium">
+                        <CheckCircle2 className="h-3 w-3" /> {embValidation.nome}
+                      </p>
+                    )}
+                    {embValidation.state === "invalid" && (
+                      <p className="text-[11px] text-red-600 mt-1 flex items-center gap-1 font-medium">
+                        <XCircle className="h-3 w-3" /> Código não encontrado
+                      </p>
+                    )}
                   </Field>
                   <div className="flex gap-2 items-start sm:pt-[22px]">
                     <div className="h-5 w-5 rounded-full bg-brand-blue flex items-center justify-center shrink-0 mt-0.5">
