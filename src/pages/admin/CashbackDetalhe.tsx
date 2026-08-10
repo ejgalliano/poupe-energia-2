@@ -8,9 +8,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 import {
   ArrowLeft, User, Zap, FileText, CheckCircle2, XCircle,
-  DollarSign, MessageSquare, Phone, Mail, Clock, ChevronRight, Eye,
+  DollarSign, MessageSquare, Phone, Mail, Clock, ChevronRight, Eye, Calculator,
 } from "lucide-react";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -59,6 +60,64 @@ type Cadastro = {
   nome_titular: string | null;
   endereco_instalacao: string | null;
 };
+
+type CommissionPolicy = {
+  id: string;
+  service_type: "GD_A" | "GD_B";
+  fcp_percent: number | null;
+  representative_percent: number;
+};
+
+type FaturaDetalhamento = {
+  id?: string;
+  cashback_cadastro_id: string;
+  grupo_tarifario: "A" | "B" | "";
+  valor_fatura: number;
+  item_cip: number;
+  item_juros: number;
+  item_multa: number;
+  item_bandeira_tarifaria: number;
+  item_uso_rede: number;
+  item_tributos: number;
+  item_parcelamentos: number;
+  item_terceiros: number;
+  item_extraordinarios: number;
+  item_outros: number;
+  observacoes: string;
+};
+
+const FATURA_VAZIA = (cashbackId: string): FaturaDetalhamento => ({
+  cashback_cadastro_id: cashbackId,
+  grupo_tarifario: "",
+  valor_fatura: 0,
+  item_cip: 0,
+  item_juros: 0,
+  item_multa: 0,
+  item_bandeira_tarifaria: 0,
+  item_uso_rede: 0,
+  item_tributos: 0,
+  item_parcelamentos: 0,
+  item_terceiros: 0,
+  item_extraordinarios: 0,
+  item_outros: 0,
+  observacoes: "",
+});
+
+const ITENS_NAO_COMISSIONAVEIS: { key: keyof FaturaDetalhamento; label: string }[] = [
+  { key: "item_cip", label: "CIP (Iluminação Pública)" },
+  { key: "item_juros", label: "Juros" },
+  { key: "item_multa", label: "Multa" },
+  { key: "item_bandeira_tarifaria", label: "Bandeira tarifária" },
+  { key: "item_uso_rede", label: "Uso de rede (TUSD)" },
+  { key: "item_tributos", label: "Tributos" },
+  { key: "item_parcelamentos", label: "Parcelamentos" },
+  { key: "item_terceiros", label: "Terceiros" },
+  { key: "item_extraordinarios", label: "Valores extraordinários" },
+  { key: "item_outros", label: "Outros" },
+];
+
+const fmtBRL = (n: number) =>
+  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 // ─── Configuração de status ───────────────────────────────────────────────────
 
@@ -140,6 +199,10 @@ export default function CashbackDetalhe() {
   const [valorLocal, setValorLocal] = useState("");
   const [savingObs, setSavingObs] = useState(false);
 
+  const [policies, setPolicies] = useState<CommissionPolicy[]>([]);
+  const [fatura, setFatura] = useState<FaturaDetalhamento | null>(null);
+  const [savingFatura, setSavingFatura] = useState(false);
+
   useEffect(() => {
     if (!id) return;
     supabase
@@ -154,7 +217,56 @@ export default function CashbackDetalhe() {
         setValorLocal((data as Cadastro).valor_cashback != null ? String((data as Cadastro).valor_cashback) : "");
         setLoading(false);
       });
+
+    supabase
+      .from("commission_policy")
+      .select("id, service_type, fcp_percent, representative_percent")
+      .eq("ativo", true)
+      .then(({ data }) => setPolicies((data ?? []) as CommissionPolicy[]));
+
+    supabase
+      .from("fatura_detalhamento")
+      .select("*")
+      .eq("cashback_cadastro_id", id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setFatura(data ? (data as FaturaDetalhamento) : FATURA_VAZIA(id));
+      });
   }, [id]);
+
+  const somaItens = fatura
+    ? ITENS_NAO_COMISSIONAVEIS.reduce((acc, { key }) => acc + (Number(fatura[key]) || 0), 0)
+    : 0;
+  const valorElegivel = fatura ? Math.max(0, (Number(fatura.valor_fatura) || 0) - somaItens) : 0;
+  const policyB = policies.find((p) => p.service_type === "GD_B");
+  const fcpValue = policyB && fatura?.grupo_tarifario === "B"
+    ? valorElegivel * Number(policyB.fcp_percent ?? 0)
+    : null;
+  const comissaoSugerida = fcpValue != null && policyB
+    ? fcpValue * Number(policyB.representative_percent)
+    : null;
+
+  const saveFatura = async () => {
+    if (!fatura || !id) return;
+    if (!fatura.grupo_tarifario) { toast.error("Selecione o grupo tarifário (A ou B)."); return; }
+    setSavingFatura(true);
+    const payload = {
+      ...fatura,
+      valor_elegivel: valorElegivel,
+      commission_policy_id: fatura.grupo_tarifario === "B" ? (policyB?.id ?? null) : null,
+      fcp_value: fcpValue,
+      comissao_sugerida: comissaoSugerida,
+    };
+    const { data, error } = await supabase
+      .from("fatura_detalhamento")
+      .upsert(payload, { onConflict: "cashback_cadastro_id" })
+      .select()
+      .single();
+    setSavingFatura(false);
+    if (error) { toast.error(error.message); return; }
+    setFatura(data as FaturaDetalhamento);
+    toast.success("Detalhamento da fatura salvo!");
+  };
 
   const updateStatus = async (status: string) => {
     if (!rec) return;
@@ -439,6 +551,101 @@ export default function CashbackDetalhe() {
             <Button onClick={saveObs} disabled={savingObs} className="w-full">
               {savingObs ? "Salvando..." : "Salvar"}
             </Button>
+          </Card>
+
+          {/* Detalhamento da fatura / comissão */}
+          <Card>
+            <CardTitle icon={<Calculator className="h-3.5 w-3.5" />} label="Detalhamento da fatura e comissão" />
+            {fatura && (
+              <>
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Grupo tarifário</label>
+                  <Select
+                    value={fatura.grupo_tarifario}
+                    onValueChange={(v: "A" | "B") => setFatura({ ...fatura, grupo_tarifario: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione, olhando a fatura" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="B">Grupo B (baixa tensão) — sem demanda contratada</SelectItem>
+                      <SelectItem value="A">Grupo A (alta tensão) — tem demanda contratada/faturada em kW</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {fatura.grupo_tarifario === "A" && (
+                  <p className="text-xs text-muted-foreground bg-muted/40 rounded-md p-2">
+                    Grupo A: a comissão é calculada mensalmente a partir do valor que a
+                    fornecedora paga pra Poupe (aba Fornecedoras → Comissão Recebida), não
+                    a partir desta fatura. Os itens abaixo são opcionais, só pra registro.
+                  </p>
+                )}
+
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Valor da fatura (R$)</label>
+                  <Input
+                    type="number" min="0" step="0.01"
+                    value={fatura.valor_fatura || ""}
+                    onChange={(e) => setFatura({ ...fatura, valor_fatura: Number(e.target.value) })}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold mb-2">Itens não comissionáveis (R$)</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {ITENS_NAO_COMISSIONAVEIS.map(({ key, label }) => (
+                      <div key={key}>
+                        <label className="text-[11px] text-muted-foreground block">{label}</label>
+                        <Input
+                          type="number" min="0" step="0.01"
+                          value={(fatura[key] as number) || ""}
+                          onChange={(e) => setFatura({ ...fatura, [key]: Number(e.target.value) })}
+                          className="h-8 text-sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-muted/40 rounded-md p-3 space-y-1 text-sm">
+                  <div className="flex justify-between"><span>Valor elegível</span><span className="font-semibold">{fmtBRL(valorElegivel)}</span></div>
+                  {fatura.grupo_tarifario === "B" && policyB && (
+                    <>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>FCP ({(Number(policyB.fcp_percent) * 100).toFixed(0)}%)</span>
+                        <span>{fmtBRL(fcpValue ?? 0)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-brand-blue border-t pt-1 mt-1">
+                        <span>Comissão sugerida ao parceiro</span>
+                        <span>{fmtBRL(comissaoSugerida ?? 0)}</span>
+                      </div>
+                    </>
+                  )}
+                  {fatura.grupo_tarifario === "B" && !policyB && (
+                    <p className="text-xs text-red-600">Política de comissão do Grupo B não encontrada.</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold block mb-1">Observações</label>
+                  <Textarea
+                    rows={2}
+                    value={fatura.observacoes ?? ""}
+                    onChange={(e) => setFatura({ ...fatura, observacoes: e.target.value })}
+                    className="text-sm resize-none"
+                  />
+                </div>
+
+                <Button onClick={saveFatura} disabled={savingFatura} className="w-full">
+                  {savingFatura ? "Salvando..." : "Salvar detalhamento"}
+                </Button>
+                <p className="text-[11px] text-muted-foreground">
+                  Isso ainda não gera comissão para o parceiro automaticamente — só guarda o
+                  cálculo. A geração de comissão rastreável é uma etapa futura.
+                </p>
+              </>
+            )}
           </Card>
 
           {/* Histórico */}

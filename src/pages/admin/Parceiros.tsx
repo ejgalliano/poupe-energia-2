@@ -41,6 +41,16 @@ type Empresa = { id: string; nome: string; parceira: boolean };
 type Estado = { id: number; sigla: string; nome: string };
 type Distribuidora = { id: string; nome: string; estado_id: number };
 
+type ComissaoMensal = {
+  id?: string;
+  empresa_id: string;
+  mes_referencia: string;
+  valor_recebido: number;
+  tributos: number;
+  valor_liquido: number;
+  observacoes: string | null;
+};
+
 type Lead = {
   id: string;
   empresa_id: string;
@@ -55,6 +65,12 @@ type Lead = {
 
 const formatDateTime = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+
+const fmtBRL = (n: number) =>
+  (n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const fmtMes = (mesRef: string) =>
+  new Date(mesRef + "T00:00:00").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
 export default function Parceiros() {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -76,13 +92,26 @@ export default function Parceiros() {
   const [filterDistrib, setFilterDistrib] = useState<string>("all");
   const [onlyWithContact, setOnlyWithContact] = useState(false);
 
+  // Comissão recebida da fornecedora (mensal)
+  const [comissoesMensais, setComissoesMensais] = useState<ComissaoMensal[]>([]);
+  const mesAtual = new Date().toISOString().slice(0, 7);
+  const [comissaoForm, setComissaoForm] = useState<ComissaoMensal>({
+    empresa_id: "",
+    mes_referencia: mesAtual,
+    valor_recebido: 0,
+    tributos: 0,
+    valor_liquido: 0,
+    observacoes: "",
+  });
+
   const loadAll = async () => {
-    const [e, p, l, es, d] = await Promise.all([
+    const [e, p, l, es, d, cm] = await Promise.all([
       supabase.from("empresas").select("id, nome, parceira").order("nome"),
       supabase.from("parceiros_config").select("*"),
       supabase.from("leads").select("*").order("created_at", { ascending: false }).limit(2000),
       supabase.from("estados").select("*").order("sigla"),
       supabase.from("distribuidoras").select("*").order("nome"),
+      supabase.from("fornecedora_comissao_mensal").select("*").order("mes_referencia", { ascending: false }),
     ]);
     setEmpresas((e.data ?? []) as Empresa[]);
     const map: Record<string, Parceiro> = {};
@@ -91,6 +120,7 @@ export default function Parceiros() {
     setLeads((l.data ?? []) as Lead[]);
     setEstados((es.data ?? []) as Estado[]);
     setDistribuidoras((d.data ?? []) as Distribuidora[]);
+    setComissoesMensais((cm.data ?? []) as ComissaoMensal[]);
   };
 
   useEffect(() => {
@@ -131,6 +161,30 @@ export default function Parceiros() {
     toast.success("Configuração do parceiro atualizada com sucesso!");
     setEditing(null);
     setForm(null);
+    loadAll();
+  };
+
+  const saveComissaoMensal = async () => {
+    if (!comissaoForm.empresa_id) { toast.error("Selecione a fornecedora."); return; }
+    const valorLiquido = Number(comissaoForm.valor_recebido) - Number(comissaoForm.tributos);
+    const payload = {
+      ...comissaoForm,
+      mes_referencia: comissaoForm.mes_referencia.length === 7 ? `${comissaoForm.mes_referencia}-01` : comissaoForm.mes_referencia,
+      valor_liquido: valorLiquido,
+    };
+    const { error } = await supabase
+      .from("fornecedora_comissao_mensal")
+      .upsert(payload, { onConflict: "empresa_id,mes_referencia" });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Comissão recebida lançada!");
+    setComissaoForm({
+      empresa_id: "",
+      mes_referencia: mesAtual,
+      valor_recebido: 0,
+      tributos: 0,
+      valor_liquido: 0,
+      observacoes: "",
+    });
     loadAll();
   };
 
@@ -203,6 +257,7 @@ export default function Parceiros() {
         <TabsList>
           <TabsTrigger value="config">Configuração de Fornecedoras Parceiras</TabsTrigger>
           <TabsTrigger value="leads">Relatório de Leads</TabsTrigger>
+          <TabsTrigger value="comissao">Comissão Recebida</TabsTrigger>
         </TabsList>
 
         {/* ============== CONFIG ============== */}
@@ -547,6 +602,117 @@ export default function Parceiros() {
                   Mostrando 200 mais recentes. Use o CSV para todos.
                 </p>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ============== COMISSAO RECEBIDA ============== */}
+        <TabsContent value="comissao" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Lançar comissão recebida no mês</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground mb-3">
+                Olhe no portal da fornecedora quanto ela pagou de comissão pra Poupe naquele
+                mês e lance aqui. Usado pro cálculo recorrente do Grupo A (GD Livre).
+              </p>
+              <div className="grid md:grid-cols-5 gap-3">
+                <div className="md:col-span-2">
+                  <label className="text-xs font-bold">Fornecedora</label>
+                  <Select
+                    value={comissaoForm.empresa_id}
+                    onValueChange={(v) => setComissaoForm({ ...comissaoForm, empresa_id: v })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {empresasParceiras.map((e) => (
+                        <SelectItem key={e.id} value={e.id}>{e.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold">Mês de referência</label>
+                  <Input
+                    type="month"
+                    value={comissaoForm.mes_referencia}
+                    onChange={(e) => setComissaoForm({ ...comissaoForm, mes_referencia: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold">Valor recebido (R$)</label>
+                  <Input
+                    type="number" min="0" step="0.01"
+                    value={comissaoForm.valor_recebido || ""}
+                    onChange={(e) => setComissaoForm({ ...comissaoForm, valor_recebido: Number(e.target.value) })}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold">Tributos (R$)</label>
+                  <Input
+                    type="number" min="0" step="0.01"
+                    value={comissaoForm.tributos || ""}
+                    onChange={(e) => setComissaoForm({ ...comissaoForm, tributos: Number(e.target.value) })}
+                  />
+                </div>
+                <div className="md:col-span-4">
+                  <label className="text-xs font-bold">Observações</label>
+                  <Input
+                    value={comissaoForm.observacoes ?? ""}
+                    onChange={(e) => setComissaoForm({ ...comissaoForm, observacoes: e.target.value })}
+                  />
+                </div>
+                <div className="flex flex-col justify-end">
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Líquido: <span className="font-semibold text-foreground">
+                      {fmtBRL(Number(comissaoForm.valor_recebido) - Number(comissaoForm.tributos))}
+                    </span>
+                  </div>
+                  <Button onClick={saveComissaoMensal}>
+                    <Save className="h-3 w-3 mr-1" /> Lançar
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Histórico de lançamentos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Mês</TableHead>
+                    <TableHead>Fornecedora</TableHead>
+                    <TableHead>Recebido</TableHead>
+                    <TableHead>Tributos</TableHead>
+                    <TableHead>Líquido</TableHead>
+                    <TableHead>Observações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {comissoesMensais.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="capitalize">{fmtMes(c.mes_referencia)}</TableCell>
+                      <TableCell>{empresaName(c.empresa_id)}</TableCell>
+                      <TableCell>{fmtBRL(c.valor_recebido)}</TableCell>
+                      <TableCell>{fmtBRL(c.tributos)}</TableCell>
+                      <TableCell className="font-semibold">{fmtBRL(c.valor_liquido)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{c.observacoes ?? "—"}</TableCell>
+                    </TableRow>
+                  ))}
+                  {comissoesMensais.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        Nenhum lançamento ainda.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
