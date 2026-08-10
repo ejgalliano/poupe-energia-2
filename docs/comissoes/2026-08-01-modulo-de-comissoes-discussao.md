@@ -158,12 +158,15 @@ valores podem mudar no futuro.
    ter controle centralizado. Vai precisar de outra tela de admin (lançamento mensal por
    fornecedora).
 
-4. **Se a comissão do Grupo A é realmente recorrente mês a mês por cliente,
-   indefinidamente** — usuário vai confirmar com o sócio. **Pendente.**
+4. **Respondido em 10/08/2026:** a comissão do Grupo A é recorrente mês a mês, enquanto a
+   fornecedora continuar pagando comissão pra Poupe (não tem prazo fixo). Já implementado
+   assim na Fase 1 (`recurring: true`, `trigger_event: MONTHLY_RECEIPT`).
 
-5. **Se o FCP de 48% é fixo pra Poupe inteira ou pode variar** — usuário vai confirmar com
-   o sócio. **Pendente** (mas de qualquer forma vai numa tabela parametrizável; o que falta
-   confirmar é a granularidade — só por serviço, ou também por fornecedora).
+5. **Respondido em 10/08/2026:** o FCP de 48% pode variar no futuro. Já implementado como
+   parametrizável e versionado na Fase 1 (`commission_policy`, editável em
+   `/admin/embaixadores` → aba Política de Comissão). A granularidade é por `service_type`
+   (GD_A/GD_B), igual pra todas as fornecedoras — o documento original do sócio já modelava
+   assim (uma linha de FCP por serviço, não por fornecedora), então não ficou pendente.
 
 6. O antigo `embaixadores.comissao_percentual = 5%` fixo (usado hoje quando aprova um
    candidato a parceiro) **era só provisório** — essa regra sendo definida agora é a de
