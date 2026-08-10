@@ -288,22 +288,32 @@ export default function CashbackDetalhe() {
     setFatura(data as FaturaDetalhamento);
 
     // Atualiza o vínculo com o parceiro, se houver: grupo tarifário sempre (usado nos
-    // relatórios), e a comissão de verdade só pro Grupo B (Grupo A vem do lançamento
-    // mensal por fornecedora, não desta fatura).
+    // relatórios). A comissão calculada só é aplicada automaticamente se a comissão ainda
+    // não tiver sido validada/paga — depois disso, corrigir a fatura não deve mudar um
+    // valor que já foi conferido ou pago de verdade; precisa de ajuste manual na ficha do
+    // lead. Fora do Grupo B (ou sem política), zera valor/política em vez de deixar um
+    // valor calculado com uma classificação antiga (ex: corrigiram de B pra A depois).
     if (vinculo) {
+      const jaConfirmado = vinculo.status_comissao === "validado" || vinculo.status_comissao === "pago";
       const vincPatch: { grupo_tarifario: "A" | "B"; valor_comissao?: number; commission_policy_id?: string | null } = {
         grupo_tarifario: fatura.grupo_tarifario,
       };
-      if (fatura.grupo_tarifario === "B" && comissaoSugerida != null) {
-        vincPatch.valor_comissao = comissaoSugerida;
-        vincPatch.commission_policy_id = policyB?.id ?? null;
+      if (!jaConfirmado) {
+        vincPatch.valor_comissao = fatura.grupo_tarifario === "B" && comissaoSugerida != null ? comissaoSugerida : 0;
+        vincPatch.commission_policy_id = fatura.grupo_tarifario === "B" ? (policyB?.id ?? null) : null;
       }
       const { error: vincErr } = await supabase
         .from("leads_embaixadores")
         .update(vincPatch)
         .eq("id", vinculo.id);
-      if (vincErr) toast.error("Fatura salva, mas falhou ao atualizar o vínculo do parceiro: " + vincErr.message);
-      else setVinculo({ ...vinculo, valor_comissao: vincPatch.valor_comissao ?? vinculo.valor_comissao });
+      if (vincErr) {
+        toast.error("Fatura salva, mas falhou ao atualizar o vínculo do parceiro: " + vincErr.message);
+      } else {
+        if (jaConfirmado) {
+          toast.info("Comissão deste parceiro já está \"" + vinculo.status_comissao + "\" — o valor não foi recalculado automaticamente. Ajuste manualmente na ficha do lead se necessário.");
+        }
+        setVinculo({ ...vinculo, valor_comissao: vincPatch.valor_comissao ?? vinculo.valor_comissao });
+      }
     }
 
     setSavingFatura(false);
