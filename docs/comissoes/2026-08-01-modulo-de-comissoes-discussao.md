@@ -1,9 +1,10 @@
 # Módulo de Comissões — discussão de design e implementação
 
-> Status em 10/08/2026: **Fase 1 e Fase 2 implementadas** (commits `3ebe763`, `cc380b6`).
-> Plano completo de 4 fases em `C:\Users\Usuario\.claude\plans\rustling-tumbling-pie.md`.
-> Fase 3 aguarda confirmação do usuário antes de começar (fases são gate-por-gate, não
-> sequência automática — Fase 3 mexe em fluxo público de verdade, é a mais sensível).
+> Status em 10/08/2026: **Fases 1, 2 e 3 implementadas** (commits `3ebe763`, `cc380b6`,
+> `0e28e97`). Plano completo de 4 fases em
+> `C:\Users\Usuario\.claude\plans\rustling-tumbling-pie.md`. Falta só a geração automática
+> da comissão recorrente do Grupo A (pendente de definição de regra com o sócio, ver seção
+> da Fase 3) e a Fase 4 (relatórios).
 > Documento original do sócio: `COMERCIAL/PARCERIA DE NEGOCIOS/POUPE ENERGIA/COMISSOES/Módulo de Comissões – Sistema Poupe Energia.docx`
 
 ## Fase 1 — Fundação (implementada 10/08/2026, commit `3ebe763`)
@@ -54,7 +55,56 @@
   arquivos), `vite build` de produção passou. Não foi possível testar visualmente no
   navegador nesta sessão por um bug de tooling não relacionado (ver
   `project_poupe_energia_repo.md` na memória do Claude — o preview local serve o projeto
-  errado por causa do cwd).
+  errado por causa do cwd). **Esse bug foi corrigido na Fase 3** (ver abaixo).
+
+## Fase 3 — Corrige o bug de vínculo (implementada 10/08/2026, commit `0e28e97`)
+
+- Migration `supabase/migrations/20260810124000_override_comissao_parceiro.sql` (usuário
+  ainda precisa rodar): `embaixadores.comissao_percentual` deixa de ser `NOT NULL DEFAULT 0`
+  e vira override **opcional** por parceiro do `representative_percent` da política ativa —
+  nulo = usa o padrão da política. A migration zera os valores existentes (todos vinham do
+  antigo 5% fixo, documentado como provisório desde 01/08 — nenhum representava uma decisão
+  real de override).
+- **Corrigido um bug latente:** `aprovarCandidato()` em `Embaixadores.tsx` gravava
+  `comissao_percentual: 5` em todo parceiro novo aprovado. Sem a correção acima, isso teria
+  **sobrescrito silenciosamente** a política real (48%/50%) da Fase 1 pra todo parceiro
+  aprovado dali pra frente — um bug que só seria percebido quando alguém notasse comissões
+  calculadas muito abaixo do esperado. Agora grava `null` (usa a política).
+- `AdesaoModal.tsx` e `Aderir.tsx`: campo "Código do parceiro" agora valida contra
+  `embaixadores` via `ilike` (mesmo padrão de `LeadCaptureDialog.tsx`), com feedback visual
+  em tempo real (loading/válido com nome do parceiro/inválido). Ao enviar a adesão com
+  código válido, cria a linha em `leads_embaixadores` via `cashback_cadastro_id` (não mais
+  só `lead_id`), status `pendente`, sem valor ainda. Isso corrige o bug original mapeado em
+  21/07/2026: o fluxo mais usado (adesão direta) nunca gerava vínculo rastreável.
+- `CashbackDetalhe.tsx`: ao salvar o detalhamento da fatura de uma adesão do **Grupo B** com
+  parceiro vinculado, calcula a comissão final (FCP × % do parceiro — usa o override se
+  tiver, senão o padrão da política) e **atualiza automaticamente** `valor_comissao` na
+  linha de `leads_embaixadores` vinculada. O status continua `pendente` — validar e marcar
+  como pago continua manual. Mostra no card qual parceiro está vinculado e se o % usado é
+  override ou padrão.
+- **Não implementado nesta fase (decisão consciente):** geração automática da comissão
+  recorrente do Grupo A a partir de `fornecedora_comissao_mensal`. Existe uma ambiguidade
+  de negócio não resolvida: o valor lançado ali representa o total que a fornecedora pagou
+  no mês (somando todos os clientes Grupo A dela — precisaria de uma regra de rateio entre
+  parceiros) ou é por cliente/indicação específica (precisaria vincular o lançamento a uma
+  adesão, não só a fornecedora+mês)? Perguntei ao usuário via pergunta estruturada e não
+  houve resposta ainda nesta sessão — **fica pendente até essa regra ser definida com o
+  sócio**. Enquanto isso, o Grupo A não gera comissão automática nenhuma (nem manual — isso
+  ficaria pra quando essa parte for desenhada).
+- **Bug de tooling do preview local corrigido nesta fase:** a config `poupe-energia` em
+  `.claude/launch.json` (na pasta `ProjetoInicial`) rodava `node vite.js` diretamente, que
+  herdava o cwd da sessão e servia o projeto errado (ver histórico em
+  `project_poupe_energia_repo.md`). Trocado pra `powershell -Command "Set-Location ...;
+  node vite.js"`, que força o diretório certo antes de subir o servidor. Testado e
+  funcionando — permitiu validar ao vivo no navegador (contra o Supabase real) que o código
+  de parceiro válido mostra o nome e o inválido mostra "Código não encontrado" no
+  `AdesaoModal`.
+- Verificado: `tsc --noEmit` limpo, `eslint` sem novos erros (baseline mantido nos 4
+  arquivos tocados), `vite build` de produção passou, teste manual no navegador (validação
+  do código de parceiro, ver acima). Não testei o fluxo completo de submissão (exige upload
+  de arquivo, que a ferramenta de navegador automatizado não suporta bem) — a lógica de
+  criação do vínculo no submit segue exatamente o mesmo padrão já testado no
+  `LeadCaptureDialog.tsx` existente.
 
 Usuário foi explícito: **"desenvolvimento pesado, importante e de risco, precisamos ser
 assertivos"** — combinado não implementar nada até o design estar redondo.
