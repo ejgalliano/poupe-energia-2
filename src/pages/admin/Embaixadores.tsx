@@ -52,6 +52,17 @@ type Candidato = {
   embaixador_id: string | null;
 };
 
+type CommissionPolicy = {
+  id: string;
+  service_type: "GD_A" | "GD_B";
+  fcp_percent: number | null;
+  representative_percent: number;
+  recurring: boolean;
+  trigger_event: "FIRST_PAYMENT" | "MONTHLY_RECEIPT";
+  vigente_desde: string;
+  ativo: boolean;
+};
+
 type LeadEmb = {
   id: string;
   lead_id: string;
@@ -101,6 +112,16 @@ const QTD_CLIENTES_LABELS: Record<string, string> = {
   acima2000: "Acima de 2.000",
 };
 
+const SERVICE_TYPE_LABELS: Record<string, string> = {
+  GD_B: "GD Grupo B (baixa tensão)",
+  GD_A: "GD Livre Grupo A (alta tensão)",
+};
+
+const TRIGGER_LABELS: Record<string, string> = {
+  FIRST_PAYMENT: "Comissão única, no primeiro pagamento",
+  MONTHLY_RECEIPT: "Comissão recorrente, a cada recebimento mensal",
+};
+
 const nextCodigo = (existing: string[]) => {
   const nums = existing
     .map((c) => /^PPO(\d+)$/i.exec(c)?.[1])
@@ -115,10 +136,14 @@ export default function Embaixadores() {
   const [leads, setLeads] = useState<LeadEmb[]>([]);
   const [empresas, setEmpresas] = useState<{ id: string; nome: string }[]>([]);
   const [candidatos, setCandidatos] = useState<Candidato[]>([]);
+  const [policies, setPolicies] = useState<CommissionPolicy[]>([]);
 
   const [editing, setEditing] = useState<Embaixador | null>(null);
   const [openForm, setOpenForm] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
+
+  const [editingPolicy, setEditingPolicy] = useState<CommissionPolicy | null>(null);
+  const [openPolicyForm, setOpenPolicyForm] = useState(false);
 
   // filtros leads
   const today = new Date().toISOString().slice(0, 10);
@@ -133,7 +158,7 @@ export default function Embaixadores() {
   const [selCandidato, setSelCandidato] = useState<Candidato | null>(null);
 
   const load = async () => {
-    const [e, l, emp, cand] = await Promise.all([
+    const [e, l, emp, cand, pol] = await Promise.all([
       supabase.from("embaixadores").select("*").order("codigo"),
       supabase
         .from("leads_embaixadores")
@@ -142,11 +167,13 @@ export default function Embaixadores() {
         .limit(2000),
       supabase.from("empresas").select("id, nome").order("nome"),
       supabase.from("embaixadores_candidatos").select("*").order("created_at", { ascending: false }),
+      supabase.from("commission_policy").select("*").eq("ativo", true).order("service_type"),
     ]);
     setEmbaixadores((e.data ?? []) as Embaixador[]);
     setLeads((l.data ?? []) as any);
     setEmpresas((emp.data ?? []) as any);
     setCandidatos((cand.data ?? []) as Candidato[]);
+    setPolicies((pol.data ?? []) as CommissionPolicy[]);
   };
 
   useEffect(() => { load(); }, []);
@@ -192,6 +219,33 @@ export default function Embaixadores() {
       .update({ ativo: !emb.ativo } as any)
       .eq("id", emb.id!);
     if (error) { toast.error(error.message); return; }
+    load();
+  };
+
+  const startEditPolicy = (p: CommissionPolicy) => {
+    setEditingPolicy({ ...p });
+    setOpenPolicyForm(true);
+  };
+
+  const savePolicy = async () => {
+    if (!editingPolicy) return;
+    const { id, ...rest } = editingPolicy;
+    const { error: deactivateErr } = await supabase
+      .from("commission_policy")
+      .update({ ativo: false })
+      .eq("id", id);
+    if (deactivateErr) { toast.error(deactivateErr.message); return; }
+    const { error: insertErr } = await supabase
+      .from("commission_policy")
+      .insert({ ...rest, ativo: true, vigente_desde: new Date().toISOString() });
+    if (insertErr) {
+      toast.error(insertErr.message);
+      await supabase.from("commission_policy").update({ ativo: true }).eq("id", id);
+      return;
+    }
+    toast.success("Política atualizada! A nova versão vale a partir de agora.");
+    setOpenPolicyForm(false);
+    setEditingPolicy(null);
     load();
   };
 
@@ -332,6 +386,7 @@ export default function Embaixadores() {
           <TabsTrigger value="cadastro">Parceiros Comerciais</TabsTrigger>
           <TabsTrigger value="leads">Leads por Parceiro Comercial</TabsTrigger>
           <TabsTrigger value="financeiro">Resumo Financeiro</TabsTrigger>
+          <TabsTrigger value="politica">Política de Comissão</TabsTrigger>
         </TabsList>
 
         {/* CANDIDATOS */}
@@ -603,6 +658,56 @@ export default function Embaixadores() {
             )}
           </div>
         </TabsContent>
+
+        {/* POLITICA DE COMISSAO */}
+        <TabsContent value="politica" className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Regras usadas para calcular a comissão dos Parceiros Comerciais. Editar não
+            sobrescreve a regra atual — cria uma nova versão a partir de agora, então
+            comissões já calculadas com a regra antiga não mudam.
+          </p>
+          <div className="grid md:grid-cols-2 gap-4">
+            {policies.map((p) => (
+              <Card key={p.id}>
+                <CardHeader>
+                  <CardTitle className="text-base">{SERVICE_TYPE_LABELS[p.service_type] ?? p.service_type}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {p.fcp_percent != null && (
+                    <div className="flex justify-between">
+                      <span>FCP (Fator Compensável Poupe)</span>
+                      <span className="font-bold">{(Number(p.fcp_percent) * 100).toFixed(2)}%</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>% do Parceiro Comercial</span>
+                    <span className="font-bold">{(Number(p.representative_percent) * 100).toFixed(2)}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Recorrente</span>
+                    <span>{p.recurring ? "Sim, mensal" : "Não, paga uma vez"}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {TRIGGER_LABELS[p.trigger_event] ?? p.trigger_event}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Vigente desde {new Date(p.vigente_desde).toLocaleDateString("pt-BR")}
+                  </div>
+                  <div className="pt-2">
+                    <Button size="sm" variant="outline" onClick={() => startEditPolicy(p)}>
+                      <Pencil className="h-3 w-3 mr-1" /> Editar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {policies.length === 0 && (
+              <p className="text-muted-foreground text-sm">
+                Nenhuma política cadastrada. Rode a migration do módulo de comissões no Supabase.
+              </p>
+            )}
+          </div>
+        </TabsContent>
       </Tabs>
 
       {/* Form Sheet */}
@@ -674,6 +779,57 @@ export default function Embaixadores() {
                   <X className="h-4 w-4 mr-1" /> Sair
                 </Button>
                 <Button onClick={saveEmb}><Save className="h-4 w-4 mr-1" /> Salvar</Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Policy Edit Sheet */}
+      <Sheet open={openPolicyForm} onOpenChange={setOpenPolicyForm}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>
+              Editar política — {editingPolicy ? (SERVICE_TYPE_LABELS[editingPolicy.service_type] ?? editingPolicy.service_type) : ""}
+            </SheetTitle>
+          </SheetHeader>
+          {editingPolicy && (
+            <div className="space-y-3 mt-4">
+              {editingPolicy.fcp_percent != null && (
+                <div>
+                  <label className="text-xs font-bold">FCP (Fator Compensável Poupe) — %</label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={Number(editingPolicy.fcp_percent) * 100}
+                    onChange={(e) => setEditingPolicy({ ...editingPolicy, fcp_percent: Number(e.target.value) / 100 })}
+                  />
+                </div>
+              )}
+              <div>
+                <label className="text-xs font-bold">% do Parceiro Comercial</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={Number(editingPolicy.representative_percent) * 100}
+                  onChange={(e) => setEditingPolicy({ ...editingPolicy, representative_percent: Number(e.target.value) / 100 })}
+                />
+              </div>
+              <div className="text-xs text-muted-foreground border rounded-md p-2 bg-muted/30">
+                {TRIGGER_LABELS[editingPolicy.trigger_event] ?? editingPolicy.trigger_event}
+                {" — "}
+                {editingPolicy.recurring ? "recorrente mensal" : "paga uma única vez"}.
+                Isso não muda ao editar os percentuais.
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Salvar cria uma nova versão desta política, vigente a partir de agora. As
+                comissões já calculadas com a versão anterior continuam com os valores antigos.
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="ghost" onClick={() => { setOpenPolicyForm(false); setEditingPolicy(null); }}>
+                  <X className="h-4 w-4 mr-1" /> Cancelar
+                </Button>
+                <Button onClick={savePolicy}><Save className="h-4 w-4 mr-1" /> Salvar nova versão</Button>
               </div>
             </div>
           )}
