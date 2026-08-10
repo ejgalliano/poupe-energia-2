@@ -1,10 +1,12 @@
 # Módulo de Comissões — discussão de design e implementação
 
-> Status em 10/08/2026: **Fases 1, 2 e 3 implementadas** (commits `3ebe763`, `cc380b6`,
-> `0e28e97`). Plano completo de 4 fases em
-> `C:\Users\Usuario\.claude\plans\rustling-tumbling-pie.md`. Falta só a geração automática
-> da comissão recorrente do Grupo A (pendente de definição de regra com o sócio, ver seção
-> da Fase 3) e a Fase 4 (relatórios).
+> Status em 10/08/2026: **Módulo implementado por completo (Fases 1-4)** — commits
+> `3ebe763`, `cc380b6`, `0e28e97`, `ec53d79`. Plano completo em
+> `C:\Users\Usuario\.claude\plans\rustling-tumbling-pie.md`. Único item que fica de fora,
+> por decisão consciente (não é falta de implementação, é regra de negócio ainda não
+> definida): geração automática da comissão recorrente do Grupo A — usuário vai perguntar
+> ao sócio se o lançamento mensal por fornecedora é um valor total (precisa de rateio) ou
+> por cliente específico (ver seção da Fase 3).
 > Documento original do sócio: `COMERCIAL/PARCERIA DE NEGOCIOS/POUPE ENERGIA/COMISSOES/Módulo de Comissões – Sistema Poupe Energia.docx`
 
 ## Fase 1 — Fundação (implementada 10/08/2026, commit `3ebe763`)
@@ -106,6 +108,26 @@
   criação do vínculo no submit segue exatamente o mesmo padrão já testado no
   `LeadCaptureDialog.tsx` existente.
 
+## Fase 4 — Relatórios (implementada 10/08/2026, commit `ec53d79`)
+
+- Aba "Leads por Parceiro Comercial" em `/admin/embaixadores` ganhou colunas de **Origem**
+  (Adesão/Cashback vs Solicitação de Parceria — as duas fontes caem na mesma tabela desde a
+  Fase 3, então a distinção agora é só de exibição) e **Grupo** (A/B, com o mês de
+  referência quando for uma parcela recorrente). Consumidor/email/telefone passam a vir de
+  `leads` ou `cashback_cadastros` dependendo da origem (antes só lia `leads`, o que deixava
+  em branco todo lead vindo de adesão direta). CSV export e o painel de detalhe do lead
+  atualizados do mesmo jeito.
+- **Corrigido de quebra:** o `saveFatura()` da Fase 3 só gravava `grupo_tarifario` em
+  `fatura_detalhamento`, não em `leads_embaixadores` (que também tem essa coluna, criada na
+  Fase 1). Sem isso, os relatórios não teriam como mostrar o grupo sem um join extra. Agora
+  grava nos dois lugares.
+- Resumo Financeiro não precisou de mudança estrutural — já lê `valor_comissao`, que a Fase
+  3 passou a calcular de verdade em vez de ficar sempre em 0.
+- Verificado: `tsc --noEmit` limpo, `eslint` sem novos erros (baseline mantido), `vite
+  build` de produção passou, query com o novo join (`cashback_cadastros`) validada contra o
+  schema real via chave anon (200 OK — um relacionamento inválido teria dado erro
+  específico do PostgREST, não 200).
+
 Usuário foi explícito: **"desenvolvimento pesado, importante e de risco, precisamos ser
 assertivos"** — combinado não implementar nada até o design estar redondo.
 
@@ -197,22 +219,25 @@ Mais:
 5. Conectar isso ao bug original já mapeado (abaixo): hoje `AdesaoModal`/`Aderir` nem
    validam nem vinculam o código de parceiro a `leads_embaixadores`.
 
-## Contexto original do bug (achado em 21/07/2026, ainda válido)
+## Contexto original do bug (achado em 21/07/2026, CORRIGIDO na Fase 3 em 10/08/2026)
 
-Existem dois sistemas de captura de indicação de parceiro que **nunca foram conectados**:
+Existiam dois sistemas de captura de indicação de parceiro que **nunca foram conectados**:
 
 1. **Fluxo "Solicitar parceria"** (`LeadCaptureDialog.tsx`) — valida o código contra
-   `embaixadores`, cria vínculo em `leads_embaixadores`. É a única fonte que os relatórios
-   do admin (`Embaixadores.tsx`) leem hoje.
+   `embaixadores`, cria vínculo em `leads_embaixadores`.
 2. **Fluxo "Contratar pela Poupe"** (`AdesaoModal.tsx`/`Aderir.tsx`) — o código de parceiro
-   é texto livre sem validação, salvo em `cashback_cadastros.codigo_embaixador`, nunca gera
-   vínculo em `leads_embaixadores`. `AtivarCashback.tsx` nem tem esse campo.
+   era texto livre sem validação, salvo em `cashback_cadastros.codigo_embaixador`, nunca
+   gerava vínculo em `leads_embaixadores`.
 
-Consequência: nenhuma adesão pelo fluxo mais comum gera comissão rastreável hoje.
+Consequência: nenhuma adesão pelo fluxo mais comum gerava comissão rastreável. **Corrigido
+na Fase 3** — ambos os fluxos agora validam o código e criam o vínculo (via
+`cashback_cadastro_id`), e a Fase 4 já atualizou os relatórios pra distinguir a origem.
 
 ## Próximos passos
 
-- Usuário confirma com o sócio os itens 4 e 5.
-- Depois disso, desenhar o schema (tabelas novas + extensão de `leads_embaixadores` ou
-  equivalente) **antes** de escrever qualquer código, dado o risco explicitamente
-  sinalizado pelo usuário.
+- ✅ Itens 4 e 5 respondidos pelo usuário em 10/08/2026 (ver seção de perguntas acima).
+- ✅ Fases 1-4 implementadas em 10/08/2026.
+- **Pendente:** usuário rodar a migration da Fase 3
+  (`20260810124000_override_comissao_parceiro.sql`) — as demais já foram confirmadas.
+- **Pendente:** definir com o sócio a regra de rateio da comissão recorrente do Grupo A
+  (ver seção da Fase 3) antes de implementar a geração automática.
