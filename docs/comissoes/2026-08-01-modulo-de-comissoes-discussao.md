@@ -1,12 +1,10 @@
 # Módulo de Comissões — discussão de design e implementação
 
-> Status em 10/08/2026: **Módulo implementado por completo (Fases 1-4)** — commits
-> `3ebe763`, `cc380b6`, `0e28e97`, `ec53d79`. Plano completo em
-> `C:\Users\Usuario\.claude\plans\rustling-tumbling-pie.md`. Único item que fica de fora,
-> por decisão consciente (não é falta de implementação, é regra de negócio ainda não
-> definida): geração automática da comissão recorrente do Grupo A — usuário vai perguntar
-> ao sócio se o lançamento mensal por fornecedora é um valor total (precisa de rateio) ou
-> por cliente específico (ver seção da Fase 3).
+> Status em 10/08/2026: **Módulo 100% implementado**, incluindo a geração automática da
+> comissão recorrente do Grupo A — commits `3ebe763`, `cc380b6`, `0e28e97`, `ec53d79`,
+> `41dafbd`, `bf77338`. O sócio esclareceu o mecanismo de rateio (ver seção "Geração da
+> comissão recorrente do Grupo A" abaixo) e a última peça foi implementada no mesmo dia.
+> Plano original em `C:\Users\Usuario\.claude\plans\rustling-tumbling-pie.md`.
 > Documento original do sócio: `COMERCIAL/PARCERIA DE NEGOCIOS/POUPE ENERGIA/COMISSOES/Módulo de Comissões – Sistema Poupe Energia.docx`
 
 ## Fase 1 — Fundação (implementada 10/08/2026, commit `3ebe763`)
@@ -84,15 +82,9 @@
   linha de `leads_embaixadores` vinculada. O status continua `pendente` — validar e marcar
   como pago continua manual. Mostra no card qual parceiro está vinculado e se o % usado é
   override ou padrão.
-- **Não implementado nesta fase (decisão consciente):** geração automática da comissão
-  recorrente do Grupo A a partir de `fornecedora_comissao_mensal`. Existe uma ambiguidade
-  de negócio não resolvida: o valor lançado ali representa o total que a fornecedora pagou
-  no mês (somando todos os clientes Grupo A dela — precisaria de uma regra de rateio entre
-  parceiros) ou é por cliente/indicação específica (precisaria vincular o lançamento a uma
-  adesão, não só a fornecedora+mês)? Perguntei ao usuário via pergunta estruturada e não
-  houve resposta ainda nesta sessão — **fica pendente até essa regra ser definida com o
-  sócio**. Enquanto isso, o Grupo A não gera comissão automática nenhuma (nem manual — isso
-  ficaria pra quando essa parte for desenhada).
+- **Geração automática do Grupo A não implementada nesta fase** por ambiguidade de negócio
+  ainda não resolvida na hora — **resolvida no mesmo dia e implementada depois da Fase 4**,
+  ver seção própria abaixo.
 - **Bug de tooling do preview local corrigido nesta fase:** a config `poupe-energia` em
   `.claude/launch.json` (na pasta `ProjetoInicial`) rodava `node vite.js` diretamente, que
   herdava o cwd da sessão e servia o projeto errado (ver histórico em
@@ -127,6 +119,41 @@
   build` de produção passou, query com o novo join (`cashback_cadastros`) validada contra o
   schema real via chave anon (200 OK — um relacionamento inválido teria dado erro
   específico do PostgREST, não 200).
+
+## Geração da comissão recorrente do Grupo A (implementada 10/08/2026, commit `bf77338`)
+
+**Mecanismo esclarecido pelo sócio em 10/08/2026:** o lançamento mensal por fornecedora
+(`fornecedora_comissao_mensal`) é sim um valor total (ex: R$5.000 em julho), mas a
+fornecedora manda, junto com o pagamento, um **relatório por cliente/UC** discriminando
+quanto cada cliente gerou de comissão (ex: Cliente A → R$1.000, Cliente B → R$800...). Duas
+perguntas de acompanhamento, também respondidas pelo sócio:
+
+1. **Esse valor por cliente já vem líquido** (sem tributos, iluminação pública, uso de
+   rede, ou qualquer coisa que não seja consumo de energia) — ou seja, já é o **FCP direto**
+   daquele cliente, sem nenhum cálculo de dedução adicional.
+2. **A equipe identifica o parceiro de cada linha pelo número da UC** — o sistema busca a
+   adesão por UC e mostra automaticamente qual parceiro já está vinculado a ela (vínculo
+   criado na Fase 3, quando a adesão foi cadastrada com um código válido).
+
+**Implementado:**
+- Migration `supabase/migrations/20260810133600_itens_comissao_mensal_grupo_a.sql`
+  (usuário ainda precisa rodar): tabela nova `fornecedora_comissao_mensal_itens` (1 linha
+  por cliente/UC dentro de um lançamento mensal) + índice único
+  `(cashback_cadastro_id, mes_referencia)` em `leads_embaixadores`, pra permitir uma linha
+  de comissão por mês por adesão no recorrente, sem afetar a linha "base" (mês nulo) criada
+  no momento da adesão.
+- Em `/admin/parceiros` → aba "Comissão Recebida", nova seção "Detalhamento por
+  cliente/UC": a equipe busca cada UC (busca automática do parceiro vinculado), lança o
+  valor gerado, e o sistema monta uma lista local desses itens com o total comparado ao
+  valor recebido do lançamento (aviso, não bloqueio, se não bater).
+- Ao salvar: grava o header + cada item, calcula `comissão do parceiro = valor gerado ×
+  representative_percent` (usa o override do parceiro se tiver, senão o padrão da política
+  GD_A ativa), e faz upsert em `leads_embaixadores` por `(cashback_cadastro_id,
+  mes_referencia)` — cria uma linha nova se for a primeira vez daquele mês, atualiza se já
+  existir. **Mesma proteção da Fase 3:** se a comissão daquele mês já estiver
+  `validado`/`pago`, não recalcula silenciosamente — avisa e exige ajuste manual.
+- Verificado: `tsc --noEmit` limpo, `eslint` sem novos erros (baseline restaurado depois de
+  remover casts `as any` desnecessários), `vite build` de produção passou.
 
 Usuário foi explícito: **"desenvolvimento pesado, importante e de risco, precisamos ser
 assertivos"** — combinado não implementar nada até o design estar redondo.
@@ -237,7 +264,11 @@ na Fase 3** — ambos os fluxos agora validam o código e criam o vínculo (via
 
 - ✅ Itens 4 e 5 respondidos pelo usuário em 10/08/2026 (ver seção de perguntas acima).
 - ✅ Fases 1-4 implementadas em 10/08/2026.
-- **Pendente:** usuário rodar a migration da Fase 3
-  (`20260810124000_override_comissao_parceiro.sql`) — as demais já foram confirmadas.
-- **Pendente:** definir com o sócio a regra de rateio da comissão recorrente do Grupo A
-  (ver seção da Fase 3) antes de implementar a geração automática.
+- ✅ Regra de rateio do Grupo A esclarecida pelo sócio e implementada em 10/08/2026 (ver
+  seção "Geração da comissão recorrente do Grupo A" acima).
+- **Pendente:** usuário rodar as migrations da Fase 3
+  (`20260810124000_override_comissao_parceiro.sql`) e da geração do Grupo A
+  (`20260810133600_itens_comissao_mensal_grupo_a.sql`) — as demais já foram confirmadas.
+- Módulo de comissões implementado por completo. Próximo passo natural é a equipe começar
+  a usar (lançar detalhamentos de fatura, comissões recebidas) e ajustar a política em
+  `/admin/embaixadores` se os percentuais mudarem.
