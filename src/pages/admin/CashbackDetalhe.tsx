@@ -9,9 +9,10 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { useAdminNivel } from "@/hooks/useAdminNivel";
 import {
   ArrowLeft, User, Zap, FileText, CheckCircle2, XCircle,
-  DollarSign, MessageSquare, Phone, Mail, Clock, ChevronRight, Eye, Calculator,
+  DollarSign, MessageSquare, Phone, Mail, Clock, ChevronRight, Eye, Calculator, Lock,
 } from "lucide-react";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -201,6 +202,8 @@ function CardTitle({ icon, label }: { icon: React.ReactNode; label: string }) {
 export default function CashbackDetalhe() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { nivel, loading: nivelLoading } = useAdminNivel();
+  const podeGerenciarComissoes = nivel === "gestor" || nivel === "super_admin";
   const [rec, setRec] = useState<Cadastro | null>(null);
   const [loading, setLoading] = useState(true);
   const [obsLocal, setObsLocal] = useState("");
@@ -226,6 +229,13 @@ export default function CashbackDetalhe() {
         setValorLocal((data as Cadastro).valor_cashback != null ? String((data as Cadastro).valor_cashback) : "");
         setLoading(false);
       });
+  }, [id]);
+
+  // Dados de comissão são restritos a nível Gestor+ (mesma regra da RLS no banco) — nem
+  // busca se o usuário não tem acesso, pra não gastar chamada à toa nem mostrar dado vazio
+  // como se "não houvesse nada lançado ainda".
+  useEffect(() => {
+    if (!id || nivelLoading || !podeGerenciarComissoes) return;
 
     supabase
       .from("commission_policy")
@@ -248,7 +258,7 @@ export default function CashbackDetalhe() {
       .eq("cashback_cadastro_id", id)
       .maybeSingle()
       .then(({ data }) => setVinculo(data as unknown as VinculoParceiro | null));
-  }, [id]);
+  }, [id, nivelLoading, podeGerenciarComissoes]);
 
   const somaItens = fatura
     ? ITENS_NAO_COMISSIONAVEIS.reduce((acc, { key }) => acc + (Number(fatura[key]) || 0), 0)
@@ -269,6 +279,7 @@ export default function CashbackDetalhe() {
     : null;
 
   const saveFatura = async () => {
+    if (!podeGerenciarComissoes) { toast.error("Restrito a usuários Gestor ou Super Admin."); return; }
     if (!fatura || !id) return;
     if (!fatura.grupo_tarifario) { toast.error("Selecione o grupo tarifário (A ou B)."); return; }
     setSavingFatura(true);
@@ -608,7 +619,15 @@ export default function CashbackDetalhe() {
           {/* Detalhamento da fatura / comissão */}
           <Card>
             <CardTitle icon={<Calculator className="h-3.5 w-3.5" />} label="Detalhamento da fatura e comissão" />
-            {vinculo ? (
+            {!nivelLoading && !podeGerenciarComissoes ? (
+              <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/40 rounded-md p-3">
+                <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>
+                  Restrito a usuários <strong>Gestor</strong> ou <strong>Super Admin</strong>.
+                  Peça pra alguém com esse nível lançar o detalhamento desta fatura.
+                </span>
+              </div>
+            ) : vinculo ? (
               <div className="text-xs bg-brand-blue/5 border border-brand-blue/20 rounded-md p-2">
                 Parceiro vinculado: <span className="font-mono font-semibold">{vinculo.embaixadores?.codigo}</span> — {vinculo.embaixadores?.nome}
                 {vinculo.embaixadores?.comissao_percentual != null && (

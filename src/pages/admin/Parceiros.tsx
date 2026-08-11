@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Download, Pencil, Save, X } from "lucide-react";
+import { useAdminNivel } from "@/hooks/useAdminNivel";
+import { Download, Pencil, Save, X, Lock } from "lucide-react";
 
 type Parceiro = {
   id?: string;
@@ -96,6 +97,8 @@ const fmtMes = (mesRef: string) =>
   new Date(mesRef + "T00:00:00").toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 
 export default function Parceiros() {
+  const { nivel, loading: nivelLoading } = useAdminNivel();
+  const podeGerenciarComissoes = nivel === "gestor" || nivel === "super_admin";
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [parceiros, setParceiros] = useState<Record<string, Parceiro>>({});
   const [editing, setEditing] = useState<string | null>(null);
@@ -132,14 +135,12 @@ export default function Parceiros() {
   const [savingComissao, setSavingComissao] = useState(false);
 
   const loadAll = async () => {
-    const [e, p, l, es, d, cm, pol] = await Promise.all([
+    const [e, p, l, es, d] = await Promise.all([
       supabase.from("empresas").select("id, nome, parceira").order("nome"),
       supabase.from("parceiros_config").select("*"),
       supabase.from("leads").select("*").order("created_at", { ascending: false }).limit(2000),
       supabase.from("estados").select("*").order("sigla"),
       supabase.from("distribuidoras").select("*").order("nome"),
-      supabase.from("fornecedora_comissao_mensal").select("*").order("mes_referencia", { ascending: false }),
-      supabase.from("commission_policy").select("id, representative_percent").eq("service_type", "GD_A").eq("ativo", true).maybeSingle(),
     ]);
     setEmpresas((e.data ?? []) as Empresa[]);
     const map: Record<string, Parceiro> = {};
@@ -148,13 +149,26 @@ export default function Parceiros() {
     setLeads((l.data ?? []) as Lead[]);
     setEstados((es.data ?? []) as Estado[]);
     setDistribuidoras((d.data ?? []) as Distribuidora[]);
-    setComissoesMensais((cm.data ?? []) as ComissaoMensal[]);
-    setPolicyA((pol.data ?? null) as CommissionPolicyA | null);
   };
 
   useEffect(() => {
     loadAll();
   }, []);
+
+  // Comissão recebida é restrita a nível Gestor+ (mesma regra da RLS no banco).
+  const loadComissoes = async () => {
+    const [cm, pol] = await Promise.all([
+      supabase.from("fornecedora_comissao_mensal").select("*").order("mes_referencia", { ascending: false }),
+      supabase.from("commission_policy").select("id, representative_percent").eq("service_type", "GD_A").eq("ativo", true).maybeSingle(),
+    ]);
+    setComissoesMensais((cm.data ?? []) as ComissaoMensal[]);
+    setPolicyA((pol.data ?? null) as CommissionPolicyA | null);
+  };
+
+  useEffect(() => {
+    if (nivelLoading || !podeGerenciarComissoes) return;
+    loadComissoes();
+  }, [nivelLoading, podeGerenciarComissoes]);
 
   const empresasParceiras = useMemo(
     () => empresas.filter((e) => e.parceira),
@@ -256,6 +270,7 @@ export default function Parceiros() {
   const totalItens = itens.reduce((acc, it) => acc + (parseFloat(it.comissaoGerada.replace(",", ".")) || 0), 0);
 
   const saveComissaoMensal = async () => {
+    if (!podeGerenciarComissoes) { toast.error("Restrito a usuários Gestor ou Super Admin."); return; }
     if (!comissaoForm.empresa_id) { toast.error("Selecione a fornecedora."); return; }
     setSavingComissao(true);
     const mesRef = comissaoForm.mes_referencia.length === 7 ? `${comissaoForm.mes_referencia}-01` : comissaoForm.mes_referencia;
@@ -325,7 +340,7 @@ export default function Parceiros() {
     setItens([]);
     setItemAtual(ITEM_VAZIO);
     setSavingComissao(false);
-    loadAll();
+    loadComissoes();
   };
 
   // ============ Leads filtrados ============
@@ -748,6 +763,16 @@ export default function Parceiros() {
 
         {/* ============== COMISSAO RECEBIDA ============== */}
         <TabsContent value="comissao" className="space-y-4">
+          {!nivelLoading && !podeGerenciarComissoes ? (
+            <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/40 rounded-md p-4">
+              <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>
+                Restrito a usuários <strong>Gestor</strong> ou <strong>Super Admin</strong>.
+                Peça pra alguém com esse nível lançar a comissão recebida da fornecedora.
+              </span>
+            </div>
+          ) : (
+          <>
           <Card>
             <CardHeader>
               <CardTitle>Lançar comissão recebida no mês</CardTitle>
@@ -953,6 +978,8 @@ export default function Parceiros() {
               </Table>
             </CardContent>
           </Card>
+          </>
+          )}
         </TabsContent>
       </Tabs>
     </div>

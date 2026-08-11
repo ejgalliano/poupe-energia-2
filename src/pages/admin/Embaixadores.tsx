@@ -18,7 +18,8 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Copy, Download, Pencil, Plus, Save, X, CheckCircle2, XCircle, Eye } from "lucide-react";
+import { useAdminNivel } from "@/hooks/useAdminNivel";
+import { Copy, Download, Pencil, Plus, Save, X, CheckCircle2, XCircle, Eye, Lock } from "lucide-react";
 
 type Embaixador = {
   id?: string;
@@ -153,6 +154,8 @@ const nextCodigo = (existing: string[]) => {
 };
 
 export default function Embaixadores() {
+  const { nivel, loading: nivelLoading } = useAdminNivel();
+  const podeGerenciarComissoes = nivel === "gestor" || nivel === "super_admin";
   const [embaixadores, setEmbaixadores] = useState<Embaixador[]>([]);
   const [leads, setLeads] = useState<LeadEmb[]>([]);
   const [empresas, setEmpresas] = useState<{ id: string; nome: string }[]>([]);
@@ -179,7 +182,7 @@ export default function Embaixadores() {
   const [selCandidato, setSelCandidato] = useState<Candidato | null>(null);
 
   const load = async () => {
-    const [e, l, emp, cand, pol] = await Promise.all([
+    const [e, l, emp, cand] = await Promise.all([
       supabase.from("embaixadores").select("*").order("codigo"),
       supabase
         .from("leads_embaixadores")
@@ -188,16 +191,21 @@ export default function Embaixadores() {
         .limit(2000),
       supabase.from("empresas").select("id, nome").order("nome"),
       supabase.from("embaixadores_candidatos").select("*").order("created_at", { ascending: false }),
-      supabase.from("commission_policy").select("*").eq("ativo", true).order("service_type"),
     ]);
     setEmbaixadores((e.data ?? []) as Embaixador[]);
     setLeads((l.data ?? []) as any);
     setEmpresas((emp.data ?? []) as any);
     setCandidatos((cand.data ?? []) as Candidato[]);
-    setPolicies((pol.data ?? []) as CommissionPolicy[]);
   };
 
   useEffect(() => { load(); }, []);
+
+  // Política de comissão é restrita a nível Gestor+ (mesma regra da RLS no banco).
+  useEffect(() => {
+    if (nivelLoading || !podeGerenciarComissoes) return;
+    supabase.from("commission_policy").select("*").eq("ativo", true).order("service_type")
+      .then(({ data }) => setPolicies((data ?? []) as CommissionPolicy[]));
+  }, [nivelLoading, podeGerenciarComissoes]);
 
   const startNew = () => {
     setEditing({
@@ -249,6 +257,7 @@ export default function Embaixadores() {
   };
 
   const savePolicy = async () => {
+    if (!podeGerenciarComissoes) { toast.error("Restrito a usuários Gestor ou Super Admin."); return; }
     if (!editingPolicy) return;
     const { id, ...rest } = editingPolicy;
     const { error: deactivateErr } = await supabase
@@ -710,6 +719,16 @@ export default function Embaixadores() {
 
         {/* POLITICA DE COMISSAO */}
         <TabsContent value="politica" className="space-y-4">
+          {!nivelLoading && !podeGerenciarComissoes ? (
+            <div className="flex items-start gap-2 text-sm text-muted-foreground bg-muted/40 rounded-md p-4">
+              <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>
+                Restrito a usuários <strong>Gestor</strong> ou <strong>Super Admin</strong>.
+                Peça pra alguém com esse nível ver ou editar a política de comissão.
+              </span>
+            </div>
+          ) : (
+          <>
           <p className="text-sm text-muted-foreground">
             Regras usadas para calcular a comissão dos Parceiros Comerciais. Editar não
             sobrescreve a regra atual — cria uma nova versão a partir de agora, então
@@ -756,6 +775,8 @@ export default function Embaixadores() {
               </p>
             )}
           </div>
+          </>
+          )}
         </TabsContent>
       </Tabs>
 
