@@ -1,10 +1,12 @@
 # Módulo de Comissões — discussão de design e implementação
 
-> Status em 10/08/2026: **Módulo 100% implementado**, incluindo a geração automática da
-> comissão recorrente do Grupo A — commits `3ebe763`, `cc380b6`, `0e28e97`, `ec53d79`,
-> `41dafbd`, `bf77338`. O sócio esclareceu o mecanismo de rateio (ver seção "Geração da
-> comissão recorrente do Grupo A" abaixo) e a última peça foi implementada no mesmo dia.
-> Plano original em `C:\Users\Usuario\.claude\plans\rustling-tumbling-pie.md`.
+> Status em 11/08/2026: **Módulo 100% implementado e com acesso restrito a Gestor+** —
+> commits `3ebe763`, `cc380b6`, `0e28e97`, `ec53d79`, `41dafbd`, `bf77338`, `63512ba`. O
+> sócio esclareceu o mecanismo de rateio do Grupo A e a última peça foi implementada no
+> mesmo dia (10/08). No dia seguinte, o usuário confirmou que só Gestor/Super Admin devem
+> mexer com comissão, e as telas passaram a mostrar uma mensagem clara pra quem não tem
+> esse nível, em vez de UI vazia ou erro cru do Postgres (ver seção "Controle de acesso"
+> abaixo). Plano original em `C:\Users\Usuario\.claude\plans\rustling-tumbling-pie.md`.
 > Documento original do sócio: `COMERCIAL/PARCERIA DE NEGOCIOS/POUPE ENERGIA/COMISSOES/Módulo de Comissões – Sistema Poupe Energia.docx`
 
 ## Fase 1 — Fundação (implementada 10/08/2026, commit `3ebe763`)
@@ -260,15 +262,46 @@ Consequência: nenhuma adesão pelo fluxo mais comum gerava comissão rastreáve
 na Fase 3** — ambos os fluxos agora validam o código e criam o vínculo (via
 `cashback_cadastro_id`), e a Fase 4 já atualizou os relatórios pra distinguir a origem.
 
+## Controle de acesso — restrito a Gestor+ (implementado 11/08/2026, commit `63512ba`)
+
+Usuário confirmou em 11/08/2026: só usuários **Gestor** ou **Super Admin** devem trabalhar
+com comissões. As tabelas já exigiam isso via RLS desde a Fase 1, mas a UI não refletia —
+um usuário **Operacional** conseguia abrir `/admin/cashback` (que ele já acessa
+normalmente) e via o card de detalhamento da fatura em branco, como se ninguém tivesse
+lançado nada ainda (a RLS escondia os dados existentes em vez de mostrar um aviso), e ao
+tentar salvar recebia um erro cru do Postgres em vez de uma explicação.
+
+**Corrigido:** adicionada checagem de nível (`useAdminNivel`) nos três pontos que lidam com
+comissão:
+- Card "Detalhamento da fatura e comissão" em `CashbackDetalhe.tsx`.
+- Aba "Política de Comissão" em `Embaixadores.tsx`.
+- Aba "Comissão Recebida" em `Parceiros.tsx`.
+
+Cada um mostra uma mensagem explícita ("Restrito a usuários Gestor ou Super Admin") em vez
+de UI vazia ou erro genérico quando o usuário logado não tem o nível certo. As queries
+relacionadas a comissão só disparam depois de confirmado que o usuário tem o nível certo —
+evita tanto chamadas desnecessárias quanto o risco de interpretar "sem permissão" como
+"nada cadastrado ainda". Os botões de salvar (`savePolicy`, `saveFatura`,
+`saveComissaoMensal`) também têm a mesma checagem, como segunda camada de defesa.
+
+**Nota:** a aba "Resumo Financeiro" em `Embaixadores.tsx` (pré-existente, não criada neste
+módulo) não foi restrita — ela só mostra totais agregados de `valor_comissao`, não edita
+nada relacionado à política/fatura/lançamento. Se o usuário quiser restringir isso também
+no futuro, é só avisar.
+
+Verificado: `tsc --noEmit` limpo, `eslint` sem novos erros (baseline mantido nos 3
+arquivos), `vite build` de produção passou.
+
 ## Próximos passos
 
 - ✅ Itens 4 e 5 respondidos pelo usuário em 10/08/2026 (ver seção de perguntas acima).
 - ✅ Fases 1-4 implementadas em 10/08/2026.
 - ✅ Regra de rateio do Grupo A esclarecida pelo sócio e implementada em 10/08/2026 (ver
   seção "Geração da comissão recorrente do Grupo A" acima).
-- **Pendente:** usuário rodar as migrations da Fase 3
-  (`20260810124000_override_comissao_parceiro.sql`) e da geração do Grupo A
-  (`20260810133600_itens_comissao_mensal_grupo_a.sql`) — as demais já foram confirmadas.
-- Módulo de comissões implementado por completo. Próximo passo natural é a equipe começar
-  a usar (lançar detalhamentos de fatura, comissões recebidas) e ajustar a política em
-  `/admin/embaixadores` se os percentuais mudarem.
+- ✅ Acesso restrito a Gestor+ implementado em 11/08/2026 (ver seção acima).
+- ✅ Todas as migrations do módulo (Fases 1-3 + geração do Grupo A) rodadas e confirmadas
+  pelo usuário via chave anon, até 11/08/2026.
+- Módulo de comissões implementado por completo, sem pendências técnicas conhecidas.
+  Próximo passo natural é a equipe começar a usar (lançar detalhamentos de fatura,
+  comissões recebidas) e ajustar a política em `/admin/embaixadores` se os percentuais
+  mudarem.
