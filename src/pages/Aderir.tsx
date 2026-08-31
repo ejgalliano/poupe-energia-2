@@ -631,7 +631,13 @@ export default function Aderir() {
         return;
       }
 
-      const { data: novaAdesao, error } = await supabase.from("cashback_cadastros" as any).insert({
+      // Gera o id no navegador — o usuário anônimo pode INSERIR em cashback_cadastros mas
+      // não pode ler de volta (sem grant de SELECT), então usar .select() aqui falharia
+      // com "permission denied" mesmo com a linha salva corretamente (bug real encontrado
+      // e corrigido em 11/08/2026, introduzido na Fase 3 do módulo de comissões).
+      const novaAdesaoId = crypto.randomUUID();
+      const { error } = await supabase.from("cashback_cadastros" as any).insert({
+        id:                novaAdesaoId,
         nome:              form.nome,
         cpf_cnpj:          form.cpf_cnpj,
         email:             form.email,
@@ -658,14 +664,14 @@ export default function Aderir() {
         ciente_parcela_unica: true,
         autoriza_validacao: true,
         status: "pendente",
-      } as any).select("id").single();
+      } as any);
 
       if (error) throw error;
 
       // Vínculo com o Parceiro Comercial, se o código informado for válido
-      if (embValidation.state === "valid" && form.empresa_id && novaAdesao) {
+      if (embValidation.state === "valid" && form.empresa_id) {
         await supabase.from("leads_embaixadores").insert({
-          cashback_cadastro_id: novaAdesao.id,
+          cashback_cadastro_id: novaAdesaoId,
           embaixador_id: embValidation.id,
           empresa_id: form.empresa_id,
           status_comissao: "pendente",
