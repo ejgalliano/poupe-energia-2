@@ -115,7 +115,7 @@ export default function AdminLayout() {
       <aside className="w-60 bg-[hsl(214,50%,24%)] text-white flex flex-col">
         <div className="p-4 border-b border-white/10 flex items-center justify-center bg-white">
           <img
-            src="https://tvyjosqitdgwqjpzvgib.supabase.co/storage/v1/object/public/assets//logo poupe energia.jpeg"
+            src="/logo-dark.png"
             alt="Poupe Energia"
             className="h-8 w-auto object-contain"
           />

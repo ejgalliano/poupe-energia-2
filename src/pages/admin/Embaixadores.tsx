@@ -144,6 +144,10 @@ const TRIGGER_LABELS: Record<string, string> = {
   MONTHLY_RECEIPT: "Comissão recorrente, a cada recebimento mensal",
 };
 
+// Converte fração (0.55) pra percentual exibível (55) sem arrastar erro de ponto
+// flutuante do JS (0.55 * 100 dá 55.00000000000001).
+const fracaoParaPercentual = (fracao: number) => Math.round(Number(fracao) * 10000) / 100;
+
 const nextCodigo = (existing: string[]) => {
   const nums = existing
     .map((c) => /^PPO(\d+)$/i.exec(c)?.[1])
@@ -201,10 +205,14 @@ export default function Embaixadores() {
   useEffect(() => { load(); }, []);
 
   // Política de comissão é restrita a nível Gestor+ (mesma regra da RLS no banco).
+  const loadPolicies = async () => {
+    const { data } = await supabase.from("commission_policy").select("*").eq("ativo", true).order("service_type");
+    setPolicies((data ?? []) as CommissionPolicy[]);
+  };
+
   useEffect(() => {
     if (nivelLoading || !podeGerenciarComissoes) return;
-    supabase.from("commission_policy").select("*").eq("ativo", true).order("service_type")
-      .then(({ data }) => setPolicies((data ?? []) as CommissionPolicy[]));
+    loadPolicies();
   }, [nivelLoading, podeGerenciarComissoes]);
 
   const startNew = () => {
@@ -276,7 +284,7 @@ export default function Embaixadores() {
     toast.success("Política atualizada! A nova versão vale a partir de agora.");
     setOpenPolicyForm(false);
     setEditingPolicy(null);
-    load();
+    loadPolicies();
   };
 
   const copyLink = (codigo: string) => {
@@ -880,7 +888,7 @@ export default function Embaixadores() {
                   <Input
                     type="number"
                     step="0.01"
-                    value={Number(editingPolicy.fcp_percent) * 100}
+                    value={fracaoParaPercentual(editingPolicy.fcp_percent)}
                     onChange={(e) => setEditingPolicy({ ...editingPolicy, fcp_percent: Number(e.target.value) / 100 })}
                   />
                 </div>
@@ -890,7 +898,7 @@ export default function Embaixadores() {
                 <Input
                   type="number"
                   step="0.01"
-                  value={Number(editingPolicy.representative_percent) * 100}
+                  value={fracaoParaPercentual(editingPolicy.representative_percent)}
                   onChange={(e) => setEditingPolicy({ ...editingPolicy, representative_percent: Number(e.target.value) / 100 })}
                 />
               </div>

@@ -175,7 +175,7 @@ const Sobre = () => {
           </h2>
           <div className="bg-white border border-border rounded-2xl p-8 shadow-sm flex flex-col md:flex-row items-center gap-6">
             <img
-              src="https://tvyjosqitdgwqjpzvgib.supabase.co/storage/v1/object/public/assets//logo poupe energia.jpeg"
+              src="/logo-dark.png"
               alt="Poupe Energia"
               className="h-20 md:h-28 w-auto object-contain"
             />
