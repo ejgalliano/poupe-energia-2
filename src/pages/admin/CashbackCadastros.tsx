@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Download, Search } from "lucide-react";
+import { Download, Search, Trash2, RotateCcw, XCircle } from "lucide-react";
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -49,6 +49,7 @@ type Cadastro = {
   classe_consumo: string | null;
   nome_titular: string | null;
   endereco_instalacao: string | null;
+  deletado_em: string | null;
 };
 
 // ─── Configuração de status ───────────────────────────────────────────────────
@@ -92,6 +93,7 @@ export default function CashbackCadastros() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [viewLixeira, setViewLixeira] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -110,11 +112,47 @@ export default function CashbackCadastros() {
   const filtrados = useMemo(() => {
     const q = search.toLowerCase();
     return cadastros.filter((c) => {
-      if (filterStatus !== "all" && c.status !== filterStatus) return false;
+      if (viewLixeira ? !c.deletado_em : !!c.deletado_em) return false;
+      if (!viewLixeira && filterStatus !== "all" && c.status !== filterStatus) return false;
       if (q && ![c.nome, c.email, c.cpf_cnpj, c.distribuidora_nome ?? "", c.empresa_nome ?? "", c.telefone ?? "", c.whatsapp].some((v) => v.toLowerCase().includes(q))) return false;
       return true;
     });
-  }, [cadastros, search, filterStatus]);
+  }, [cadastros, search, filterStatus, viewLixeira]);
+
+  const totalNaLixeira = useMemo(() => cadastros.filter((c) => c.deletado_em).length, [cadastros]);
+
+  // ── Lixeira ──
+  const moverParaLixeira = async (id: string) => {
+    if (!confirm("Mover esta adesão para a lixeira? Dá pra restaurar depois.")) return;
+    const { error } = await supabase
+      .from("cashback_cadastros")
+      .update({ deletado_em: new Date().toISOString() })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Movido para a lixeira.");
+    load();
+  };
+
+  const restaurar = async (id: string) => {
+    const { error } = await supabase
+      .from("cashback_cadastros")
+      .update({ deletado_em: null })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Restaurado.");
+    load();
+  };
+
+  const excluirDefinitivo = async (id: string) => {
+    if (!confirm("Excluir DEFINITIVAMENTE esta adesão? Essa ação não pode ser desfeita.")) return;
+    const { error } = await supabase
+      .from("cashback_cadastros")
+      .delete()
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Excluído definitivamente.");
+    load();
+  };
 
   // ── Export CSV ──
   const exportCSV = () => {
@@ -149,13 +187,25 @@ export default function CashbackCadastros() {
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Gestão de Adesões</h1>
-        <Button variant="outline" onClick={exportCSV}>
-          <Download className="h-4 w-4 mr-1" /> Exportar CSV
-        </Button>
+        <h1 className="text-2xl font-bold">
+          {viewLixeira ? "Lixeira" : "Gestão de Adesões"}
+        </h1>
+        <div className="flex gap-2">
+          <Button
+            variant={viewLixeira ? "default" : "outline"}
+            onClick={() => setViewLixeira((v) => !v)}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            {viewLixeira ? "Voltar pra Adesões" : `Lixeira${totalNaLixeira > 0 ? ` (${totalNaLixeira})` : ""}`}
+          </Button>
+          <Button variant="outline" onClick={exportCSV}>
+            <Download className="h-4 w-4 mr-1" /> Exportar CSV
+          </Button>
+        </div>
       </div>
 
       {/* Cards de resumo */}
+      {!viewLixeira && (
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
         {[
           { label: "Pendentes",          key: "pendente",            color: "text-yellow-700",  bg: "bg-yellow-50"  },
@@ -178,6 +228,7 @@ export default function CashbackCadastros() {
           </Card>
         ))}
       </div>
+      )}
 
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -190,17 +241,19 @@ export default function CashbackCadastros() {
             className="pl-9"
           />
         </div>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-52">
-            <SelectValue placeholder="Todos os status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os status</SelectItem>
-            {STATUS_OPTIONS.map((s) => (
-              <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {!viewLixeira && (
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-52">
+              <SelectValue placeholder="Todos os status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os status</SelectItem>
+              {STATUS_OPTIONS.map((s) => (
+                <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* Tabela */}
@@ -218,11 +271,12 @@ export default function CashbackCadastros() {
                 <TableHead>Fatura</TableHead>
                 <TableHead>Docs</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading && (
-                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">Carregando...</TableCell></TableRow>
               )}
               {!loading && filtrados.map((c) => (
                 <TableRow key={c.id} className="cursor-pointer hover:bg-muted/40" onClick={() => navigate(`/admin/cashback/${c.id}`)}>
@@ -270,10 +324,28 @@ export default function CashbackCadastros() {
                       {STATUS_LABELS[c.status] ?? c.status}
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    {viewLixeira ? (
+                      <div className="flex justify-end gap-1">
+                        <Button size="sm" variant="ghost" title="Restaurar" onClick={() => restaurar(c.id)}>
+                          <RotateCcw className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700" title="Excluir definitivamente" onClick={() => excluirDefinitivo(c.id)}>
+                          <XCircle className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-red-600" title="Mover para a lixeira" onClick={() => moverParaLixeira(c.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
               {!loading && filtrados.length === 0 && (
-                <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Nenhuma adesão encontrada.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                  {viewLixeira ? "Lixeira vazia." : "Nenhuma adesão encontrada."}
+                </TableCell></TableRow>
               )}
             </TableBody>
           </Table>

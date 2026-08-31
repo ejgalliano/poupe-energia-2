@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useAdminNivel } from "@/hooks/useAdminNivel";
 import {
   ArrowLeft, User, Zap, FileText, CheckCircle2, XCircle,
-  DollarSign, MessageSquare, Phone, Mail, Clock, ChevronRight, Eye, Calculator, Lock,
+  DollarSign, MessageSquare, Phone, Mail, Clock, ChevronRight, Eye, Calculator, Lock, Trash2,
 } from "lucide-react";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -60,6 +60,7 @@ type Cadastro = {
   classe_consumo: string | null;
   nome_titular: string | null;
   endereco_instalacao: string | null;
+  deletado_em: string | null;
 };
 
 type CommissionPolicy = {
@@ -374,6 +375,18 @@ export default function CashbackDetalhe() {
     setSavingObs(false);
   };
 
+  const moverParaLixeira = async () => {
+    if (!rec) return;
+    if (!confirm("Mover esta adesão para a lixeira? Dá pra restaurar depois na tela de Adesões.")) return;
+    const { error } = await supabase
+      .from("cashback_cadastros")
+      .update({ deletado_em: new Date().toISOString() })
+      .eq("id", rec.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Movido para a lixeira.");
+    navigate("/admin/cashback");
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center h-64 text-muted-foreground">Carregando...</div>
   );
@@ -400,6 +413,9 @@ export default function CashbackDetalhe() {
         <Badge className={`${STATUS_COLORS[rec.status] ?? "bg-gray-100 text-gray-700"} text-sm px-3 py-1`}>
           {STATUS_LABELS[rec.status] ?? rec.status}
         </Badge>
+        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-red-600 gap-2" onClick={moverParaLixeira}>
+          <Trash2 className="h-4 w-4" /> Lixeira
+        </Button>
       </div>
 
       {/* Layout duas colunas */}
