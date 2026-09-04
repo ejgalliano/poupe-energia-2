@@ -103,7 +103,7 @@ function LogoField({ value, onChange }: { value: string; onChange: (url: string)
 export default function EmpresaForm({ empresa, onClose }: { empresa: any | null; onClose: () => void }) {
   const [f, setF] = useState<any>(
     empresa ?? {
-      nome: "", tipo: "GD", ativa: true, parceira: false, cashback_percentual: 10,
+      nome: "", tipo: "GD", ativa: true, parceira: false, exibe_cashback: false, cashback_percentual: 10,
       fontes_geracao: [], canais_atendimento: [], aviso_previo_dias: 90,
       tipo_fornecedor: "intermediador",
       atende_residencial: true, atende_empresarial: true,
@@ -133,7 +133,7 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
       return;
     }
     setSaving(true);
-    const payload = { ...f, parceira: !!f.parceira, ativa: !!f.ativa };
+    const payload = { ...f, parceira: !!f.parceira, exibe_cashback: !!f.exibe_cashback, ativa: !!f.ativa };
     delete payload.created_at;
     let res;
     if (savedId) {
@@ -216,7 +216,8 @@ export default function EmpresaForm({ empresa, onClose }: { empresa: any | null;
           <Field label="Cashback %"><Input type="number" value={f.cashback_percentual ?? 10} onChange={(e) => set("cashback_percentual", +e.target.value)} /></Field>
           <Field label="Estados de atuação"><Input value={f.estados_atuacao ?? ""} onChange={(e) => set("estados_atuacao", e.target.value)} placeholder="ex: SP, RJ, MG" /></Field>
           <Field label="Arquétipo"><Input value={f.arquetipo ?? ""} onChange={(e) => set("arquetipo", e.target.value)} /></Field>
-          <CheckField label="Parceira (exibe cashback)" checked={!!f.parceira} onChange={(v) => set("parceira", v)} />
+          <CheckField label="Fornecedora Parceira (comercial)" checked={!!f.parceira} onChange={(v) => set("parceira", v)} />
+          <CheckField label="Exibir cashback pro consumidor" checked={!!f.exibe_cashback} onChange={(v) => set("exibe_cashback", v)} />
           <CheckField label="Ativa (aparece no ranking)" checked={!!f.ativa} onChange={(v) => set("ativa", v)} />
           <CheckField label="Atende Residencial (Grupo B — Baixa Tensão)" checked={f.atende_residencial !== false} onChange={(v) => set("atende_residencial", v)} />
           <CheckField label="Atende Empresarial (Grupo A e B — Média e Alta Tensão)" checked={f.atende_empresarial !== false} onChange={(v) => set("atende_empresarial", v)} />

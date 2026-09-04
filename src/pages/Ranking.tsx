@@ -149,7 +149,7 @@ const Ranking = () => {
   useEffect(() => {
     supabase
       .from("empresas")
-      .select("id, logo_url, site_url, cashback_percentual, parceira, desconto_ate_1mwh, desconto_1a3mwh, desconto_3a5mwh, desconto_acima_5mwh")
+      .select("id, logo_url, site_url, cashback_percentual, parceira, exibe_cashback, desconto_ate_1mwh, desconto_1a3mwh, desconto_3a5mwh, desconto_acima_5mwh")
       .then(({ data }) => {
         if (!data) return;
         const logos: Record<string, string> = {};
@@ -159,7 +159,7 @@ const Ranking = () => {
         data.forEach((e: any) => {
           if (e.logo_url) logos[e.id] = e.logo_url;
           if (e.site_url) siteUrls[e.id] = e.site_url;
-          if (e.parceira && e.cashback_percentual) cashbacks[e.id] = e.cashback_percentual;
+          if (e.exibe_cashback && e.cashback_percentual) cashbacks[e.id] = e.cashback_percentual;
           bands[e.id] = {
             d1: e.desconto_ate_1mwh ?? null,
             d2: e.desconto_1a3mwh ?? null,

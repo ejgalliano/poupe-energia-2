@@ -755,7 +755,7 @@ const Empresa = () => {
               </>
             )}
 
-            {empresa.parceira && (
+            {empresa.exibe_cashback && (
               <div className="mt-3 inline-flex w-full items-center justify-center gap-1.5 bg-brand-yellow/20 text-brand-blue px-3 py-2 rounded-full text-xs font-bold">
                 ⚡ {empresa.cashback_percentual ?? 10}% de cashback na adesão
               </div>

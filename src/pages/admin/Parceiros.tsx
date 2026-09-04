@@ -24,7 +24,7 @@ import {
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAdminNivel } from "@/hooks/useAdminNivel";
-import { Download, Pencil, Save, X, Lock } from "lucide-react";
+import { Download, Pencil, Save, X, Lock, Trash2 } from "lucide-react";
 
 type Parceiro = {
   id?: string;
@@ -204,6 +204,33 @@ export default function Parceiros() {
     toast.success("Configuração do parceiro atualizada com sucesso!");
     setEditing(null);
     setForm(null);
+    loadAll();
+  };
+
+  // Pausa/retoma a parceria sem tirar a fornecedora da lista nem apagar a configuração
+  // (comissão, link de afiliado, contato) já cadastrada.
+  const toggleAtivoParceiro = async (empresaId: string) => {
+    const existing = parceiros[empresaId];
+    const novoAtivo = existing ? !existing.ativo : false;
+    const { error } = await supabase
+      .from("parceiros_config")
+      .upsert({ ...(existing ?? { empresa_id: empresaId }), ativo: novoAtivo }, { onConflict: "empresa_id" });
+    if (error) { toast.error(error.message); return; }
+    toast.success(novoAtivo ? "Parceria reativada." : "Parceria desativada.");
+    loadAll();
+  };
+
+  // Remove a fornecedora da lista de parceiras comerciais (desmarca empresas.parceira).
+  // Não apaga a fornecedora nem a configuração — é reversível editando a ficha dela em
+  // /admin/empresas ou marcando "Fornecedora Parceira" de novo.
+  const removerParceiro = async (empresaId: string, nome: string) => {
+    if (!confirm(`Remover "${nome}" da lista de Fornecedoras Parceiras? A fornecedora continua cadastrada normalmente — isso só tira ela dessa lista comercial. Dá pra marcar como parceira de novo depois.`)) return;
+    const { error } = await supabase
+      .from("empresas")
+      .update({ parceira: false })
+      .eq("id", empresaId);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Removida da lista de parceiras.");
     loadAll();
   };
 
@@ -456,9 +483,17 @@ export default function Parceiros() {
                           )}
                         </div>
                         {!isEditing && (
-                          <Button size="sm" variant="outline" onClick={() => startEdit(emp.id)}>
-                            <Pencil className="h-3 w-3 mr-1" /> Editar
-                          </Button>
+                          <div className="flex gap-1.5">
+                            <Button size="sm" variant="outline" onClick={() => startEdit(emp.id)}>
+                              <Pencil className="h-3 w-3 mr-1" /> Editar
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => toggleAtivoParceiro(emp.id)}>
+                              {cfg?.ativo === false ? "Reativar" : "Desativar"}
+                            </Button>
+                            <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => removerParceiro(emp.id, emp.nome)}>
+                              <Trash2 className="h-3 w-3 mr-1" /> Remover
+                            </Button>
+                          </div>
                         )}
                       </div>
 

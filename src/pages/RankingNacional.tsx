@@ -92,7 +92,7 @@ const RankingNacional = () => {
       // Buscar apenas empresas Ouro (fornecedor_direto) e Prata (operador)
       const { data: empresas } = await supabase
         .from("empresas")
-        .select("id, nome, parceira, ativa, tipo_fornecedor, logo_url, site_url, cashback_percentual, desconto_ate_1mwh, desconto_1a3mwh, desconto_3a5mwh, desconto_acima_5mwh")
+        .select("id, nome, parceira, exibe_cashback, ativa, tipo_fornecedor, logo_url, site_url, cashback_percentual, desconto_ate_1mwh, desconto_1a3mwh, desconto_3a5mwh, desconto_acima_5mwh")
         .eq("ativa", true)
         .in("tipo_fornecedor", ["fornecedor_direto", "operador"]);
 
@@ -150,7 +150,7 @@ const RankingNacional = () => {
             minValue: formatBRL(minVal),
             score: Number(score.toFixed(2)),
             partner: Boolean(e.parceira),
-            cashbackPercentual: e.parceira && (e as any).cashback_percentual ? (e as any).cashback_percentual : null,
+            cashbackPercentual: e.exibe_cashback && (e as any).cashback_percentual ? (e as any).cashback_percentual : null,
             descontoAte1mwh: (e as any).desconto_ate_1mwh ?? null,
             desconto1a3mwh: (e as any).desconto_1a3mwh ?? null,
             desconto3a5mwh: (e as any).desconto_3a5mwh ?? null,
